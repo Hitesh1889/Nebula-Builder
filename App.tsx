@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Eye, Code, Download, ExternalLink, PanelLeftClose, PanelLeftOpen, Maximize, Minimize } from 'lucide-react';
+import { Eye, Code, Download, ExternalLink, PanelLeftClose, PanelLeftOpen, Maximize, Minimize, XCircle, Smartphone, Tablet, Monitor } from 'lucide-react';
 import JSZip from 'jszip';
 import Header from './components/Header';
 import PromptInput from './components/PromptInput';
@@ -48,6 +48,7 @@ const App: React.FC = () => {
 
   const [status, setStatus] = useState<GenerationStatus>(GenerationStatus.IDLE);
   const [viewMode, setViewMode] = useState<ViewMode>('PREVIEW');
+  const [previewDevice, setPreviewDevice] = useState<'desktop' | 'tablet' | 'mobile'>('desktop');
   const [isHistoryOpen, setIsHistoryOpen] = useState(false);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
@@ -147,7 +148,7 @@ const App: React.FC = () => {
     } catch (error) {
       console.error(error);
       setStatus(GenerationStatus.ERROR);
-      alert("Failed to generate website. Please ensure your API Key is valid.");
+      // Removed alert to rely on the UI error state
     }
   };
 
@@ -259,7 +260,7 @@ const App: React.FC = () => {
                canRedo={canRedo}
              />
 
-             <div className="hidden lg:flex flex-1 min-h-0">
+             <div className="flex flex-1 min-h-0">
                <SidebarTools setPrompt={setPrompt} />
              </div>
           </div>
@@ -282,7 +283,7 @@ const App: React.FC = () => {
         <div className="flex-1 flex flex-col h-full relative bg-slate-100 dark:bg-slate-950 min-w-0 transition-colors duration-300">
           
           {/* Toolbar */}
-          <div className={`h-14 border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 flex items-center justify-between px-4 transition-all duration-300 ${!isFullscreen ? 'pl-16' : ''}`}>
+          <div className={`h-14 border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 flex items-center justify-between px-4 transition-all duration-300 ${!isFullscreen ? 'pl-16' : ''} relative`}>
             <div className="flex items-center gap-1 bg-slate-100 dark:bg-slate-800 rounded-lg p-1">
               <button
                 onClick={() => setViewMode('PREVIEW')}
@@ -307,6 +308,33 @@ const App: React.FC = () => {
                 Code
               </button>
             </div>
+
+            {/* Device Toggles (Centered) */}
+            {viewMode === 'PREVIEW' && (
+               <div className="absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 hidden md:flex items-center gap-1 bg-slate-100 dark:bg-slate-800 p-1 rounded-lg border border-slate-200 dark:border-slate-700 shadow-sm z-10">
+                  <button
+                    onClick={() => setPreviewDevice('mobile')}
+                    className={`p-1.5 rounded-md transition-all ${previewDevice === 'mobile' ? 'bg-white dark:bg-slate-600 shadow-sm text-indigo-600 dark:text-white' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'}`}
+                    title="Mobile View (375px)"
+                  >
+                    <Smartphone className="w-4 h-4" />
+                  </button>
+                  <button
+                    onClick={() => setPreviewDevice('tablet')}
+                    className={`p-1.5 rounded-md transition-all ${previewDevice === 'tablet' ? 'bg-white dark:bg-slate-600 shadow-sm text-indigo-600 dark:text-white' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'}`}
+                    title="Tablet View (768px)"
+                  >
+                    <Tablet className="w-4 h-4" />
+                  </button>
+                  <button
+                    onClick={() => setPreviewDevice('desktop')}
+                    className={`p-1.5 rounded-md transition-all ${previewDevice === 'desktop' ? 'bg-white dark:bg-slate-600 shadow-sm text-indigo-600 dark:text-white' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'}`}
+                    title="Desktop View"
+                  >
+                    <Monitor className="w-4 h-4" />
+                  </button>
+               </div>
+            )}
 
             <div className="flex items-center gap-2">
               <button
@@ -345,28 +373,56 @@ const App: React.FC = () => {
           {/* Content Area */}
           <div className="flex-1 relative overflow-hidden flex flex-col">
              {status === GenerationStatus.ERROR && (
-               <div className="absolute inset-0 z-10 flex items-center justify-center bg-white/80 dark:bg-slate-900/90 backdrop-blur-sm">
-                  <div className="bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/50 p-6 rounded-xl max-w-md text-center">
-                    <p className="text-red-600 dark:text-red-400 mb-2 font-medium">Generation Failed</p>
-                    <p className="text-slate-600 dark:text-slate-400 text-sm">There was an issue connecting to the AI service. Please try again.</p>
+               <div className="absolute inset-0 z-30 flex items-center justify-center bg-white/80 dark:bg-slate-900/90 backdrop-blur-sm p-4">
+                  <div className="bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/50 p-6 rounded-xl max-w-md w-full text-center shadow-2xl relative">
+                    <button 
+                      onClick={() => setStatus(GenerationStatus.IDLE)}
+                      className="absolute top-2 right-2 p-1 text-red-400 hover:text-red-600 transition-colors"
+                    >
+                      <XCircle className="w-5 h-5" />
+                    </button>
+                    <div className="w-12 h-12 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
+                      <XCircle className="w-6 h-6 text-red-600 dark:text-red-400" />
+                    </div>
+                    <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100 mb-2">Generation Failed</h3>
+                    <p className="text-slate-600 dark:text-slate-400 text-sm mb-6 leading-relaxed">
+                      The AI service could not be reached. This is most likely because the 
+                      <span className="font-mono text-red-600 dark:text-red-400 bg-red-100 dark:bg-red-900/30 px-1.5 py-0.5 rounded mx-1">API_KEY</span> 
+                      environment variable is missing or invalid.
+                    </p>
+                    <button 
+                      onClick={() => setStatus(GenerationStatus.IDLE)}
+                      className="w-full py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm font-medium hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors text-slate-700 dark:text-slate-300"
+                    >
+                      Dismiss
+                    </button>
                   </div>
                </div>
              )}
 
              {viewMode === 'PREVIEW' ? (
-                <div className="w-full h-full p-4 lg:p-8 bg-slate-100 dark:bg-slate-950 flex flex-col transition-colors duration-300">
-                   <div className="flex-1 relative w-full h-full">
-                         {status === GenerationStatus.GENERATING && (
-                            <div className="absolute inset-0 z-20 bg-white/50 dark:bg-slate-900/50 backdrop-blur-sm flex items-center justify-center flex-col gap-4 rounded-xl">
-                                <div className="w-12 h-12 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin"></div>
-                                <p className="text-slate-900 dark:text-white font-medium animate-pulse">Designing your website...</p>
+                <div className="w-full h-full bg-slate-100 dark:bg-slate-950 flex flex-col items-center justify-center p-4 lg:p-8 transition-colors duration-300 overflow-hidden">
+                   <div className="w-full h-full flex flex-col items-center justify-center overflow-auto custom-scrollbar">
+                        <div className={`
+                            relative transition-all duration-500 ease-in-out shadow-2xl bg-white dark:bg-slate-900 shrink-0
+                            ${previewDevice === 'mobile' ? 'w-[375px] h-[812px] rounded-[3rem] border-[8px] border-slate-800 dark:border-slate-800' : ''}
+                            ${previewDevice === 'tablet' ? 'w-[768px] h-[1024px] rounded-[2rem] border-[8px] border-slate-800 dark:border-slate-800' : ''}
+                            ${previewDevice === 'desktop' ? 'w-full h-full rounded-xl border border-slate-200 dark:border-slate-800' : ''}
+                        `}>
+                            {status === GenerationStatus.GENERATING && (
+                                <div className="absolute inset-0 z-20 bg-white/50 dark:bg-slate-900/50 backdrop-blur-sm flex items-center justify-center flex-col gap-4 rounded-inherit">
+                                    <div className="w-12 h-12 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin"></div>
+                                    <p className="text-slate-900 dark:text-white font-medium animate-pulse">Designing your website...</p>
+                                </div>
+                            )}
+                            <div className={`w-full h-full overflow-hidden bg-white ${previewDevice !== 'desktop' ? 'rounded-[2.4rem]' : 'rounded-xl'}`}>
+                                <PreviewFrame 
+                                content={previewContent} 
+                                refreshKey={iframeKey} 
+                                isLoading={isPreviewLoading}
+                                />
                             </div>
-                         )}
-                         <PreviewFrame 
-                           content={previewContent} 
-                           refreshKey={iframeKey} 
-                           isLoading={isPreviewLoading}
-                         />
+                        </div>
                    </div>
                 </div>
              ) : (
