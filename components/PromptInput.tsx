@@ -45,7 +45,7 @@ const PromptInput: React.FC<PromptInputProps> = ({
 
   return (
     <div className="flex flex-col gap-4 p-4 bg-white dark:bg-slate-800/50 rounded-xl border border-slate-200 dark:border-slate-700/50 shadow-sm backdrop-blur-sm transition-colors duration-300">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between pl-10 lg:pl-0">
         <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">
           Describe your dream website
         </label>

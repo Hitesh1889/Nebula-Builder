@@ -271,7 +271,7 @@ const App: React.FC = () => {
           onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
           className={`
             absolute top-3 z-30 p-2 bg-white dark:bg-slate-800 text-slate-500 dark:text-slate-400 border border-slate-200 dark:border-slate-700 rounded-lg hover:text-indigo-600 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-700 transition-all shadow-lg
-            ${isSidebarCollapsed ? 'left-4' : 'left-[416px] hidden lg:block'}
+            ${isSidebarCollapsed ? 'left-4' : 'left-4 lg:left-[416px]'}
             ${isFullscreen ? 'hidden' : ''}
           `}
           title={isSidebarCollapsed ? "Show Controls" : "Hide Controls"}
