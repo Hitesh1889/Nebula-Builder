@@ -36,18 +36,22 @@ const PreviewFrame: React.FC<PreviewFrameProps> = ({ content, refreshKey, isLoad
           
           const href = link.getAttribute('href');
           
-          if (!href || href === '#') {
-            e.preventDefault();
+          // Allow hash links (anchors within page)
+          if (href && href.startsWith('#') && href.length > 1) {
             return;
           }
           
-          if (href.startsWith('#') && href.length > 1) {
-            return;
-          }
-          
+          // Block all other navigation
           e.preventDefault();
           console.log('Preview navigation blocked:', href);
-        }, { capture: false });
+          
+          // Optional: If it's a '#' or empty link with no onclick, we might want to log warning
+          if (!href || href === '#' || href === '/') {
+             // Just swallow
+             return;
+          }
+          
+        }, { capture: true }); // Use capture to intercept before other handlers
       </script>
     `;
 
