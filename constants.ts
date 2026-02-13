@@ -37,15 +37,17 @@ Your task is to generate a **fully functional, self-contained Single Page Applic
    - By default, only the 'Home' section should be visible. All others must be hidden (use CSS \`.hidden { display: none; }\`).
    - Implement a \`navigateTo(sectionId)\` function in JavaScript that hides all sections and shows the target one.
 
-3. **MOBILE RESPONSIVENESS & MENU (MANDATORY)**:
-   - You **MUST** implement a mobile-responsive navbar.
-   - **Hamburger Menu**: Create a button (visible only on mobile) to toggle the menu.
-   - **Mobile Menu Logic**: 
-     - The menu list must be hidden by default on mobile.
-     - Clicking the hamburger button must toggle the menu's visibility.
-     - Clicking ANY link inside the mobile menu must:
-       1. Trigger \`navigateTo(target)\`.
-       2. **CLOSE** the mobile menu immediately.
+3. **RESPONSIVE NAVIGATION (MANDATORY)**:
+   - **Desktop View (width >= 768px)**: 
+     - **SHOW** navigation links horizontally in the header (e.g., \`hidden md:flex\`).
+     - **HIDE** the hamburger menu button (e.g., \`md:hidden\`).
+   - **Mobile View (width < 768px)**: 
+     - **HIDE** the horizontal links.
+     - **SHOW** a hamburger menu button.
+     - Clicking the hamburger toggles a vertical mobile menu.
+   - **Interactivity**:
+     - Clicking ANY link (Desktop or Mobile) must trigger \`navigateTo(target)\`.
+     - Clicking a Mobile link must also **CLOSE** the mobile menu automatically.
 
 4. **CONTENT & VISUALS**:
    - **Populate ALL sections**. Do not generate "Coming Soon" or empty pages.
