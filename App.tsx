@@ -1,6 +1,6 @@
 
-import React, { useState, useEffect } from 'react';
-import { Eye, Code, Download, ExternalLink, PanelLeftClose, PanelLeftOpen, Maximize, Minimize, XCircle, Smartphone, Tablet, Monitor, Pencil } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { Eye, Code, Download, ExternalLink, PanelLeftClose, PanelLeftOpen, Maximize, Minimize, XCircle, Smartphone, Tablet, Monitor, Pencil, Undo2, Redo2 } from 'lucide-react';
 import JSZip from 'jszip';
 import Header from './components/Header';
 import PromptInput from './components/PromptInput';
@@ -48,6 +48,7 @@ const App: React.FC = () => {
   } = useUndoRedoState(INITIAL_PROMPT);
 
   const [status, setStatus] = useState<GenerationStatus>(GenerationStatus.IDLE);
+  const [errorMessage, setErrorMessage] = useState<string>('');
   const [viewMode, setViewMode] = useState<ViewMode>('PREVIEW');
   const [previewDevice, setPreviewDevice] = useState<'desktop' | 'tablet' | 'mobile'>('desktop');
   const [isHistoryOpen, setIsHistoryOpen] = useState(false);
@@ -60,7 +61,11 @@ const App: React.FC = () => {
   // Debounced content for preview to avoid flashing/lagging on every keystroke
   const [previewContent, setPreviewContent] = useState<GeneratedContent | null>(null);
   const [isPreviewLoading, setIsPreviewLoading] = useState(false);
+  
+  // Track previous content length to detect large changes (like Undo)
+  const prevContentLength = useRef(0);
 
+  // Handle content updates
   useEffect(() => {
     if (!generatedContent) {
         setPreviewContent(null);
@@ -68,28 +73,41 @@ const App: React.FC = () => {
         return;
     }
 
-    // Optimization: If content hasn't actually changed reference (e.g. from immediate generation), skip debounce
-    if (generatedContent === previewContent) {
-        setIsPreviewLoading(false);
+    // Optimization: If content hasn't actually changed string-wise, skip
+    if (previewContent && 
+        generatedContent.html === previewContent.html && 
+        generatedContent.css === previewContent.css && 
+        generatedContent.javascript === previewContent.javascript) {
         return;
     }
+    
+    // Heuristic: If length changes significantly (>50 chars), it's likely an Undo/Redo or Generate
+    // In these cases, we want immediate feedback, not a debounce.
+    const currentLength = generatedContent.html.length + generatedContent.css.length;
+    const isLargeChange = Math.abs(currentLength - prevContentLength.current) > 50;
+    prevContentLength.current = currentLength;
 
-    setIsPreviewLoading(true);
-
-    const timer = setTimeout(() => {
-        setPreviewContent(generatedContent);
-        setIframeKey(prev => prev + 1); // Force iframe refresh to ensure clean state
-        setIsPreviewLoading(false);
-    }, 1000); 
-
-    return () => clearTimeout(timer);
+    if (isLargeChange) {
+       setPreviewContent(generatedContent);
+       setIsPreviewLoading(false);
+    } else {
+       // Small changes (typing) get debounced to prevent flashing
+       const timer = setTimeout(() => {
+           setPreviewContent(generatedContent);
+           setIsPreviewLoading(false);
+       }, 150); // Reduced from 1000ms to 150ms for snappier feel
+       return () => clearTimeout(timer);
+    }
+    
   }, [generatedContent, previewContent]);
 
   const handleGenerationSuccess = (content: GeneratedContent) => {
     setGeneratedContent(content); 
     setPreviewContent(content); 
     setIsPreviewLoading(false);
-    setIsEditable(false); // Reset edit mode on new generation
+    setIsEditable(false); 
+    setErrorMessage('');
+    setIframeKey(prev => prev + 1); // Force fresh mount for new generation
   }
 
   const handleHistorySelect = (content: GeneratedContent) => {
@@ -97,12 +115,21 @@ const App: React.FC = () => {
      setPreviewContent(content); 
      setIsPreviewLoading(false);
      setIsEditable(false);
+     setErrorMessage('');
+     setIframeKey(prev => prev + 1); // Force fresh mount for history
   }
 
   const handleCodeChange = (type: 'html' | 'css' | 'javascript', value: string) => {
     if (!generatedContent) return;
     const newContent = { ...generatedContent, [type]: value };
     updateContent(newContent); 
+  };
+
+  const handleVisualEditUpdate = (newHtml: string) => {
+    if (!generatedContent) return;
+    // Don't trigger global loading for visual edits to keep it snappy
+    const newContent = { ...generatedContent, html: newHtml };
+    updateContent(newContent);
   };
 
   useEffect(() => {
@@ -129,6 +156,7 @@ const App: React.FC = () => {
 
   const handleGenerate = async (modelId: string) => {
     setStatus(GenerationStatus.GENERATING);
+    setErrorMessage('');
     setViewMode('PREVIEW'); 
     
     if (window.innerWidth < 1024) {
@@ -139,7 +167,6 @@ const App: React.FC = () => {
       const content = await generateWebsite(prompt, modelId);
       handleGenerationSuccess(content);
       setStatus(GenerationStatus.COMPLETED);
-      setIframeKey(prev => prev + 1); 
 
       saveToSidebarHistory({
         id: crypto.randomUUID(),
@@ -152,9 +179,47 @@ const App: React.FC = () => {
     } catch (error) {
       console.error(error);
       setStatus(GenerationStatus.ERROR);
-      // Removed alert to rely on the UI error state
+      setErrorMessage(error instanceof Error ? error.message : "An unknown error occurred");
     }
   };
+
+  // Robust Image Handler Script (Shared between Preview and Export)
+  // UPDATED: Now uses Picsum Photos with deterministic seeds based on Alt text
+  const imageHandlerScript = `
+    <script>
+      function fixImage(img) {
+        if (img.dataset.retries) return;
+        img.dataset.retries = '1';
+        
+        // Generate a stable seed from the alt text so the same image loads for the same content
+        const str = img.alt || 'default';
+        let hash = 0;
+        for (let i = 0; i < str.length; i++) {
+          hash = ((hash << 5) - hash) + str.charCodeAt(i);
+          hash |= 0; 
+        }
+        const seed = Math.abs(hash);
+        
+        // Use Picsum with the seed
+        img.src = "https://picsum.photos/seed/" + seed + "/800/600";
+        img.style.objectFit = 'cover';
+      }
+      
+      // 1. Listen for error events
+      window.addEventListener('error', function(e) {
+        if (e.target && e.target.tagName === 'IMG') fixImage(e.target);
+      }, true);
+      
+      // 2. Scan on load for bad URLs
+      window.addEventListener('DOMContentLoaded', () => {
+         document.querySelectorAll('img').forEach(img => {
+            if (!img.src || img.src === window.location.href || img.src.includes('null') || img.src.includes('undefined')) {
+                fixImage(img);
+            }
+         });
+      });
+    </script>
+  `;
 
   const getFullHtml = () => {
     if (!generatedContent) return '';
@@ -163,14 +228,16 @@ const App: React.FC = () => {
     const styleTag = `<style>\n${generatedContent.css}\n</style>`;
     const scriptTag = `<script>\n${generatedContent.javascript}\n</script>`;
 
+    // Inject CSS
     if (/<\/head>/i.test(doc)) {
-      doc = doc.replace(/<\/head>/i, `${styleTag}\n</head>`);
+      doc = doc.replace(/<\/head>/i, `${styleTag}\n${imageHandlerScript}\n</head>`);
     } else if (/<body/i.test(doc)) {
-      doc = doc.replace(/<body/i, `${styleTag}\n<body`);
+      doc = doc.replace(/<body/i, `${styleTag}\n${imageHandlerScript}\n<body`);
     } else {
-      doc = `${styleTag}\n${doc}`;
+      doc = `${styleTag}\n${imageHandlerScript}\n${doc}`;
     }
 
+    // Inject JS
     if (/<\/body>/i.test(doc)) {
       doc = doc.replace(/<\/body>/i, `${scriptTag}\n</body>`);
     } else if (/<\/html>/i.test(doc)) {
@@ -194,12 +261,13 @@ const App: React.FC = () => {
       const cssLink = '<link rel="stylesheet" href="style.css">';
       const jsScript = '<script src="script.js"></script>';
 
+      // Inject Links & Scripts for ZIP
       if (/<\/head>/i.test(html)) {
-        html = html.replace(/<\/head>/i, `${cssLink}\n</head>`);
+        html = html.replace(/<\/head>/i, `${cssLink}\n${imageHandlerScript}\n</head>`);
       } else if (/<body/i.test(html)) {
-         html = html.replace(/<body/i, `${cssLink}\n<body`);
+         html = html.replace(/<body/i, `${cssLink}\n${imageHandlerScript}\n<body`);
       } else {
-        html = `${cssLink}\n${html}`;
+        html = `${cssLink}\n${imageHandlerScript}\n${html}`;
       }
 
       if (/<\/body>/i.test(html)) {
@@ -212,11 +280,26 @@ const App: React.FC = () => {
 
       zip.file("index.html", html);
 
+      // Extract title from HTML for filename
+      const titleMatch = generatedContent.html.match(/<title>(.*?)<\/title>/i);
+      let filename = 'nebula-website';
+      if (titleMatch && titleMatch[1]) {
+        const cleanTitle = titleMatch[1]
+            .replace(/[^a-z0-9\s-_]/gi, '') // Remove special chars
+            .trim()
+            .replace(/\s+/g, '-') // Replace spaces with hyphens
+            .toLowerCase();
+        
+        if (cleanTitle.length > 0) {
+            filename = cleanTitle;
+        }
+      }
+
       const content = await zip.generateAsync({ type: "blob" });
       const url = URL.createObjectURL(content);
       const a = document.createElement('a');
       a.href = url;
-      a.download = 'nebula-website.zip';
+      a.download = `${filename}.zip`;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
@@ -337,18 +420,48 @@ const App: React.FC = () => {
                   >
                     <Monitor className="w-4 h-4" />
                   </button>
-                  <div className="w-px h-4 bg-slate-300 dark:bg-slate-600 mx-1" />
-                  <button
-                    onClick={() => setIsEditable(!isEditable)}
-                    className={`p-1.5 rounded-md transition-all ${isEditable ? 'bg-indigo-100 dark:bg-indigo-900/50 text-indigo-600 dark:text-indigo-400 shadow-sm ring-1 ring-indigo-500/30' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'}`}
-                    title={isEditable ? "Finish Editing" : "Edit Text"}
-                  >
-                    <Pencil className="w-4 h-4" />
-                  </button>
                </div>
             )}
 
             <div className="flex items-center gap-2">
+              {/* Undo/Redo Controls (Visible in Edit Mode or Always) */}
+               <div className="flex items-center gap-1 mr-1">
+                <button
+                  onClick={undo}
+                  disabled={!canUndo}
+                  className="p-2 text-slate-500 hover:text-indigo-600 dark:text-slate-400 dark:hover:text-indigo-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-md transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                  title="Undo Change"
+                >
+                  <Undo2 className="w-4 h-4" />
+                </button>
+                <button
+                  onClick={redo}
+                  disabled={!canRedo}
+                  className="p-2 text-slate-500 hover:text-indigo-600 dark:text-slate-400 dark:hover:text-indigo-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-md transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                  title="Redo Change"
+                >
+                  <Redo2 className="w-4 h-4" />
+                </button>
+              </div>
+              
+              <div className="w-px h-6 bg-slate-200 dark:bg-slate-800 mx-1"></div>
+
+              {viewMode === 'PREVIEW' && (
+                <button
+                  onClick={() => setIsEditable(!isEditable)}
+                  className={`p-2 rounded-md transition-colors ${
+                    isEditable 
+                      ? 'text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-900/30 ring-1 ring-indigo-500/50' 
+                      : 'text-slate-500 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-slate-100 dark:hover:bg-slate-800'
+                  }`}
+                  title={isEditable ? "Finish Editing" : "Edit Text & Images"}
+                >
+                  <Pencil className="w-5 h-5" />
+                </button>
+              )}
+
+              <div className="w-px h-6 bg-slate-200 dark:bg-slate-800 mx-1"></div>
+
               <button
                 onClick={() => setIsFullscreen(!isFullscreen)}
                 className={`p-2 rounded-md transition-colors ${
@@ -360,8 +473,6 @@ const App: React.FC = () => {
               >
                 {isFullscreen ? <Minimize className="w-5 h-5" /> : <Maximize className="w-5 h-5" />}
               </button>
-
-              <div className="w-px h-6 bg-slate-200 dark:bg-slate-800 mx-1"></div>
 
               <button
                 onClick={handleOpenNewTab}
@@ -397,11 +508,28 @@ const App: React.FC = () => {
                       <XCircle className="w-6 h-6 text-red-600 dark:text-red-400" />
                     </div>
                     <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100 mb-2">Generation Failed</h3>
-                    <p className="text-slate-600 dark:text-slate-400 text-sm mb-6 leading-relaxed">
-                      The AI service could not be reached. This is most likely because the 
-                      <span className="font-mono text-red-600 dark:text-red-400 bg-red-100 dark:bg-red-900/30 px-1.5 py-0.5 rounded mx-1">API_KEY</span> 
-                      environment variable is missing or invalid.
-                    </p>
+                    <div className="text-slate-600 dark:text-slate-400 text-sm mb-6 leading-relaxed">
+                      <p className="mb-2"><strong>Error:</strong> {errorMessage}</p>
+                      
+                      {errorMessage.toLowerCase().includes('api key') && (
+                         <a 
+                            href="https://aistudio.google.com/app/apikey" 
+                            target="_blank" 
+                            rel="noreferrer"
+                            className="inline-block text-indigo-600 dark:text-indigo-400 hover:underline font-medium"
+                          >
+                            Check API Key at Google AI Studio &rarr;
+                          </a>
+                      )}
+                      
+                      <div className="mt-4 p-3 bg-indigo-50 dark:bg-indigo-900/20 rounded-md text-left">
+                         <p className="text-xs font-semibold text-indigo-800 dark:text-indigo-300 mb-1">💡 Troubleshooting:</p>
+                         <ul className="text-xs text-indigo-700 dark:text-indigo-200 list-disc pl-4 space-y-1">
+                            <li>If using <strong>Gemini Pro</strong>, try switching to <strong>Flash</strong>. Pro models can sometimes time out on free hosting tiers.</li>
+                            <li>Check if your API Key has quotas remaining.</li>
+                         </ul>
+                      </div>
+                    </div>
                     <button 
                       onClick={() => setStatus(GenerationStatus.IDLE)}
                       className="w-full py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm font-medium hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors text-slate-700 dark:text-slate-300"
@@ -433,6 +561,7 @@ const App: React.FC = () => {
                                 refreshKey={iframeKey} 
                                 isLoading={isPreviewLoading}
                                 isEditable={isEditable}
+                                onContentUpdate={handleVisualEditUpdate}
                                 />
                             </div>
                         </div>

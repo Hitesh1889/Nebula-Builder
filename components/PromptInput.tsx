@@ -1,6 +1,7 @@
+
 import React, { useState, useEffect } from 'react';
-import { Wand2, Loader2, History, Undo2, Redo2 } from 'lucide-react';
-import { AVAILABLE_MODELS, DEFAULT_MODEL, EXAMPLE_PROMPTS } from '../constants';
+import { Wand2, Loader2, History, Undo2, Redo2, Sparkles } from 'lucide-react';
+import { DEFAULT_MODEL, EXAMPLE_PROMPTS } from '../constants';
 import { GenerationStatus } from '../types';
 
 interface PromptInputProps {
@@ -26,7 +27,6 @@ const PromptInput: React.FC<PromptInputProps> = ({
   canUndo,
   canRedo
 }) => {
-  const [selectedModel, setSelectedModel] = useState(DEFAULT_MODEL);
   const [placeholder, setPlaceholder] = useState('');
 
   // Randomize placeholder on mount
@@ -40,7 +40,7 @@ const PromptInput: React.FC<PromptInputProps> = ({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!prompt.trim() || isGenerating) return;
-    onGenerate(selectedModel);
+    onGenerate(DEFAULT_MODEL);
   };
 
   return (
@@ -88,22 +88,9 @@ const PromptInput: React.FC<PromptInputProps> = ({
         />
         
         <div className="flex flex-col sm:flex-row gap-3 items-center justify-between">
-          <div className="relative w-full sm:w-64">
-            <select
-              value={selectedModel}
-              onChange={(e) => setSelectedModel(e.target.value)}
-              disabled={isGenerating}
-              className="w-full appearance-none bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-300 py-2.5 px-4 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm"
-            >
-              {AVAILABLE_MODELS.map((model) => (
-                <option key={model.id} value={model.id}>
-                  {model.name}
-                </option>
-              ))}
-            </select>
-            <div className="absolute inset-y-0 right-0 flex items-center px-3 pointer-events-none text-slate-500">
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
-            </div>
+          <div className="flex items-center gap-2 text-xs font-medium text-slate-400 dark:text-slate-500">
+             <Sparkles className="w-3.5 h-3.5 text-indigo-500" />
+             <span>Using Gemini 3.0 Flash</span>
           </div>
 
           <button

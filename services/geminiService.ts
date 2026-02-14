@@ -1,3 +1,4 @@
+
 import { GoogleGenAI, Type, Schema } from "@google/genai";
 import { SYSTEM_INSTRUCTION } from "../constants";
 import { GeneratedContent } from "../types";
@@ -67,6 +68,7 @@ Focus on including:
 2. Key Sections (Hero, Features, Services, Team, Contact)
 3. Interactive Elements (Hover effects, Animations, Forms)
 4. Specific functionalities related to the niche.
+5. Requirement for a multi-page structure with at least 5 distinct pages (Home, About, Services, etc.).
 
 Output only the expanded prompt text. Do not add conversational filler.`,
         temperature: 0.8,
