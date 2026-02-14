@@ -1,5 +1,6 @@
+
 import React, { useState } from 'react';
-import { Lightbulb, Sparkles, ArrowRight, Loader2, Copy, Check } from 'lucide-react';
+import { Lightbulb, Sparkles, Loader2, Check, Zap } from 'lucide-react';
 import { enhancePrompt } from '../services/geminiService';
 
 interface SidebarToolsProps {
@@ -34,7 +35,7 @@ const SidebarTools: React.FC<SidebarToolsProps> = ({ setPrompt }) => {
   return (
     <div className="flex-1 min-h-0 flex flex-col bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl overflow-hidden shadow-sm transition-colors duration-300">
       {/* Tabs */}
-      <div className="flex border-b border-slate-200 dark:border-slate-800">
+      <div className="flex border-b border-slate-200 dark:border-slate-800 shrink-0">
         <button
           onClick={() => setActiveTab('tips')}
           className={`flex-1 flex items-center justify-center gap-2 py-3 text-sm font-medium transition-colors ${
@@ -59,10 +60,21 @@ const SidebarTools: React.FC<SidebarToolsProps> = ({ setPrompt }) => {
         </button>
       </div>
 
-      {/* Content */}
-      <div className="flex-1 overflow-y-auto p-4 custom-scrollbar">
+      {/* Content Container */}
+      <div className="flex-1 relative min-h-0">
         {activeTab === 'tips' ? (
-          <div className="space-y-4">
+          <div className="absolute inset-0 overflow-y-auto p-4 custom-scrollbar space-y-4">
+             {/* New Tip first */}
+             <div className="bg-fuchsia-50 dark:bg-fuchsia-900/20 p-4 rounded-lg border border-fuchsia-100 dark:border-fuchsia-800/50">
+               <h4 className="font-semibold text-fuchsia-900 dark:text-fuchsia-300 mb-2 text-sm flex items-center gap-2">
+                 <Sparkles className="w-3.5 h-3.5" />
+                 Better Prompts
+               </h4>
+               <p className="text-sm text-fuchsia-800/80 dark:text-fuchsia-200/70 leading-relaxed">
+                 Use the <strong>Idea Spark</strong> tab to turn a simple word (e.g., "Cafe") into a full, professional design brief instantly.
+               </p>
+            </div>
+
             <div className="bg-indigo-50 dark:bg-indigo-900/20 p-4 rounded-lg border border-indigo-100 dark:border-indigo-800/50">
               <h4 className="font-semibold text-indigo-900 dark:text-indigo-300 mb-2 text-sm">Be Specific</h4>
               <p className="text-sm text-indigo-800/80 dark:text-indigo-200/70 leading-relaxed">
@@ -85,8 +97,8 @@ const SidebarTools: React.FC<SidebarToolsProps> = ({ setPrompt }) => {
             </div>
           </div>
         ) : (
-          <div className="flex flex-col h-full gap-4">
-            <div className="space-y-2">
+          <div className="absolute inset-0 flex flex-col p-4 gap-4">
+            <div className="space-y-2 shrink-0">
               <label className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
                 What are you building?
               </label>
@@ -102,16 +114,26 @@ const SidebarTools: React.FC<SidebarToolsProps> = ({ setPrompt }) => {
                 <button
                   onClick={handleEnhance}
                   disabled={!ideaInput.trim() || isEnhancing}
-                  className="bg-fuchsia-600 hover:bg-fuchsia-500 text-white p-2 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-sm"
+                  className="bg-fuchsia-600 hover:bg-fuchsia-500 text-white px-3 py-2 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-sm flex items-center gap-2 font-medium text-sm"
                 >
-                  {isEnhancing ? <Loader2 className="w-5 h-5 animate-spin" /> : <Sparkles className="w-5 h-5" />}
+                  {isEnhancing ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      <span>Creating...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Sparkles className="w-4 h-4" />
+                      <span>Create</span>
+                    </>
+                  )}
                 </button>
               </div>
             </div>
 
             {generatedIdea ? (
-              <div className="flex-1 flex flex-col bg-slate-50 dark:bg-slate-800 rounded-lg p-3 border border-slate-200 dark:border-slate-700 animate-in fade-in slide-in-from-bottom-2 duration-300">
-                <div className="flex items-center justify-between mb-2">
+              <div className="flex-1 flex flex-col bg-slate-50 dark:bg-slate-800 rounded-lg p-3 border border-slate-200 dark:border-slate-700 animate-in fade-in slide-in-from-bottom-2 duration-300 min-h-0">
+                <div className="flex items-center justify-between mb-2 shrink-0">
                   <span className="text-xs font-medium text-slate-500 dark:text-slate-400">Generated Prompt</span>
                 </div>
                 <div className="flex-1 overflow-y-auto mb-3 pr-1 custom-scrollbar">
@@ -121,10 +143,10 @@ const SidebarTools: React.FC<SidebarToolsProps> = ({ setPrompt }) => {
                 </div>
                 <button
                   onClick={applyPrompt}
-                  className="w-full flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-500 text-white py-2 rounded-md text-sm font-medium transition-colors shadow-sm"
+                  className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-indigo-600 to-fuchsia-600 hover:from-indigo-500 hover:to-fuchsia-500 text-white py-2.5 rounded-md text-sm font-medium transition-all shadow-md hover:shadow-lg shrink-0"
                 >
-                  <Check className="w-4 h-4" />
-                  Use This Prompt
+                  <Zap className="w-4 h-4 fill-white" />
+                  Use this prompt
                 </button>
               </div>
             ) : (

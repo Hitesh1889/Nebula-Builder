@@ -8,9 +8,9 @@ const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 const responseSchema: Schema = {
   type: Type.OBJECT,
   properties: {
-    html: { type: Type.STRING, description: "The full HTML structure including <head> and <body>." },
-    css: { type: Type.STRING, description: "Custom CSS styles (excluding <style> tags)." },
-    javascript: { type: Type.STRING, description: "JavaScript code (excluding <script> tags)." },
+    html: { type: Type.STRING, description: "The full HTML structure including <head> and <body>. PRETTY PRINTED." },
+    css: { type: Type.STRING, description: "Custom CSS styles (excluding <style> tags). PRETTY PRINTED." },
+    javascript: { type: Type.STRING, description: "JavaScript code (excluding <script> tags). PRETTY PRINTED." },
   },
   required: ["html", "css", "javascript"],
 };
@@ -27,7 +27,7 @@ export const generateWebsite = async (
       model: modelId,
       config: {
         systemInstruction: SYSTEM_INSTRUCTION,
-        temperature: 0.7,
+        temperature: 0.5,
         responseMimeType: "application/json",
         responseSchema: responseSchema,
       },

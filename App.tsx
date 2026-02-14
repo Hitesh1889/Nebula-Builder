@@ -1,5 +1,6 @@
+
 import React, { useState, useEffect } from 'react';
-import { Eye, Code, Download, ExternalLink, PanelLeftClose, PanelLeftOpen, Maximize, Minimize, XCircle, Smartphone, Tablet, Monitor } from 'lucide-react';
+import { Eye, Code, Download, ExternalLink, PanelLeftClose, PanelLeftOpen, Maximize, Minimize, XCircle, Smartphone, Tablet, Monitor, Pencil } from 'lucide-react';
 import JSZip from 'jszip';
 import Header from './components/Header';
 import PromptInput from './components/PromptInput';
@@ -54,6 +55,7 @@ const App: React.FC = () => {
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [history, setHistory] = useState<WebsiteHistoryItem[]>([]);
   const [iframeKey, setIframeKey] = useState(0);
+  const [isEditable, setIsEditable] = useState(false);
 
   // Debounced content for preview to avoid flashing/lagging on every keystroke
   const [previewContent, setPreviewContent] = useState<GeneratedContent | null>(null);
@@ -87,12 +89,14 @@ const App: React.FC = () => {
     setGeneratedContent(content); 
     setPreviewContent(content); 
     setIsPreviewLoading(false);
+    setIsEditable(false); // Reset edit mode on new generation
   }
 
   const handleHistorySelect = (content: GeneratedContent) => {
      setGeneratedContent(content);
      setPreviewContent(content); 
      setIsPreviewLoading(false);
+     setIsEditable(false);
   }
 
   const handleCodeChange = (type: 'html' | 'css' | 'javascript', value: string) => {
@@ -235,7 +239,7 @@ const App: React.FC = () => {
   }
 
   return (
-    <div className="h-screen flex flex-col bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-slate-100 font-sans selection:bg-indigo-500/30 overflow-hidden transition-colors duration-300">
+    <div className="h-[100dvh] flex flex-col bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-slate-100 font-sans selection:bg-indigo-500/30 overflow-hidden transition-colors duration-300">
       {!isFullscreen && <Header theme={theme} onToggleTheme={toggleTheme} />}
 
       <main className="flex-1 flex flex-row overflow-hidden relative">
@@ -333,6 +337,14 @@ const App: React.FC = () => {
                   >
                     <Monitor className="w-4 h-4" />
                   </button>
+                  <div className="w-px h-4 bg-slate-300 dark:bg-slate-600 mx-1" />
+                  <button
+                    onClick={() => setIsEditable(!isEditable)}
+                    className={`p-1.5 rounded-md transition-all ${isEditable ? 'bg-indigo-100 dark:bg-indigo-900/50 text-indigo-600 dark:text-indigo-400 shadow-sm ring-1 ring-indigo-500/30' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'}`}
+                    title={isEditable ? "Finish Editing" : "Edit Text"}
+                  >
+                    <Pencil className="w-4 h-4" />
+                  </button>
                </div>
             )}
 
@@ -420,6 +432,7 @@ const App: React.FC = () => {
                                 content={previewContent} 
                                 refreshKey={iframeKey} 
                                 isLoading={isPreviewLoading}
+                                isEditable={isEditable}
                                 />
                             </div>
                         </div>
