@@ -331,7 +331,50 @@ const PreviewFrame: React.FC<PreviewFrameProps> = ({
       </script>
     `;
 
-    const fullScript = `${globalImageScript}${builderScript}<script data-visinaro-injected="true">${javascript}</script>`;
+    const navigationFixScript = `
+      <script data-visinaro-injected="true">
+        // Intercept clicks to root "/" to prevent breaking out of iframe or reloading parent
+        document.addEventListener('click', (e) => {
+           const link = e.target.closest('a');
+           if (!link) return;
+           
+           const href = link.getAttribute('href');
+           if (href === '/' || href === '/index.html' || href === '.') {
+              e.preventDefault();
+              
+              // 1. Try to find a nav link pointing to #home and click it (delegating to SPA logic)
+              const homeNavLink = document.querySelector('nav a[href="#home"]');
+              if (homeNavLink) {
+                 homeNavLink.click();
+                 return;
+              }
+              
+              // 2. Fallback: Check for a #home section and manually show it
+              const homeSection = document.getElementById('home');
+              if (homeSection) {
+                 // Heuristic: Hide other sections if they look like pages
+                 const siblings = homeSection.parentNode.children;
+                 for (let i = 0; i < siblings.length; i++) {
+                    const el = siblings[i];
+                    if (el.tagName === 'SECTION' && el.id && el.id !== 'home') {
+                       el.style.display = 'none';
+                       el.classList.add('hidden');
+                    }
+                 }
+                 homeSection.style.display = 'block';
+                 homeSection.classList.remove('hidden');
+                 window.scrollTo(0, 0);
+                 return;
+              }
+
+              // 3. Last Resort: Just scroll to top
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+           }
+        }, true);
+      </script>
+    `;
+
+    const fullScript = `${globalImageScript}${navigationFixScript}${builderScript}<script data-visinaro-injected="true">${javascript}</script>`;
     
     if (doc.includes('</body>')) doc = doc.replace('</body>', `${fullScript}</body>`);
     else doc = `${doc}${fullScript}`;
