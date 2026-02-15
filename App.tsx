@@ -495,8 +495,8 @@ const App: React.FC = () => {
                       <div className="mt-4 p-3 bg-indigo-50 dark:bg-indigo-900/20 rounded-md text-left">
                          <p className="text-xs font-semibold text-indigo-800 dark:text-indigo-300 mb-1">💡 Troubleshooting:</p>
                          <ul className="text-xs text-indigo-700 dark:text-indigo-200 list-disc pl-4 space-y-1">
-                            <li>If using <strong>Gemini Pro</strong>, try switching to <strong>Flash</strong>. Pro models can sometimes time out on free hosting tiers.</li>
                             <li>Check if your API Key has quotas remaining.</li>
+                            <li>Ensure you are using a valid API Key from Google AI Studio.</li>
                          </ul>
                       </div>
                     </div>

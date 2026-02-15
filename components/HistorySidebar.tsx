@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { X, Clock, ChevronRight, Trash2 } from 'lucide-react';
 import { WebsiteHistoryItem } from '../types';
@@ -82,7 +83,7 @@ const HistorySidebar: React.FC<HistorySidebarProps> = ({
                 </p>
                 <div className="mt-2 flex items-center gap-2">
                    <span className="text-[10px] uppercase tracking-wider px-1.5 py-0.5 rounded bg-white dark:bg-slate-900 text-slate-500 border border-slate-200 dark:border-slate-700">
-                     {item.model.includes('flash') ? 'Flash' : 'Pro'}
+                     Flash
                    </span>
                 </div>
               </button>

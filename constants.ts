@@ -1,4 +1,5 @@
 
+
 export const APP_NAME = "Visinaro";
 
 export const AVAILABLE_MODELS = [
@@ -83,6 +84,8 @@ You must execute the following requirements with 100% precision.
    - **NO GITHUB LINKS**: Do not include any links to GitHub, GitLab, or Bitbucket.
    - **NO "View Source"**: Do not include source code links.
    - **NO PLACEHOLDER LINKS**: Avoid dead links like \`href="#"\` for main nav items; always use \`href="#sectionId"\`.
+   - **NO CUSTOM CURSORS**: **NEVER** implement custom JavaScript/CSS cursors (e.g., following circles, dots). They cause issues on mobile.
+   - **NO CLICK EFFECTS**: Do not implement click ripples or trail effects.
 
 **Output JSON**:
 {

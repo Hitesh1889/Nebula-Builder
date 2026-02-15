@@ -1,6 +1,6 @@
 
 import { GoogleGenAI, Type, Schema } from "@google/genai";
-import { SYSTEM_INSTRUCTION } from "../constants";
+import { SYSTEM_INSTRUCTION, DEFAULT_MODEL } from "../constants";
 import { GeneratedContent } from "../types";
 
 // Initialize the API client
@@ -58,7 +58,7 @@ export const generateWebsite = async (
 export const enhancePrompt = async (simpleIdea: string): Promise<string> => {
   try {
     const response = await ai.models.generateContent({
-      model: 'gemini-3-flash-preview',
+      model: DEFAULT_MODEL,
       config: {
         systemInstruction: `You are an expert web consultant and prompt engineer. 
 Your task is to take a short website description (e.g., "Dentist site") and expand it into a detailed, professional prompt for an AI website builder.
