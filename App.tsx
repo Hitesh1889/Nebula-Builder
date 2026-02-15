@@ -53,7 +53,7 @@ const App: React.FC = () => {
   const [history, setHistory] = useState<WebsiteHistoryItem[]>([]);
   const [iframeKey, setIframeKey] = useState(0);
   const [isEditable, setIsEditable] = useState(false);
-  const [highlightEditBtn, setHighlightEditBtn] = useState(false);
+  const [highlightNewTabBtn, setHighlightNewTabBtn] = useState(false);
 
   // Pull to Refresh State
   const [pullDistance, setPullDistance] = useState(0);
@@ -151,7 +151,7 @@ const App: React.FC = () => {
     setIsEditable(false); 
     setErrorMessage('');
     setIframeKey(prev => prev + 1); // Force fresh mount for new generation
-    setHighlightEditBtn(true); // Trigger visual cue
+    setHighlightNewTabBtn(true); // Trigger visual cue on New Tab button
   }
 
   const handleHistorySelect = (content: GeneratedContent) => {
@@ -161,7 +161,7 @@ const App: React.FC = () => {
      setIsEditable(false);
      setErrorMessage('');
      setIframeKey(prev => prev + 1); // Force fresh mount for history
-     setHighlightEditBtn(true);
+     setHighlightNewTabBtn(true);
   }
 
   const handleCodeChange = (type: 'html' | 'css' | 'javascript', value: string) => {
@@ -203,7 +203,7 @@ const App: React.FC = () => {
     setStatus(GenerationStatus.GENERATING);
     setErrorMessage('');
     setViewMode('PREVIEW'); 
-    setHighlightEditBtn(false);
+    setHighlightNewTabBtn(false);
     
     if (window.innerWidth < 1024) {
       setIsSidebarCollapsed(true);
@@ -487,25 +487,15 @@ const App: React.FC = () => {
             <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pl-2">
               {viewMode === 'PREVIEW' && (
                 <button
-                  onClick={() => {
-                    setIsEditable(!isEditable);
-                    setHighlightEditBtn(false); // Clear highlight on click
-                  }}
+                  onClick={() => setIsEditable(!isEditable)}
                   className={`relative p-2 rounded-md transition-colors shrink-0 ${
                     isEditable 
                       ? 'text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-900/30 ring-1 ring-indigo-500/50' 
                       : 'text-slate-500 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-slate-100 dark:hover:bg-slate-800'
-                  } ${highlightEditBtn && !isEditable ? 'animate-pulse ring-2 ring-indigo-500 shadow-[0_0_12px_rgba(99,102,241,0.5)] bg-indigo-50 dark:bg-indigo-900/20' : ''}`}
+                  }`}
                   title={isEditable ? "Finish Editing" : "Edit Text & Images"}
                 >
                   <Pencil className="w-5 h-5" />
-                  {/* Badge */}
-                  {highlightEditBtn && !isEditable && (
-                    <span className="absolute -top-1 -right-1 flex h-3 w-3">
-                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75"></span>
-                      <span className="relative inline-flex rounded-full h-3 w-3 bg-indigo-500"></span>
-                    </span>
-                  )}
                 </button>
               )}
 
@@ -524,12 +514,25 @@ const App: React.FC = () => {
               </button>
 
               <button
-                onClick={handleOpenNewTab}
+                onClick={() => {
+                  handleOpenNewTab();
+                  setHighlightNewTabBtn(false);
+                }}
                 disabled={!generatedContent}
-                className="p-2 text-slate-500 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-md transition-colors disabled:opacity-30 disabled:cursor-not-allowed shrink-0"
+                className={`relative p-2 rounded-md transition-colors disabled:opacity-30 disabled:cursor-not-allowed shrink-0 ${
+                   highlightNewTabBtn 
+                   ? 'animate-pulse ring-2 ring-indigo-500 shadow-[0_0_12px_rgba(99,102,241,0.5)] bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400' 
+                   : 'text-slate-500 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-slate-100 dark:hover:bg-slate-800'
+                }`}
                 title="Open in new tab"
               >
                 <ExternalLink className="w-5 h-5" />
+                {highlightNewTabBtn && (
+                    <span className="absolute -top-1 -right-1 flex h-3 w-3">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75"></span>
+                      <span className="relative inline-flex rounded-full h-3 w-3 bg-indigo-500"></span>
+                    </span>
+                )}
               </button>
               <button
                 onClick={handleDownload}
