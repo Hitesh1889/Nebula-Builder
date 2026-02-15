@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://visinaro.com/sitemap.xml
