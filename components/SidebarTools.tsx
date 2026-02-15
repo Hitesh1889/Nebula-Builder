@@ -36,15 +36,17 @@ const SidebarTools: React.FC<SidebarToolsProps> = ({ setPrompt }) => {
 
   // Handle click outside to close dropdown
   useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
+    const handleClickOutside = (event: Event) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
         setIsDropdownOpen(false);
       }
     };
 
     document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener('touchstart', handleClickOutside); // Added for mobile
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('touchstart', handleClickOutside);
     };
   }, []);
 
@@ -135,32 +137,36 @@ const SidebarTools: React.FC<SidebarToolsProps> = ({ setPrompt }) => {
             </div>
           </div>
         ) : (
-          <div className="absolute inset-0 flex flex-col p-4 gap-4">
+          <div className="absolute inset-0 flex flex-col p-3 lg:p-4 gap-3 lg:gap-4">
             <div className="space-y-3 shrink-0" ref={dropdownRef}>
               <label className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider block">
                 Choose or Type a Topic
               </label>
               
               <div className="relative">
-                <div className="relative">
+                <div className="relative group">
                     <input
                       type="text"
                       value={searchValue}
                       onChange={(e) => {
                         setSearchValue(e.target.value);
-                        setIsDropdownOpen(true);
+                        if (!isDropdownOpen) setIsDropdownOpen(true);
                       }}
-                      onClick={() => setIsDropdownOpen(true)}
                       onFocus={() => setIsDropdownOpen(true)}
                       placeholder="e.g. Cafe, Gym, Space Station..."
-                      className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg pl-9 pr-8 py-2.5 text-sm text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-fuchsia-500 focus:border-transparent outline-none transition-all"
+                      className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg pl-9 pr-10 py-2.5 text-sm text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-fuchsia-500 focus:border-transparent outline-none transition-all"
                     />
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
                     <button 
-                      onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                      className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
+                      onClick={(e) => {
+                         e.preventDefault(); 
+                         // Toggle dropdown without focusing input (prevents keyboard)
+                         setIsDropdownOpen(prev => !prev);
+                      }}
+                      className="absolute right-1 top-1/2 -translate-y-1/2 p-1.5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 rounded-md hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
+                      type="button"
                     >
-                      <ChevronDown className="w-4 h-4" />
+                      <ChevronDown className={`w-4 h-4 transition-transform duration-200 ${isDropdownOpen ? 'rotate-180' : ''}`} />
                     </button>
                 </div>
 

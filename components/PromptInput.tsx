@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { Wand2, Loader2, History, Undo2, Redo2, Sparkles } from 'lucide-react';
+import { Wand2, Loader2, History, Sparkles } from 'lucide-react';
 import { DEFAULT_MODEL, EXAMPLE_PROMPTS } from '../constants';
 import { GenerationStatus } from '../types';
 
@@ -10,10 +10,6 @@ interface PromptInputProps {
   status: GenerationStatus;
   onGenerate: (model: string) => void;
   onShowHistory: () => void;
-  undo: () => void;
-  redo: () => void;
-  canUndo: boolean;
-  canRedo: boolean;
 }
 
 const PromptInput: React.FC<PromptInputProps> = ({ 
@@ -22,10 +18,6 @@ const PromptInput: React.FC<PromptInputProps> = ({
   status, 
   onGenerate,
   onShowHistory,
-  undo,
-  redo,
-  canUndo,
-  canRedo
 }) => {
   const [placeholder, setPlaceholder] = useState('');
 
@@ -51,23 +43,6 @@ const PromptInput: React.FC<PromptInputProps> = ({
         </label>
         
         <div className="flex items-center gap-1">
-          <button
-            onClick={undo}
-            disabled={!canUndo || isGenerating}
-            className="p-1.5 text-slate-500 hover:text-indigo-600 dark:text-slate-400 dark:hover:text-indigo-400 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-md transition-colors disabled:opacity-30 disabled:hover:bg-transparent disabled:cursor-not-allowed"
-            title="Undo"
-          >
-            <Undo2 className="w-4 h-4" />
-          </button>
-          <button
-            onClick={redo}
-            disabled={!canRedo || isGenerating}
-            className="p-1.5 text-slate-500 hover:text-indigo-600 dark:text-slate-400 dark:hover:text-indigo-400 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-md transition-colors disabled:opacity-30 disabled:hover:bg-transparent disabled:cursor-not-allowed"
-            title="Redo"
-          >
-            <Redo2 className="w-4 h-4" />
-          </button>
-          <div className="w-px h-4 bg-slate-200 dark:bg-slate-700 mx-1"></div>
           <button
             onClick={onShowHistory}
             className="p-1.5 text-slate-500 hover:text-indigo-600 dark:text-slate-400 dark:hover:text-indigo-400 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-md transition-colors"

@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, useRef } from 'react';
-import { Eye, Code, Download, ExternalLink, PanelLeftClose, PanelLeftOpen, Maximize, Minimize, XCircle, Smartphone, Tablet, Monitor, Pencil, Undo2, Redo2 } from 'lucide-react';
+import { Eye, Code, Download, ExternalLink, PanelLeftClose, PanelLeftOpen, Maximize, Minimize, XCircle, Smartphone, Tablet, Monitor, Pencil } from 'lucide-react';
 import JSZip from 'jszip';
 import Header from './components/Header';
 import PromptInput from './components/PromptInput';
@@ -34,17 +34,13 @@ const App: React.FC = () => {
 
   const toggleTheme = () => setTheme(prev => prev === 'dark' ? 'light' : 'dark');
 
-  // Use custom hook for state with Undo/Redo
+  // Use custom hook for state with Undo/Redo (Hook logic kept for internal state stability, UI removed)
   const { 
     prompt, 
     setPrompt, 
     content: generatedContent, 
     setContent: setGeneratedContent, 
     updateContent,
-    undo, 
-    redo, 
-    canUndo, 
-    canRedo 
   } = useUndoRedoState(INITIAL_PROMPT);
 
   const [status, setStatus] = useState<GenerationStatus>(GenerationStatus.IDLE);
@@ -341,10 +337,6 @@ const App: React.FC = () => {
                status={status} 
                onGenerate={handleGenerate}
                onShowHistory={() => setIsHistoryOpen(true)}
-               undo={undo}
-               redo={redo}
-               canUndo={canUndo}
-               canRedo={canRedo}
              />
 
              <div className="flex flex-1 min-h-0">
@@ -371,7 +363,7 @@ const App: React.FC = () => {
           
           {/* Toolbar */}
           <div className={`h-14 border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 flex items-center justify-between px-4 transition-all duration-300 ${!isFullscreen ? 'pl-16' : ''} relative`}>
-            <div className="flex items-center gap-1 bg-slate-100 dark:bg-slate-800 rounded-lg p-1">
+            <div className="flex items-center gap-1 bg-slate-100 dark:bg-slate-800 rounded-lg p-1 shrink-0">
               <button
                 onClick={() => setViewMode('PREVIEW')}
                 className={`flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-medium transition-all ${
@@ -381,7 +373,7 @@ const App: React.FC = () => {
                 }`}
               >
                 <Eye className="w-4 h-4" />
-                Preview
+                <span className="hidden sm:inline">Preview</span>
               </button>
               <button
                 onClick={() => setViewMode('CODE')}
@@ -392,7 +384,7 @@ const App: React.FC = () => {
                 }`}
               >
                 <Code className="w-4 h-4" />
-                Code
+                <span className="hidden sm:inline">Code</span>
               </button>
             </div>
 
@@ -423,33 +415,11 @@ const App: React.FC = () => {
                </div>
             )}
 
-            <div className="flex items-center gap-2">
-              {/* Undo/Redo Controls (Visible in Edit Mode or Always) */}
-               <div className="flex items-center gap-1 mr-1">
-                <button
-                  onClick={undo}
-                  disabled={!canUndo}
-                  className="p-2 text-slate-500 hover:text-indigo-600 dark:text-slate-400 dark:hover:text-indigo-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-md transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
-                  title="Undo Change"
-                >
-                  <Undo2 className="w-4 h-4" />
-                </button>
-                <button
-                  onClick={redo}
-                  disabled={!canRedo}
-                  className="p-2 text-slate-500 hover:text-indigo-600 dark:text-slate-400 dark:hover:text-indigo-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-md transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
-                  title="Redo Change"
-                >
-                  <Redo2 className="w-4 h-4" />
-                </button>
-              </div>
-              
-              <div className="w-px h-6 bg-slate-200 dark:bg-slate-800 mx-1"></div>
-
+            <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pl-2">
               {viewMode === 'PREVIEW' && (
                 <button
                   onClick={() => setIsEditable(!isEditable)}
-                  className={`p-2 rounded-md transition-colors ${
+                  className={`p-2 rounded-md transition-colors shrink-0 ${
                     isEditable 
                       ? 'text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-900/30 ring-1 ring-indigo-500/50' 
                       : 'text-slate-500 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-slate-100 dark:hover:bg-slate-800'
@@ -460,11 +430,11 @@ const App: React.FC = () => {
                 </button>
               )}
 
-              <div className="w-px h-6 bg-slate-200 dark:bg-slate-800 mx-1"></div>
+              <div className="w-px h-6 bg-slate-200 dark:bg-slate-800 mx-1 shrink-0"></div>
 
               <button
                 onClick={() => setIsFullscreen(!isFullscreen)}
-                className={`p-2 rounded-md transition-colors ${
+                className={`p-2 rounded-md transition-colors shrink-0 ${
                   isFullscreen 
                     ? 'text-indigo-600 dark:text-indigo-400 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700' 
                     : 'text-slate-500 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-slate-100 dark:hover:bg-slate-800'
@@ -477,7 +447,7 @@ const App: React.FC = () => {
               <button
                 onClick={handleOpenNewTab}
                 disabled={!generatedContent}
-                className="p-2 text-slate-500 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-md transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                className="p-2 text-slate-500 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-md transition-colors disabled:opacity-30 disabled:cursor-not-allowed shrink-0"
                 title="Open in new tab"
               >
                 <ExternalLink className="w-5 h-5" />
@@ -485,10 +455,10 @@ const App: React.FC = () => {
               <button
                 onClick={handleDownload}
                 disabled={!generatedContent}
-                className="flex items-center gap-2 px-4 py-1.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 rounded-md text-sm font-medium transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex items-center gap-2 px-4 py-1.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 rounded-md text-sm font-medium transition-all disabled:opacity-50 disabled:cursor-not-allowed shrink-0"
               >
                 <Download className="w-4 h-4" />
-                <span className="hidden sm:inline">Download ZIP</span>
+                <span className="hidden sm:inline">ZIP</span>
               </button>
             </div>
           </div>
