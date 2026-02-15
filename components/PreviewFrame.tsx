@@ -283,8 +283,6 @@ const PreviewFrame: React.FC<PreviewFrameProps> = ({
              });
              
              if (changed && document.body.classList.contains('visinaro-edit-mode')) {
-                // If the DOM changed, maybe new elements need builder classes?
-                // But avoid re-triggering notification if setupBuilder does it
                 window.setupBuilder();
                 notifyParentOfChanges();
              }
@@ -314,8 +312,6 @@ const PreviewFrame: React.FC<PreviewFrameProps> = ({
         function fixImage(img) {
           if (img.dataset.retries) return;
           img.dataset.retries = '1';
-          
-          // Generate a stable seed from the alt text
           const str = img.alt || 'default';
           let hash = 0;
           for (let i = 0; i < str.length; i++) {
@@ -323,7 +319,6 @@ const PreviewFrame: React.FC<PreviewFrameProps> = ({
             hash |= 0;
           }
           const seed = Math.abs(hash);
-          
           img.src = "https://picsum.photos/seed/" + seed + "/800/600";
           img.style.objectFit = 'cover';
         }
@@ -333,42 +328,89 @@ const PreviewFrame: React.FC<PreviewFrameProps> = ({
 
     const navigationFixScript = `
       <script data-visinaro-injected="true">
-        // Intercept clicks to root "/" to prevent breaking out of iframe or reloading parent
         document.addEventListener('click', (e) => {
            const link = e.target.closest('a');
            if (!link) return;
            
+           if (e.ctrlKey || e.metaKey) return; 
+           
            const href = link.getAttribute('href');
-           if (href === '/' || href === '/index.html' || href === '.') {
-              e.preventDefault();
-              
-              // 1. Try to find a nav link pointing to #home and click it (delegating to SPA logic)
-              const homeNavLink = document.querySelector('nav a[href="#home"]');
-              if (homeNavLink) {
-                 homeNavLink.click();
-                 return;
-              }
-              
-              // 2. Fallback: Check for a #home section and manually show it
-              const homeSection = document.getElementById('home');
-              if (homeSection) {
-                 // Heuristic: Hide other sections if they look like pages
-                 const siblings = homeSection.parentNode.children;
-                 for (let i = 0; i < siblings.length; i++) {
-                    const el = siblings[i];
-                    if (el.tagName === 'SECTION' && el.id && el.id !== 'home') {
-                       el.style.display = 'none';
-                       el.classList.add('hidden');
-                    }
-                 }
-                 homeSection.style.display = 'block';
-                 homeSection.classList.remove('hidden');
-                 window.scrollTo(0, 0);
-                 return;
-              }
+           if (!href) return;
+           
+           // External Links: Force new tab
+           if (href.startsWith('http') || href.startsWith('//')) {
+               e.preventDefault();
+               window.open(href, '_blank');
+               return;
+           }
 
-              // 3. Last Resort: Just scroll to top
-              window.scrollTo({ top: 0, behavior: 'smooth' });
+           // Force Prevent Default for ALL internal links to ensure SPA behavior
+           // This handles both file paths (about.html) AND hash links (#about)
+           // We override any default browser anchor scrolling to ensure correct section toggling
+           e.preventDefault();
+
+           // --- Single Page App Simulation Logic ---
+           
+           // Determine target ID
+           // Normalize: "about.html" -> "about", "/" -> "home", "#contact" -> "contact"
+           let targetId = href.replace(/\\.html$/, '').replace(/^\\//, '').replace(/^\\./, '').replace(/^#/, '');
+           
+           // Logo/Home special case
+           if (targetId === '' || targetId === 'index') targetId = 'home';
+
+           // Find the target section
+           // Strategy: Look for ID match, then fallback to "page-like" containers
+           let section = document.getElementById(targetId);
+           
+           // Fallback for "home" if ID is different (e.g., "hero" or "top")
+           if (!section && targetId === 'home') {
+               section = document.getElementById('hero') || document.getElementById('top') || document.querySelector('section:first-of-type');
+           }
+
+           if (section) {
+               // 1. Hide other top-level page sections
+               // We look for sections, mains, or divs with IDs that look like page containers
+               // We exclude the found section and any small components
+               const potentialPages = document.querySelectorAll('body > section[id], body > main[id], body > div[id]');
+               
+               potentialPages.forEach(node => {
+                   // Skip if it's the target
+                   if (node === section) return;
+                   
+                   // Skip if it's a small utility like a toast or modal
+                   // Heuristic: Pages usually have significant height or specific tags
+                   const tagName = node.tagName.toLowerCase();
+                   if (tagName === 'section' || tagName === 'main' || (tagName === 'div' && node.classList.contains('container') === false)) {
+                       node.style.display = 'none';
+                       node.classList.add('hidden'); 
+                   }
+               });
+                   
+               // Show target
+               section.style.display = 'block';
+               section.classList.remove('hidden');
+
+               // 2. Scroll to top
+               window.scrollTo({ top: 0, behavior: 'smooth' });
+               
+               // 3. Update Navbar State (if exists)
+               document.querySelectorAll('nav a, header a').forEach(navLink => {
+                   const navHref = navLink.getAttribute('href');
+                   // Normalize nav href for comparison
+                   const normalizedNavHref = navHref ? navHref.replace(/\\.html$/, '').replace(/^\\//, '').replace(/^\\./, '').replace(/^#/, '') : '';
+                   const isMatch = normalizedNavHref === targetId || (targetId === 'home' && (normalizedNavHref === '' || normalizedNavHref === 'index'));
+                   
+                   if (isMatch) {
+                        navLink.classList.add('active', 'text-indigo-600', 'font-bold'); 
+                   } else {
+                        navLink.classList.remove('active', 'text-indigo-600', 'font-bold');
+                   }
+               });
+           } else {
+               // Target not found in DOM
+               console.warn('[Visinaro] Navigation target not found:', targetId);
+               // Last resort: if it was a home link, just scroll top
+               if (targetId === 'home') window.scrollTo({ top: 0, behavior: 'smooth' });
            }
         }, true);
       </script>

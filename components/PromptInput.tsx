@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { Wand2, Loader2, History, Sparkles } from 'lucide-react';
+import { Wand2, Loader2, History } from 'lucide-react';
 import { DEFAULT_MODEL, EXAMPLE_PROMPTS } from '../constants';
 import { GenerationStatus } from '../types';
 
@@ -62,12 +62,7 @@ const PromptInput: React.FC<PromptInputProps> = ({
           disabled={isGenerating}
         />
         
-        <div className="flex flex-col sm:flex-row gap-3 items-center justify-between">
-          <div className="flex items-center gap-2 text-xs font-medium text-slate-400 dark:text-slate-500">
-             <Sparkles className="w-3.5 h-3.5 text-indigo-500" />
-             <span>Using Gemini 3.0 Flash</span>
-          </div>
-
+        <div className="flex flex-col sm:flex-row gap-3 items-center justify-end">
           <button
             type="submit"
             disabled={!prompt.trim() || isGenerating}
