@@ -1,5 +1,5 @@
 
-export const APP_NAME = "Nebula";
+export const APP_NAME = "Visinaro";
 
 export const AVAILABLE_MODELS = [
   { id: 'gemini-3-flash-preview', name: 'Gemini 3.0 Flash', description: 'Ideal for quick prototypes and simple pages.' },
@@ -86,6 +86,13 @@ You must execute the following requirements with 100% precision.
    - **Spacing**: Generous padding.
    - **Inputs**: Modern styling with focus states.
    - **Images**: Always add \`object-cover\` or \`object-contain\` to avoid stretching.
+
+**6. STRICT CONTENT RESTRICTIONS (ZERO TOLERANCE)**
+   - **NO GITHUB LINKS**: Do not include any links to GitHub, GitLab, or Bitbucket.
+   - **NO "View Source"**: Do not add "View Source" or "Fork this repo" links.
+   - **NO REPO LINKS**: Do not include any links to external code repositories.
+   - **NO "Made by" LINKS**: Do not add "Made by [Name]" linking to a personal portfolio unless explicitly asked.
+   - **Social Icons**: If adding social icons, use generic \`#\` links or generic platforms (Twitter, LinkedIn, Instagram) ONLY if relevant to the business (e.g., a Restaurant). Do NOT default to developer-centric social links like GitHub.
 
 **Output JSON**:
 {

@@ -24,7 +24,7 @@ const PreviewFrame: React.FC<PreviewFrameProps> = ({
   // Handle messages from the iframe (Content Updates)
   useEffect(() => {
     const handleMessage = (event: MessageEvent) => {
-      if (event.data && event.data.type === 'NEBULA_UPDATE') {
+      if (event.data && event.data.type === 'VISINARO_UPDATE') {
         const newHtml = event.data.html;
         lastHtmlFromIframe.current = newHtml;
         if (onContentUpdate) {
@@ -43,10 +43,10 @@ const PreviewFrame: React.FC<PreviewFrameProps> = ({
     if (!iframe || !iframe.contentDocument || !iframe.contentDocument.body) return;
 
     if (isEditable) {
-      iframe.contentDocument.body.classList.add('nebula-edit-mode');
-      iframe.contentWindow?.postMessage({ type: 'NEBULA_ENABLE_EDIT' }, '*');
+      iframe.contentDocument.body.classList.add('visinaro-edit-mode');
+      iframe.contentWindow?.postMessage({ type: 'VISINARO_ENABLE_EDIT' }, '*');
     } else {
-      iframe.contentDocument.body.classList.remove('nebula-edit-mode');
+      iframe.contentDocument.body.classList.remove('visinaro-edit-mode');
     }
   };
 
@@ -63,59 +63,59 @@ const PreviewFrame: React.FC<PreviewFrameProps> = ({
     
     // BUILDER CSS
     const builderStyles = `
-      body.nebula-edit-mode { cursor: default; }
-      .nebula-edit-mode .nebula-draggable {
+      body.visinaro-edit-mode { cursor: default; }
+      .visinaro-edit-mode .visinaro-draggable {
         cursor: move; cursor: grab; position: relative; transition: box-shadow 0.2s;
       }
-      .nebula-edit-mode .nebula-draggable:hover {
+      .visinaro-edit-mode .visinaro-draggable:hover {
         box-shadow: 0 0 0 2px #6366f1; z-index: 10;
       }
-      .nebula-edit-mode .nebula-draggable:active { cursor: grabbing; }
-      .nebula-edit-mode .nebula-editable { cursor: text; outline: none; }
-      .nebula-edit-mode .nebula-editable:hover { background-color: rgba(99, 102, 241, 0.05); }
-      .nebula-edit-mode .nebula-editable:focus { background-color: rgba(99, 102, 241, 0.1); box-shadow: 0 0 0 2px #6366f1; }
-      .nebula-edit-mode img { cursor: pointer; }
-      .nebula-edit-mode img:hover { opacity: 0.9; outline: 3px dashed #6366f1; }
+      .visinaro-edit-mode .visinaro-draggable:active { cursor: grabbing; }
+      .visinaro-edit-mode .visinaro-editable { cursor: text; outline: none; }
+      .visinaro-edit-mode .visinaro-editable:hover { background-color: rgba(99, 102, 241, 0.05); }
+      .visinaro-edit-mode .visinaro-editable:focus { background-color: rgba(99, 102, 241, 0.1); box-shadow: 0 0 0 2px #6366f1; }
+      .visinaro-edit-mode img { cursor: pointer; }
+      .visinaro-edit-mode img:hover { opacity: 0.9; outline: 3px dashed #6366f1; }
       
       /* Context Menu & UI */
-      #nebula-toast { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); z-index: 2147483647; padding: 12px 24px; border-radius: 8px; background: white; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); display: flex; align-items: center; gap: 12px; font-family: sans-serif; font-size: 14px; font-weight: 500; opacity: 0; transition: opacity 0.3s, transform 0.3s; pointer-events: none; }
-      #nebula-toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
-      #nebula-toast.success { border-left: 4px solid #10b981; color: #064e3b; }
-      #nebula-context-menu { position: fixed; z-index: 2147483647; background: #1e293b; border: 1px solid #334155; border-radius: 8px; padding: 6px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); display: none; flex-direction: column; min-width: 180px; font-family: sans-serif; }
-      .nebula-ctx-item { display: flex; align-items: center; gap: 8px; padding: 8px 12px; color: #f8fafc; font-size: 13px; cursor: pointer; border-radius: 4px; transition: background 0.15s; }
-      .nebula-ctx-item:hover { background: #334155; }
-      .nebula-divider { height: 1px; background: #334155; margin: 4px 0; }
+      #visinaro-toast { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); z-index: 2147483647; padding: 12px 24px; border-radius: 8px; background: white; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); display: flex; align-items: center; gap: 12px; font-family: sans-serif; font-size: 14px; font-weight: 500; opacity: 0; transition: opacity 0.3s, transform 0.3s; pointer-events: none; }
+      #visinaro-toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+      #visinaro-toast.success { border-left: 4px solid #10b981; color: #064e3b; }
+      #visinaro-context-menu { position: fixed; z-index: 2147483647; background: #1e293b; border: 1px solid #334155; border-radius: 8px; padding: 6px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); display: none; flex-direction: column; min-width: 180px; font-family: sans-serif; }
+      .visinaro-ctx-item { display: flex; align-items: center; gap: 8px; padding: 8px 12px; color: #f8fafc; font-size: 13px; cursor: pointer; border-radius: 4px; transition: background 0.15s; }
+      .visinaro-ctx-item:hover { background: #334155; }
+      .visinaro-divider { height: 1px; background: #334155; margin: 4px 0; }
     `;
 
     const builderScript = `
-      <script data-nebula-injected="true">
+      <script data-visinaro-injected="true">
         window.isProgrammaticChange = false;
 
         window.setupBuilder = function() {
            const body = document.body;
-           if (!body || !body.classList.contains('nebula-edit-mode')) return;
+           if (!body || !body.classList.contains('visinaro-edit-mode')) return;
            
            window.isProgrammaticChange = true;
            
            // Make Text Editable
            const textSelectors = 'h1, h2, h3, h4, h5, h6, p, span, a, li, button, td, th, blockquote, figcaption, label';
            document.querySelectorAll(textSelectors).forEach(el => {
-              if (el.classList.contains('nebula-editable')) return;
-              if (el.hasAttribute('data-nebula-injected')) return;
+              if (el.classList.contains('visinaro-editable')) return;
+              if (el.hasAttribute('data-visinaro-injected')) return;
               el.setAttribute('contenteditable', 'true');
-              el.classList.add('nebula-editable');
+              el.classList.add('visinaro-editable');
            });
 
            // Make Containers Draggable
            const containerSelectors = 'section, header, footer, article, nav, aside, .container, .card, .grid > div, .flex > div, div.relative';
            document.querySelectorAll(containerSelectors).forEach(el => {
               if (el.isContentEditable) return;
-              if (el.classList.contains('nebula-draggable')) return;
-              if (el.hasAttribute('data-nebula-injected')) return;
+              if (el.classList.contains('visinaro-draggable')) return;
+              if (el.hasAttribute('data-visinaro-injected')) return;
               const style = window.getComputedStyle(el);
               if (style.position === 'absolute' && el.classList.contains('inset-0')) return;
               el.setAttribute('draggable', 'true');
-              el.classList.add('nebula-draggable');
+              el.classList.add('visinaro-draggable');
            });
            
            // Release lock after microtask
@@ -134,19 +134,19 @@ const PreviewFrame: React.FC<PreviewFrameProps> = ({
              if (saveTimeout) clearTimeout(saveTimeout);
              saveTimeout = setTimeout(() => {
                  const clone = document.documentElement.cloneNode(true);
-                 clone.querySelectorAll('[data-nebula-injected="true"]').forEach(el => el.remove());
-                 clone.querySelectorAll('#nebula-toast, #nebula-context-menu').forEach(el => el.remove());
-                 clone.querySelectorAll('.nebula-editable').forEach(el => {
+                 clone.querySelectorAll('[data-visinaro-injected="true"]').forEach(el => el.remove());
+                 clone.querySelectorAll('#visinaro-toast, #visinaro-context-menu').forEach(el => el.remove());
+                 clone.querySelectorAll('.visinaro-editable').forEach(el => {
                     el.removeAttribute('contenteditable');
-                    el.classList.remove('nebula-editable');
+                    el.classList.remove('visinaro-editable');
                  });
-                 clone.querySelectorAll('.nebula-draggable').forEach(el => {
+                 clone.querySelectorAll('.visinaro-draggable').forEach(el => {
                     el.removeAttribute('draggable');
-                    el.classList.remove('nebula-draggable');
+                    el.classList.remove('visinaro-draggable');
                  });
-                 if (clone.querySelector('body')) clone.querySelector('body').classList.remove('nebula-edit-mode');
+                 if (clone.querySelector('body')) clone.querySelector('body').classList.remove('visinaro-edit-mode');
                  
-                 window.parent.postMessage({ type: 'NEBULA_UPDATE', html: clone.outerHTML }, '*');
+                 window.parent.postMessage({ type: 'VISINARO_UPDATE', html: clone.outerHTML }, '*');
              }, 800);
           }
 
@@ -155,7 +155,7 @@ const PreviewFrame: React.FC<PreviewFrameProps> = ({
           fileInput.type = 'file';
           fileInput.accept = 'image/*';
           fileInput.style.display = 'none';
-          fileInput.setAttribute('data-nebula-injected', 'true');
+          fileInput.setAttribute('data-visinaro-injected', 'true');
           document.body.appendChild(fileInput);
 
           fileInput.addEventListener('change', (e) => {
@@ -173,17 +173,17 @@ const PreviewFrame: React.FC<PreviewFrameProps> = ({
 
           // Context Menu
           function createContextMenu() {
-            if (document.getElementById('nebula-context-menu')) return;
+            if (document.getElementById('visinaro-context-menu')) return;
             const menu = document.createElement('div');
-            menu.id = 'nebula-context-menu';
-            menu.setAttribute('data-nebula-injected', 'true');
+            menu.id = 'visinaro-context-menu';
+            menu.setAttribute('data-visinaro-injected', 'true');
             menu.innerHTML = \`
-              <div class="nebula-ctx-item" id="ctx-replace-img"><span>📷</span> Replace Image</div>
-              <div class="nebula-ctx-item" id="ctx-move-up"><span>⬆️</span> Move Up</div>
-              <div class="nebula-ctx-item" id="ctx-move-down"><span>⬇️</span> Move Down</div>
-              <div class="nebula-divider"></div>
-              <div class="nebula-ctx-item" id="ctx-duplicate"><span>📋</span> Duplicate</div>
-              <div class="nebula-ctx-item" id="ctx-delete" style="color: #f87171;"><span>🗑️</span> Delete</div>
+              <div class="visinaro-ctx-item" id="ctx-replace-img"><span>📷</span> Replace Image</div>
+              <div class="visinaro-ctx-item" id="ctx-move-up"><span>⬆️</span> Move Up</div>
+              <div class="visinaro-ctx-item" id="ctx-move-down"><span>⬇️</span> Move Down</div>
+              <div class="visinaro-divider"></div>
+              <div class="visinaro-ctx-item" id="ctx-duplicate"><span>📋</span> Duplicate</div>
+              <div class="visinaro-ctx-item" id="ctx-delete" style="color: #f87171;"><span>🗑️</span> Delete</div>
             \`;
             document.body.appendChild(menu);
             contextMenu = menu;
@@ -213,9 +213,9 @@ const PreviewFrame: React.FC<PreviewFrameProps> = ({
 
           // Listeners
           document.addEventListener('contextmenu', (e) => {
-            if (!document.body.classList.contains('nebula-edit-mode')) return;
-            const target = e.target.closest('.nebula-draggable, .nebula-editable') || (e.target.tagName === 'IMG' ? e.target : null);
-            if (!target || target.hasAttribute('data-nebula-injected')) return;
+            if (!document.body.classList.contains('visinaro-edit-mode')) return;
+            const target = e.target.closest('.visinaro-draggable, .visinaro-editable') || (e.target.tagName === 'IMG' ? e.target : null);
+            if (!target || target.hasAttribute('data-visinaro-injected')) return;
             
             e.preventDefault();
             targetElement = target;
@@ -234,14 +234,14 @@ const PreviewFrame: React.FC<PreviewFrameProps> = ({
 
           document.addEventListener('click', (e) => {
              if(contextMenu && !contextMenu.contains(e.target)) hideMenu();
-             if (document.body.classList.contains('nebula-edit-mode')) {
+             if (document.body.classList.contains('visinaro-edit-mode')) {
                 const link = e.target.closest('a');
                 if (link) e.preventDefault();
              }
           });
           
           document.addEventListener('dblclick', (e) => {
-            if (!document.body.classList.contains('nebula-edit-mode')) return;
+            if (!document.body.classList.contains('visinaro-edit-mode')) return;
             if (e.target.tagName === 'IMG') {
               activeImageToUpload = e.target;
               fileInput.click();
@@ -250,8 +250,8 @@ const PreviewFrame: React.FC<PreviewFrameProps> = ({
           
           // Drag Logic (Simplified)
           document.addEventListener('dragstart', (e) => {
-             if (!document.body.classList.contains('nebula-edit-mode') || e.target.isContentEditable) return;
-             const t = e.target.closest('.nebula-draggable');
+             if (!document.body.classList.contains('visinaro-edit-mode') || e.target.isContentEditable) return;
+             const t = e.target.closest('.visinaro-draggable');
              if(!t) { e.preventDefault(); return; }
              draggedElement = t;
              t.style.opacity = '0.5';
@@ -263,7 +263,7 @@ const PreviewFrame: React.FC<PreviewFrameProps> = ({
           document.addEventListener('dragover', (e) => {
              e.preventDefault();
              if(draggedElement) {
-                const t = e.target.closest('.nebula-draggable');
+                const t = e.target.closest('.visinaro-draggable');
                 if(t && t !== draggedElement) {
                     const rect = t.getBoundingClientRect();
                     const next = (e.clientY - rect.top) > (rect.height / 2);
@@ -278,11 +278,11 @@ const PreviewFrame: React.FC<PreviewFrameProps> = ({
 
              let changed = false;
              mutations.forEach(m => {
-                if (m.target && m.target.hasAttribute && m.target.hasAttribute('data-nebula-injected')) return;
+                if (m.target && m.target.hasAttribute && m.target.hasAttribute('data-visinaro-injected')) return;
                 changed = true;
              });
              
-             if (changed && document.body.classList.contains('nebula-edit-mode')) {
+             if (changed && document.body.classList.contains('visinaro-edit-mode')) {
                 // If the DOM changed, maybe new elements need builder classes?
                 // But avoid re-triggering notification if setupBuilder does it
                 window.setupBuilder();
@@ -293,7 +293,7 @@ const PreviewFrame: React.FC<PreviewFrameProps> = ({
 
           // Message Listener
           window.addEventListener('message', (e) => {
-             if (e.data && e.data.type === 'NEBULA_ENABLE_EDIT') {
+             if (e.data && e.data.type === 'VISINARO_ENABLE_EDIT') {
                  window.setupBuilder();
              }
           });
@@ -304,13 +304,13 @@ const PreviewFrame: React.FC<PreviewFrameProps> = ({
       </script>
     `;
 
-    const styleTag = `<style data-nebula-injected="true">${css}\n${builderStyles}</style>`;
+    const styleTag = `<style data-visinaro-injected="true">${css}\n${builderStyles}</style>`;
     
     if (doc.includes('</head>')) doc = doc.replace('</head>', `${styleTag}</head>`);
     else doc = `${styleTag}${doc}`;
 
     const globalImageScript = `
-      <script data-nebula-injected="true">
+      <script data-visinaro-injected="true">
         function fixImage(img) {
           if (img.dataset.retries) return;
           img.dataset.retries = '1';
@@ -331,7 +331,7 @@ const PreviewFrame: React.FC<PreviewFrameProps> = ({
       </script>
     `;
 
-    const fullScript = `${globalImageScript}${builderScript}<script data-nebula-injected="true">${javascript}</script>`;
+    const fullScript = `${globalImageScript}${builderScript}<script data-visinaro-injected="true">${javascript}</script>`;
     
     if (doc.includes('</body>')) doc = doc.replace('</body>', `${fullScript}</body>`);
     else doc = `${doc}${fullScript}`;

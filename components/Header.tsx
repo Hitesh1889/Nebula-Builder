@@ -1,5 +1,6 @@
+
 import React from 'react';
-import { Rocket, Sparkles, Sun, Moon } from 'lucide-react';
+import { Sparkles, Sun, Moon } from 'lucide-react';
 import { APP_NAME } from '../constants';
 
 interface HeaderProps {
@@ -10,12 +11,21 @@ interface HeaderProps {
 const Header: React.FC<HeaderProps> = ({ theme, onToggleTheme }) => {
   return (
     <header className="flex items-center justify-between px-6 py-4 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 sticky top-0 z-50 transition-colors duration-300">
-      <div className="flex items-center gap-2">
-        <div className="p-2 bg-indigo-600 rounded-lg shadow-lg shadow-indigo-500/20">
-          <Rocket className="w-6 h-6 text-white" />
+      <div className="flex items-center gap-3">
+        {/* Custom Visinaro Logo */}
+        <div className="relative w-8 h-8 flex items-center justify-center filter drop-shadow-sm">
+            <svg viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full h-full">
+                {/* Left Vertical - Orange */}
+                <path d="M8 6V26" stroke="#F97316" strokeWidth="5" strokeLinecap="round" />
+                {/* Right Vertical - Emerald/Green */}
+                <path d="M24 6V26" stroke="#10B981" strokeWidth="5" strokeLinecap="round" />
+                {/* Diagonal - Red (Bottom-Left to Top-Right) */}
+                <path d="M8 26L24 6" stroke="#EF4444" strokeWidth="5" strokeLinecap="round" />
+            </svg>
         </div>
-        <h1 className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 to-cyan-600 dark:from-indigo-400 dark:to-cyan-400">
-          {APP_NAME} <span className="font-light text-slate-500 dark:text-slate-400">Builder</span>
+        
+        <h1 className="text-xl font-bold tracking-widest text-slate-900 dark:text-white uppercase font-sans">
+          {APP_NAME}
         </h1>
       </div>
       

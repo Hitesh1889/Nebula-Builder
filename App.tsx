@@ -17,7 +17,7 @@ const App: React.FC = () => {
   // Theme State
   const [theme, setTheme] = useState<'light' | 'dark'>(() => {
     if (typeof window !== 'undefined') {
-      return (localStorage.getItem('nebula_theme') as 'light' | 'dark') || 'dark';
+      return (localStorage.getItem('visinaro_theme') as 'light' | 'dark') || 'dark';
     }
     return 'dark';
   });
@@ -29,7 +29,7 @@ const App: React.FC = () => {
     } else {
       document.documentElement.classList.remove('dark');
     }
-    localStorage.setItem('nebula_theme', theme);
+    localStorage.setItem('visinaro_theme', theme);
   }, [theme]);
 
   const toggleTheme = () => setTheme(prev => prev === 'dark' ? 'light' : 'dark');
@@ -129,7 +129,7 @@ const App: React.FC = () => {
   };
 
   useEffect(() => {
-    const saved = localStorage.getItem('nebula_history');
+    const saved = localStorage.getItem('visinaro_history');
     if (saved) {
       try {
         setHistory(JSON.parse(saved));
@@ -142,12 +142,12 @@ const App: React.FC = () => {
   const saveToSidebarHistory = (newItem: WebsiteHistoryItem) => {
     const updated = [newItem, ...history].slice(0, 50); 
     setHistory(updated);
-    localStorage.setItem('nebula_history', JSON.stringify(updated));
+    localStorage.setItem('visinaro_history', JSON.stringify(updated));
   };
 
   const handleClearHistory = () => {
     setHistory([]);
-    localStorage.removeItem('nebula_history');
+    localStorage.removeItem('visinaro_history');
   }
 
   const handleGenerate = async (modelId: string) => {
@@ -278,7 +278,7 @@ const App: React.FC = () => {
 
       // Extract title from HTML for filename
       const titleMatch = generatedContent.html.match(/<title>(.*?)<\/title>/i);
-      let filename = 'nebula-website';
+      let filename = 'visinaro-website';
       if (titleMatch && titleMatch[1]) {
         const cleanTitle = titleMatch[1]
             .replace(/[^a-z0-9\s-_]/gi, '') // Remove special chars
