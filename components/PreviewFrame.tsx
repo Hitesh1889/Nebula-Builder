@@ -351,10 +351,14 @@ const PreviewFrame: React.FC<PreviewFrameProps> = ({
   if (!content) {
     return (
       <div className="w-full h-full flex items-center justify-center bg-white dark:bg-slate-900 text-slate-400 dark:text-slate-500 flex-col gap-3 transition-colors duration-300">
-        <div className="w-16 h-16 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center">
-          <div className="w-8 h-8 bg-slate-200 dark:bg-slate-700 rounded-sm transform rotate-45"></div>
+        <div className="w-24 h-24 rounded-3xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-700 flex items-center justify-center p-5 shadow-sm">
+            <svg viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full h-full opacity-90">
+                <path d="M8 6V26" stroke="#F97316" strokeWidth="4" strokeLinecap="round" />
+                <path d="M24 6V26" stroke="#10B981" strokeWidth="4" strokeLinecap="round" />
+                <path d="M8 26L24 6" stroke="#EF4444" strokeWidth="4" strokeLinecap="round" />
+            </svg>
         </div>
-        <p>Your preview will appear here</p>
+        <p className="text-sm font-medium opacity-70">Your preview will appear here</p>
       </div>
     );
   }
