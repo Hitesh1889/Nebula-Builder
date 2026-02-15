@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, useRef } from 'react';
-import { Eye, Code, Download, ExternalLink, PanelLeftClose, PanelLeftOpen, Maximize, Minimize, XCircle, Smartphone, Tablet, Monitor, Pencil } from 'lucide-react';
+import { Eye, Code, Download, ExternalLink, PanelLeftClose, PanelLeftOpen, Maximize, Minimize, XCircle, Smartphone, Tablet, Monitor, Pencil, RefreshCw } from 'lucide-react';
 import JSZip from 'jszip';
 import Header from './components/Header';
 import PromptInput from './components/PromptInput';
@@ -53,6 +53,11 @@ const App: React.FC = () => {
   const [history, setHistory] = useState<WebsiteHistoryItem[]>([]);
   const [iframeKey, setIframeKey] = useState(0);
   const [isEditable, setIsEditable] = useState(false);
+  const [highlightEditBtn, setHighlightEditBtn] = useState(false);
+
+  // Pull to Refresh State
+  const [pullDistance, setPullDistance] = useState(0);
+  const touchStartRef = useRef(0);
 
   // Debounced content for preview to avoid flashing/lagging on every keystroke
   const [previewContent, setPreviewContent] = useState<GeneratedContent | null>(null);
@@ -60,6 +65,48 @@ const App: React.FC = () => {
   
   // Track previous content length to detect large changes (like Undo)
   const prevContentLength = useRef(0);
+
+  // Pull to Refresh Logic
+  useEffect(() => {
+    const handleTouchStart = (e: TouchEvent) => {
+      // Only trigger if starting near the very top of the screen (e.g. Navigation Bar)
+      if (e.touches[0].clientY < 60) {
+        touchStartRef.current = e.touches[0].clientY;
+      } else {
+        touchStartRef.current = 0;
+      }
+    };
+
+    const handleTouchMove = (e: TouchEvent) => {
+      if (!touchStartRef.current) return;
+      const currentY = e.touches[0].clientY;
+      const diff = currentY - touchStartRef.current;
+      
+      // Only track downward pull
+      if (diff > 0) {
+        // Logarithmic resistance
+        setPullDistance(Math.min(diff * 0.5, 150));
+      }
+    };
+
+    const handleTouchEnd = () => {
+      if (touchStartRef.current && pullDistance > 100) {
+        window.location.reload();
+      }
+      setPullDistance(0);
+      touchStartRef.current = 0;
+    };
+
+    document.addEventListener('touchstart', handleTouchStart, { passive: true });
+    document.addEventListener('touchmove', handleTouchMove, { passive: true });
+    document.addEventListener('touchend', handleTouchEnd);
+
+    return () => {
+      document.removeEventListener('touchstart', handleTouchStart);
+      document.removeEventListener('touchmove', handleTouchMove);
+      document.removeEventListener('touchend', handleTouchEnd);
+    };
+  }, [pullDistance]);
 
   // Handle content updates
   useEffect(() => {
@@ -104,6 +151,7 @@ const App: React.FC = () => {
     setIsEditable(false); 
     setErrorMessage('');
     setIframeKey(prev => prev + 1); // Force fresh mount for new generation
+    setHighlightEditBtn(true); // Trigger visual cue
   }
 
   const handleHistorySelect = (content: GeneratedContent) => {
@@ -113,6 +161,7 @@ const App: React.FC = () => {
      setIsEditable(false);
      setErrorMessage('');
      setIframeKey(prev => prev + 1); // Force fresh mount for history
+     setHighlightEditBtn(true);
   }
 
   const handleCodeChange = (type: 'html' | 'css' | 'javascript', value: string) => {
@@ -154,6 +203,7 @@ const App: React.FC = () => {
     setStatus(GenerationStatus.GENERATING);
     setErrorMessage('');
     setViewMode('PREVIEW'); 
+    setHighlightEditBtn(false);
     
     if (window.innerWidth < 1024) {
       setIsSidebarCollapsed(true);
@@ -319,6 +369,25 @@ const App: React.FC = () => {
 
   return (
     <div className="h-[100dvh] flex flex-col bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-slate-100 font-sans selection:bg-indigo-500/30 overflow-hidden transition-colors duration-300">
+      
+      {/* Pull to Refresh Indicator */}
+      {pullDistance > 0 && (
+        <div 
+          className="fixed top-0 left-0 right-0 z-[100] flex justify-center pointer-events-none transition-transform duration-75" 
+          style={{ transform: `translateY(${Math.min(pullDistance - 20, 60)}px)` }}
+        >
+            <div className={`
+              bg-white dark:bg-slate-800 rounded-full p-2.5 shadow-xl border border-slate-200 dark:border-slate-700
+              ${pullDistance > 100 ? 'scale-110' : 'scale-100'} transition-transform
+            `}>
+                 <RefreshCw 
+                    className={`w-5 h-5 text-indigo-600 dark:text-indigo-400 ${pullDistance > 100 ? 'animate-spin' : ''}`} 
+                    style={{ transform: `rotate(${pullDistance * 2.5}deg)` }} 
+                 />
+            </div>
+        </div>
+      )}
+
       {!isFullscreen && <Header theme={theme} onToggleTheme={toggleTheme} />}
 
       <main className="flex-1 flex flex-row overflow-hidden relative">
@@ -418,15 +487,25 @@ const App: React.FC = () => {
             <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pl-2">
               {viewMode === 'PREVIEW' && (
                 <button
-                  onClick={() => setIsEditable(!isEditable)}
-                  className={`p-2 rounded-md transition-colors shrink-0 ${
+                  onClick={() => {
+                    setIsEditable(!isEditable);
+                    setHighlightEditBtn(false); // Clear highlight on click
+                  }}
+                  className={`relative p-2 rounded-md transition-colors shrink-0 ${
                     isEditable 
                       ? 'text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-900/30 ring-1 ring-indigo-500/50' 
                       : 'text-slate-500 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-slate-100 dark:hover:bg-slate-800'
-                  }`}
+                  } ${highlightEditBtn && !isEditable ? 'animate-pulse ring-2 ring-indigo-500 shadow-[0_0_12px_rgba(99,102,241,0.5)] bg-indigo-50 dark:bg-indigo-900/20' : ''}`}
                   title={isEditable ? "Finish Editing" : "Edit Text & Images"}
                 >
                   <Pencil className="w-5 h-5" />
+                  {/* Badge */}
+                  {highlightEditBtn && !isEditable && (
+                    <span className="absolute -top-1 -right-1 flex h-3 w-3">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75"></span>
+                      <span className="relative inline-flex rounded-full h-3 w-3 bg-indigo-500"></span>
+                    </span>
+                  )}
                 </button>
               )}
 
