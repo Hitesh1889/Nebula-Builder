@@ -230,15 +230,15 @@ const App: React.FC = () => {
   };
 
   // Robust Image Handler Script (Shared between Preview and Export)
-  // UPDATED: Now uses Picsum Photos with deterministic seeds based on Alt text
+  // UPDATED: Include src in hash calculation to ensure better variety if alt text is generic
   const imageHandlerScript = `
     <script>
       function fixImage(img) {
         if (img.dataset.retries) return;
         img.dataset.retries = '1';
         
-        // Generate a stable seed from the alt text so the same image loads for the same content
-        const str = img.alt || 'default';
+        // Generate a stable seed from the alt text + src so different images (even with same alt) get different seeds if src differs
+        const str = (img.alt || '') + (img.getAttribute('src') || '');
         let hash = 0;
         for (let i = 0; i < str.length; i++) {
           hash = ((hash << 5) - hash) + str.charCodeAt(i);
@@ -246,7 +246,7 @@ const App: React.FC = () => {
         }
         const seed = Math.abs(hash);
         
-        // Use Picsum with the seed
+        // Use Picsum with the seed as fallback
         img.src = "https://picsum.photos/seed/" + seed + "/800/600";
         img.style.objectFit = 'cover';
       }

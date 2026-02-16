@@ -15,9 +15,9 @@ const getClient = () => {
 const responseSchema: Schema = {
   type: Type.OBJECT,
   properties: {
-    html: { type: Type.STRING, description: "The full HTML structure including <head> and <body>. PRETTY PRINTED." },
-    css: { type: Type.STRING, description: "Custom CSS styles (excluding <style> tags). PRETTY PRINTED." },
-    javascript: { type: Type.STRING, description: "JavaScript code (excluding <script> tags). PRETTY PRINTED." },
+    html: { type: Type.STRING, description: "Complete HTML structure with Tailwind classes. Concise." },
+    css: { type: Type.STRING, description: "Empty string unless custom keyframe animations needed." },
+    javascript: { type: Type.STRING, description: "Minimal JavaScript for interactions." },
   },
   required: ["html", "css", "javascript"],
 };
@@ -43,7 +43,7 @@ export const generateWebsite = async (
         model: modelId,
         config: {
           systemInstruction: SYSTEM_INSTRUCTION,
-          temperature: 0.5,
+          temperature: 0.4, // Lower temperature for faster, more deterministic output
           responseMimeType: "application/json",
           responseSchema: responseSchema,
         },
