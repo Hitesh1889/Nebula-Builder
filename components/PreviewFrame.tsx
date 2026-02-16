@@ -61,15 +61,51 @@ const PreviewFrame: React.FC<PreviewFrameProps> = ({
     const { html, css, javascript } = content;
     let doc = html;
     
-    // BUILDER CSS
+    // BUILDER CSS - PRODUCTION LAYOUT FIXES
     const builderStyles = `
       /* GLOBAL RESET FOR PREMIUM FEEL & NO SCROLL */
-      html, body {
+      html {
         width: 100%;
         margin: 0;
         padding: 0;
         -webkit-font-smoothing: antialiased;
         -moz-osx-font-smoothing: grayscale;
+        scroll-behavior: smooth;
+        scroll-padding-top: 100px; /* CRITICAL: Prevents nav overlapping anchor links */
+      }
+      body {
+        width: 100%;
+        margin: 0;
+        padding: 0;
+        overflow-x: hidden; /* Prevent horizontal scroll */
+      }
+      
+      /* LAYOUT SAFEGUARDS */
+      /* Force the first section (Hero) to respect the navbar height */
+      body > section:first-of-type, 
+      body > main > section:first-of-type,
+      #home {
+        padding-top: 140px !important; 
+        min-height: 100vh;
+      }
+
+      /* Mobile Specific Overrides */
+      @media (max-width: 768px) {
+        body > section:first-of-type, 
+        body > main > section:first-of-type,
+        #home {
+            padding-top: 120px !important;
+            /* Prevent vertical centering causing overflow on small screens */
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start; 
+        }
+        
+        /* Ensure content has breathing room on mobile */
+        section {
+            padding-left: 20px;
+            padding-right: 20px;
+        }
       }
       
       /* HIDE SCROLLBAR BUT ALLOW SCROLL */
@@ -316,6 +352,7 @@ const PreviewFrame: React.FC<PreviewFrameProps> = ({
 
     // --- TAILWIND & FONT INJECTION ---
     const tailwindInjection = `
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
       <script src="https://cdn.tailwindcss.com"></script>
       <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
       <script>

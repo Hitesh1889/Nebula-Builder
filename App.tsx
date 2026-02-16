@@ -263,6 +263,7 @@ const App: React.FC = () => {
 
   // --- TAILWIND INJECTION STRING ---
   const tailwindInjection = `
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
     <script>
@@ -488,8 +489,8 @@ const App: React.FC = () => {
                         <div className="w-full h-full p-0 lg:p-4 overflow-hidden flex items-center justify-center">
                             <div className={`
                                 relative transition-all duration-500 shadow-2xl bg-white
-                                ${previewDevice === 'mobile' ? 'w-[375px] h-[812px] rounded-[3rem] border-[8px] border-slate-800 shadow-xl overflow-hidden' : ''}
-                                ${previewDevice === 'tablet' ? 'w-[768px] h-[1024px] rounded-[2rem] border-[8px] border-slate-800 shadow-xl overflow-hidden' : ''}
+                                ${previewDevice === 'mobile' ? 'w-[375px] h-[812px] max-w-full max-h-full rounded-[3rem] border-[8px] border-slate-800 shadow-xl overflow-hidden' : ''}
+                                ${previewDevice === 'tablet' ? 'w-[768px] h-[1024px] max-w-full max-h-full rounded-[2rem] border-[8px] border-slate-800 shadow-xl overflow-hidden' : ''}
                                 ${previewDevice === 'desktop' ? 'w-full h-full rounded-none border-0' : ''}
                             `}>
                                 {status === GenerationStatus.GENERATING && (

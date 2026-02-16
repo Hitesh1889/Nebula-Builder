@@ -38,18 +38,21 @@ STRATEGY: MINIMAL TOKENS, MAX IMPACT.
 <body class="bg-slate-50 text-slate-900 font-sans">
   <nav class="fixed top-0 w-full z-50 ...">Links: #home, #about, #services, #portfolio, #contact</nav>
   
-  <section id="home" class="min-h-screen flex items-center ...">Hero Content</section>
-  <section id="about" class="min-h-screen hidden ...">Brief Story</section>
-  <section id="services" class="min-h-screen hidden ...">Grid of 3 Cards</section>
-  <section id="portfolio" class="min-h-screen hidden ...">Grid of 3 Images</section>
-  <section id="contact" class="min-h-screen hidden ...">Simple Form</section>
+  <!-- HERO: Must have min-h-screen and pt-32 (128px) to clear navbar -->
+  <section id="home" class="min-h-screen pt-32 pb-20 scroll-mt-24 flex items-center ...">Hero Content</section>
+  
+  <!-- OTHER SECTIONS: Must have min-h-screen, pt-24, and scroll-mt-24 -->
+  <section id="about" class="min-h-screen pt-24 pb-20 hidden scroll-mt-24 ...">Brief Story</section>
+  <section id="services" class="min-h-screen pt-24 pb-20 hidden scroll-mt-24 ...">Grid of 3 Cards</section>
+  <section id="portfolio" class="min-h-screen pt-24 pb-20 hidden scroll-mt-24 ...">Grid of 3 Images</section>
+  <section id="contact" class="min-h-screen pt-24 pb-20 hidden scroll-mt-24 ...">Simple Form</section>
 </body>
 
 **CONTENT GUIDELINES (SPEED MODE):**
 - **Text**: Short, punchy marketing copy. Max 2 sentences per block.
 - **Images**: Use \`https://image.pollinations.ai/prompt/{keyword}\`.
 - **Lists**: MAX 3 ITEMS per grid (Services/Portfolio). This is critical for speed.
-- **Styling**: Use \`shadow-lg\`, \`rounded-xl\`, \`bg-white\` for cards.
+- **Styling**: Use \`shadow-lg\`, \`rounded-xl\`, \`bg-white\` for cards. Use \`container mx-auto px-6\` for content width safety.
 
 RETURN JSON ONLY: { "html": "...", "css": "", "javascript": "" }
 `;
