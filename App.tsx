@@ -12,13 +12,12 @@ import { GenerationStatus, ViewMode, WebsiteHistoryItem, GeneratedContent } from
 import { useUndoRedoState } from './hooks/useAppHistory';
 
 const LOADING_STEPS = [
-  { text: "Analyzing your vision...", icon: Wand2, color: "text-orange-500" },
-  { text: "Drafting the structure...", icon: Pencil, color: "text-emerald-500" },
-  { text: "Selecting the perfect palette...", icon: Palette, color: "text-red-500" },
-  { text: "Computing layout logic...", icon: LayoutTemplate, color: "text-indigo-400" },
-  { text: "Writing production code...", icon: Code, color: "text-orange-400" },
-  { text: "Polishing details...", icon: Sparkles, color: "text-emerald-400" },
-  { text: "Preparing for launch...", icon: Rocket, color: "text-red-400" },
+  { text: "Speed-analyzing vision...", icon: Wand2, color: "text-orange-500" },
+  { text: "Rapid prototyping...", icon: Pencil, color: "text-emerald-500" },
+  { text: "Injecting Tailwind...", icon: Palette, color: "text-red-500" },
+  { text: "Speed-coding layout...", icon: LayoutTemplate, color: "text-indigo-400" },
+  { text: "Optimizing assets...", icon: Sparkles, color: "text-emerald-400" },
+  { text: "Instant launch...", icon: Rocket, color: "text-red-400" },
 ];
 
 const App: React.FC = () => {
@@ -127,13 +126,13 @@ const App: React.FC = () => {
     }
   }, [generatedContent, previewContent]);
 
-  // Loading Cycle Effect
+  // Loading Cycle Effect - Faster Cycle for perception of speed
   useEffect(() => {
     if (status === GenerationStatus.GENERATING) {
       setLoadingStep(0);
       const interval = setInterval(() => {
         setLoadingStep((prev) => (prev + 1) % LOADING_STEPS.length);
-      }, 2000);
+      }, 1200); // Faster updates
       return () => clearInterval(interval);
     }
   }, [status]);

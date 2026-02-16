@@ -422,12 +422,6 @@ const PreviewFrame: React.FC<PreviewFrameProps> = ({
                         navLink.classList.remove('opacity-70');
                    }
                });
-
-               // CLOSE MOBILE MENU (Added Logic)
-               const mobileMenu = document.getElementById('mobile-menu') || document.querySelector('[id*="mobile"][id*="menu"]');
-               if (mobileMenu && !mobileMenu.classList.contains('hidden')) {
-                   mobileMenu.classList.add('hidden');
-               }
            }
         }, true);
 

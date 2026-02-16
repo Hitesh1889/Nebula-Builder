@@ -15,9 +15,9 @@ const getClient = () => {
 const responseSchema: Schema = {
   type: Type.OBJECT,
   properties: {
-    html: { type: Type.STRING, description: "Complete HTML structure with Tailwind classes. Concise." },
-    css: { type: Type.STRING, description: "Empty string unless custom keyframe animations needed." },
-    javascript: { type: Type.STRING, description: "Minimal JavaScript for interactions." },
+    html: { type: Type.STRING, description: "Complete HTML structure with Tailwind classes." },
+    css: { type: Type.STRING, description: "Leave empty for speed." },
+    javascript: { type: Type.STRING, description: "Leave empty for speed." },
   },
   required: ["html", "css", "javascript"],
 };
@@ -43,7 +43,7 @@ export const generateWebsite = async (
         model: modelId,
         config: {
           systemInstruction: SYSTEM_INSTRUCTION,
-          temperature: 0.4, // Lower temperature for faster, more deterministic output
+          temperature: 0.7, // Higher temp often yields creative results faster without getting stuck on logic
           responseMimeType: "application/json",
           responseSchema: responseSchema,
         },
@@ -59,6 +59,9 @@ export const generateWebsite = async (
       // Parse the JSON response
       try {
         const content = JSON.parse(text) as GeneratedContent;
+        // Fallback for speed optimization if AI sends nulls
+        if (!content.css) content.css = "";
+        if (!content.javascript) content.javascript = "";
         return content;
       } catch (parseError) {
         console.warn(`Attempt ${attempt + 1}: JSON parse failed.`, text);

@@ -23,70 +23,33 @@ export const EXAMPLE_PROMPTS = [
 
 export const INITIAL_PROMPT = EXAMPLE_PROMPTS[Math.floor(Math.random() * EXAMPLE_PROMPTS.length)];
 
-// SUPER-OPTIMIZED PREMIUM PROMPT FOR 5-PAGE SPA
+// EXTREME SPEED OPTIMIZATION PROMPT
 export const SYSTEM_INSTRUCTION = `
-ACT AS A WORLD-CLASS WEB DEVELOPER.
-GOAL: GENERATE A ROBUST 5-PAGE WEBSITE (SPA) IN A SINGLE FILE.
-CRITICAL: RESPONSE MUST BE FAST (<10s).
+ACT AS A HYPER-FAST WEB ARCHITECT.
+GOAL: GENERATE A LIGHTWEIGHT 5-PAGE SPA IN <5 SECONDS.
+STRATEGY: MINIMAL TOKENS, MAX IMPACT.
 
-**MANDATORY STRUCTURE (Single Page App):**
-1. **CONTAINER**: Use <body> or <main> to hold 5 distinct <section> tags.
-2. **5 SECTIONS (PAGES)**:
-   - <section id="home" class="min-h-screen w-full ..."> ... </section>
-   - <section id="about" class="min-h-screen w-full hidden ..."> ... </section>
-   - <section id="services" class="min-h-screen w-full hidden ..."> ... </section>
-   - <section id="portfolio" class="min-h-screen w-full hidden ..."> ... </section>
-   - <section id="contact" class="min-h-screen w-full hidden ..."> ... </section>
-   *NOTE: Add 'hidden' class to all except 'home' by default.*
+**STRICT OUTPUT RULES:**
+1. **HTML**: Return valid HTML5 with Tailwind classes.
+2. **CSS**: RETURN EMPTY STRING "". (Tailwind handles styling).
+3. **JAVASCRIPT**: RETURN EMPTY STRING "". (Navigation logic is pre-installed).
 
-3. **NAVIGATION (RESPONSIVE)**:
-   - **Navbar**: Sticky/Fixed top. Z-index 50.
-   - **Desktop**: Links (Home, About, Services, Portfolio, Contact) visible.
-   - **Mobile (Hamburger Menu)**: 
-     - Create a button with ID \`mobile-menu-btn\` containing a 3-line SVG icon (Hamburger).
-     - This button MUST be visible on mobile (block) and hidden on desktop (hidden md:block or similar).
-     - Create a Menu Container with ID \`mobile-menu\`. It MUST be \`hidden\` by default.
-     - The menu contains vertical links.
+**REQUIRED STRUCTURE (5 Sections):**
+<body class="bg-slate-50 text-slate-900 font-sans">
+  <nav class="fixed top-0 w-full z-50 ...">Links: #home, #about, #services, #portfolio, #contact</nav>
+  
+  <section id="home" class="min-h-screen flex items-center ...">Hero Content</section>
+  <section id="about" class="min-h-screen hidden ...">Brief Story</section>
+  <section id="services" class="min-h-screen hidden ...">Grid of 3 Cards</section>
+  <section id="portfolio" class="min-h-screen hidden ...">Grid of 3 Images</section>
+  <section id="contact" class="min-h-screen hidden ...">Simple Form</section>
+</body>
 
-**CONTENT REQUIREMENTS (Concise & Professional):**
-- **Home**: High-impact Hero section with Image, Headline, 2 Buttons.
-- **About**: "Our Story" text, Team Grid (3-4 cards).
-- **Services**: Grid of 3-6 Service Cards with icons.
-- **Portfolio**: Grid of 6 Project Images with hover effects.
-- **Contact**: Functional-looking Form (Name, Email, Msg), Map placeholder, Footer.
+**CONTENT GUIDELINES (SPEED MODE):**
+- **Text**: Short, punchy marketing copy. Max 2 sentences per block.
+- **Images**: Use \`https://image.pollinations.ai/prompt/{keyword}\`.
+- **Lists**: MAX 3 ITEMS per grid (Services/Portfolio). This is critical for speed.
+- **Styling**: Use \`shadow-lg\`, \`rounded-xl\`, \`bg-white\` for cards.
 
-**DESIGN RULES:**
-- **Tailwind CSS ONLY**: Use \`bg-slate-50\`, \`text-slate-900\`, \`shadow-xl\`, \`rounded-2xl\`.
-- **Images**: Use \`https://image.pollinations.ai/prompt/{keyword}\` (e.g., 'office', 'code', 'meeting').
-- **Typography**: Use \`font-serif\` for headings, \`font-sans\` for body.
-
-**JAVASCRIPT LOGIC (Include this):**
-\`\`\`javascript
-// Mobile Menu Toggle
-const btn = document.getElementById('mobile-menu-btn');
-const menu = document.getElementById('mobile-menu');
-if(btn && menu) {
-    btn.addEventListener('click', () => {
-        menu.classList.toggle('hidden');
-    });
-}
-
-// Navigation Logic
-document.querySelectorAll('a[href^="#"]').forEach(link => {
-  link.addEventListener('click', (e) => {
-    e.preventDefault();
-    const id = link.getAttribute('href').replace('#', '');
-    document.querySelectorAll('section').forEach(s => s.classList.add('hidden'));
-    const target = document.getElementById(id);
-    if(target) {
-        target.classList.remove('hidden');
-        window.scrollTo(0,0);
-    }
-    // Close mobile menu if open
-    if(menu) menu.classList.add('hidden');
-  });
-});
-\`\`\`
-
-RETURN JSON ONLY: { "html": "...", "css": "...", "javascript": "..." }
+RETURN JSON ONLY: { "html": "...", "css": "", "javascript": "" }
 `;
