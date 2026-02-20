@@ -63,6 +63,18 @@ const PreviewFrame: React.FC<PreviewFrameProps> = ({
     
     // BUILDER CSS
     const builderStyles = `
+      /* GLOBAL RESET FOR PREMIUM FEEL & NO SCROLL */
+      html, body {
+        width: 100%;
+        margin: 0;
+        padding: 0;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+      }
+      
+      /* HIDE SCROLLBAR BUT ALLOW SCROLL */
+      ::-webkit-scrollbar { width: 0px; background: transparent; }
+
       body.visinaro-edit-mode { cursor: default; }
       .visinaro-edit-mode .visinaro-draggable {
         cursor: move; cursor: grab; position: relative; transition: box-shadow 0.2s;
@@ -302,10 +314,36 @@ const PreviewFrame: React.FC<PreviewFrameProps> = ({
       </script>
     `;
 
+    // --- TAILWIND & FONT INJECTION ---
+    const tailwindInjection = `
+      <script src="https://cdn.tailwindcss.com"></script>
+      <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+      <script>
+        tailwind.config = {
+          darkMode: 'class',
+          theme: {
+            extend: {
+              fontFamily: {
+                sans: ['Inter', 'sans-serif'],
+                serif: ['Playfair Display', 'serif'],
+              },
+            },
+          },
+        }
+      </script>
+    `;
+
     const styleTag = `<style data-visinaro-injected="true">${css}\n${builderStyles}</style>`;
     
-    if (doc.includes('</head>')) doc = doc.replace('</head>', `${styleTag}</head>`);
-    else doc = `${styleTag}${doc}`;
+    // Inject Styles & Scripts
+    if (doc.includes('</head>')) {
+        doc = doc.replace('</head>', `${tailwindInjection}\n${styleTag}</head>`);
+    } else if (doc.includes('<body')) {
+        doc = doc.replace('<body', `${tailwindInjection}\n${styleTag}<body`);
+    } else {
+        // Fallback for fragments
+        doc = `${tailwindInjection}\n${styleTag}\n${doc}`;
+    }
 
     const globalImageScript = `
       <script data-visinaro-injected="true">
@@ -326,97 +364,90 @@ const PreviewFrame: React.FC<PreviewFrameProps> = ({
       </script>
     `;
 
-    const navigationFixScript = `
+    const spaLogicScript = `
       <script data-visinaro-injected="true">
+        // 1. CLICK HANDLER (Navigation)
         document.addEventListener('click', (e) => {
            const link = e.target.closest('a');
            if (!link) return;
-           
            if (e.ctrlKey || e.metaKey) return; 
            
            const href = link.getAttribute('href');
            if (!href) return;
            
-           // External Links: Force new tab
+           // External Links
            if (href.startsWith('http') || href.startsWith('//')) {
                e.preventDefault();
                window.open(href, '_blank');
                return;
            }
 
-           // Force Prevent Default for ALL internal links to ensure SPA behavior
-           // This handles both file paths (about.html) AND hash links (#about)
-           // We override any default browser anchor scrolling to ensure correct section toggling
+           // Internal Links
            e.preventDefault();
-
-           // --- Single Page App Simulation Logic ---
            
-           // Determine target ID
-           // Normalize: "about.html" -> "about", "/" -> "home", "#contact" -> "contact"
            let targetId = href.replace(/\\.html$/, '').replace(/^\\//, '').replace(/^\\./, '').replace(/^#/, '');
-           
-           // Logo/Home special case
            if (targetId === '' || targetId === 'index') targetId = 'home';
 
-           // Find the target section
-           // Strategy: Look for ID match, then fallback to "page-like" containers
+           // Find target
            let section = document.getElementById(targetId);
            
-           // Fallback for "home" if ID is different (e.g., "hero" or "top")
+           // Fallback: If no section matches, and it looks like a "page" request, 
+           // try to find the first section as home if asking for home
            if (!section && targetId === 'home') {
-               section = document.getElementById('hero') || document.getElementById('top') || document.querySelector('section:first-of-type');
+               section = document.querySelector('section[id="hero"]') || document.querySelector('section:first-of-type');
            }
 
            if (section) {
-               // 1. Hide other top-level page sections
-               // We look for sections, mains, or divs with IDs that look like page containers
-               // We exclude the found section and any small components
-               const potentialPages = document.querySelectorAll('body > section[id], body > main[id], body > div[id]');
-               
-               potentialPages.forEach(node => {
-                   // Skip if it's the target
-                   if (node === section) return;
-                   
-                   // Skip if it's a small utility like a toast or modal
-                   // Heuristic: Pages usually have significant height or specific tags
-                   const tagName = node.tagName.toLowerCase();
-                   if (tagName === 'section' || tagName === 'main' || (tagName === 'div' && node.classList.contains('container') === false)) {
-                       node.style.display = 'none';
-                       node.classList.add('hidden'); 
+               // Hide all other top-level sections
+               const allSections = document.querySelectorAll('body > section, body > main > section, body > div > section');
+               allSections.forEach(el => {
+                   // Ensure we are toggling "pages" (elements with IDs usually)
+                   if (el.id) {
+                       el.style.display = 'none';
+                       el.classList.add('hidden');
                    }
                });
-                   
+
                // Show target
                section.style.display = 'block';
                section.classList.remove('hidden');
-
-               // 2. Scroll to top
                window.scrollTo({ top: 0, behavior: 'smooth' });
                
-               // 3. Update Navbar State (if exists)
-               document.querySelectorAll('nav a, header a').forEach(navLink => {
-                   const navHref = navLink.getAttribute('href');
-                   // Normalize nav href for comparison
-                   const normalizedNavHref = navHref ? navHref.replace(/\\.html$/, '').replace(/^\\//, '').replace(/^\\./, '').replace(/^#/, '') : '';
-                   const isMatch = normalizedNavHref === targetId || (targetId === 'home' && (normalizedNavHref === '' || normalizedNavHref === 'index'));
-                   
-                   if (isMatch) {
-                        navLink.classList.add('active', 'text-indigo-600', 'font-bold'); 
-                   } else {
-                        navLink.classList.remove('active', 'text-indigo-600', 'font-bold');
+               // Update Nav State
+               document.querySelectorAll('nav a').forEach(navLink => {
+                   navLink.classList.remove('text-indigo-600', 'font-bold', 'opacity-100');
+                   navLink.classList.add('opacity-70');
+                   if(navLink.getAttribute('href').includes(targetId)) {
+                        navLink.classList.add('text-indigo-600', 'font-bold', 'opacity-100');
+                        navLink.classList.remove('opacity-70');
                    }
                });
-           } else {
-               // Target not found in DOM
-               console.warn('[Visinaro] Navigation target not found:', targetId);
-               // Last resort: if it was a home link, just scroll top
-               if (targetId === 'home') window.scrollTo({ top: 0, behavior: 'smooth' });
+
+               // CLOSE MOBILE MENU (Added Logic)
+               const mobileMenu = document.getElementById('mobile-menu') || document.querySelector('[id*="mobile"][id*="menu"]');
+               if (mobileMenu && !mobileMenu.classList.contains('hidden')) {
+                   mobileMenu.classList.add('hidden');
+               }
            }
         }, true);
+
+        // 2. INIT HANDLER (Show Home, Hide Others)
+        window.addEventListener('DOMContentLoaded', () => {
+             const sections = document.querySelectorAll('body > section, body > main > section');
+             const home = document.getElementById('home');
+             if (home && sections.length > 1) {
+                 sections.forEach(s => {
+                     if (s.id !== 'home') {
+                         s.style.display = 'none';
+                         s.classList.add('hidden');
+                     }
+                 });
+             }
+        });
       </script>
     `;
 
-    const fullScript = `${globalImageScript}${navigationFixScript}${builderScript}<script data-visinaro-injected="true">${javascript}</script>`;
+    const fullScript = `${globalImageScript}${spaLogicScript}${builderScript}<script data-visinaro-injected="true">${javascript}</script>`;
     
     if (doc.includes('</body>')) doc = doc.replace('</body>', `${fullScript}</body>`);
     else doc = `${doc}${fullScript}`;

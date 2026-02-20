@@ -1,4 +1,11 @@
+# Visinaro AI Website Builder - robots.txt
+# REPLACE: https://visinaro.web.app with your actual domain
+
 User-agent: *
 Allow: /
 
-Sitemap: https://visinaro.com/sitemap.xml
+# Disallow any admin or private paths (add as needed)
+# Disallow: /admin/
+
+# Sitemap location - Update with your actual domain
+Sitemap: https://visinaro.web.app/sitemap.xml

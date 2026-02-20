@@ -1,157 +1,128 @@
-
 <!DOCTYPE html>
 <html lang="en" class="h-full">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     
-    <!-- PRIMARY SEO -->
-    <title>Free AI Website Builder - Visinaro | Text to Website Generator</title>
-    <meta name="description" content="Create stunning websites in seconds with Visinaro, the #1 Free AI Website Builder. Convert text to fully functional HTML/CSS code instantly. No signup required. Export to ZIP.">
-    <meta name="keywords" content="AI website builder, free website generator, text to html ai, gemini ai web builder, no code website maker, instant website creator, ai coding assistant, export html css">
-    <meta name="author" content="Visinaro AI">
-    <meta name="robots" content="index, follow, max-image-preview:large">
-    <meta name="language" content="English">
-    <link rel="canonical" href="https://visinaro.ai" />
-
-    <!-- OPEN GRAPH / FACEBOOK -->
-    <meta property="og:type" content="website">
-    <meta property="og:url" content="https://visinaro.ai/">
-    <meta property="og:title" content="Visinaro - Free AI Website Builder & Code Generator">
-    <meta property="og:description" content="Turn your ideas into reality. Describe your dream website and let our AI build it in seconds. Edit code, preview on mobile, and download for free.">
-    <meta property="og:site_name" content="Visinaro AI">
+    <!-- === PRIMARY SEO === -->
+    <title>Visinaro - AI Website Builder | Generate Websites in Seconds</title>
+    <meta name="description" content="Visinaro is an AI-powered website builder. Describe your website in plain text and get a fully-designed, production-ready site in seconds using Google Gemini AI." />
+    <meta name="keywords" content="AI website builder, website generator, Gemini AI, no-code website, website maker, AI web design" />
+    <meta name="author" content="Visinaro" />
+    <link rel="canonical" href="https://visinaro.web.app/" />
     
-    <!-- TWITTER -->
-    <meta property="twitter:card" content="summary_large_image">
-    <meta property="twitter:title" content="Visinaro - Free AI Website Builder">
-    <meta property="twitter:description" content="Generate professional websites from text prompts instantly. The most advanced free AI web builder.">
-
-    <!-- STRUCTURED DATA (JSON-LD) for Software Application -->
+    <!-- === OPEN GRAPH (Facebook, LinkedIn) === -->
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://visinaro.web.app/" />
+    <meta property="og:title" content="Visinaro - AI Website Builder" />
+    <meta property="og:description" content="Generate production-ready websites in seconds with AI. Just describe what you want and Visinaro builds it." />
+    <meta property="og:image" content="https://visinaro.web.app/og-image.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    
+    <!-- === TWITTER CARD === -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:url" content="https://visinaro.web.app/" />
+    <meta name="twitter:title" content="Visinaro - AI Website Builder" />
+    <meta name="twitter:description" content="Generate production-ready websites in seconds with AI." />
+    <meta name="twitter:image" content="https://visinaro.web.app/og-image.png" />
+    
+    <!-- === STRUCTURED DATA (JSON-LD) === -->
     <script type="application/ld+json">
     {
       "@context": "https://schema.org",
-      "@type": "SoftwareApplication",
-      "name": "Visinaro AI Website Builder",
-      "applicationCategory": "DesignApplication",
+      "@type": "WebApplication",
+      "name": "Visinaro",
+      "description": "AI-powered website builder that generates production-ready websites from plain text descriptions.",
+      "url": "https://visinaro.web.app/",
+      "applicationCategory": "DeveloperApplication",
       "operatingSystem": "Web",
       "offers": {
         "@type": "Offer",
         "price": "0",
         "priceCurrency": "USD"
       },
-      "description": "A free AI-powered tool that generates complete, responsive websites from text descriptions using Google Gemini models.",
-      "featureList": [
-        "Text to Website Generation",
-        "Real-time Preview",
-        "Export to ZIP",
-        "Mobile Responsive Designs",
-        "Dark Mode Support"
-      ],
-      "author": {
-          "@type": "Organization",
-          "name": "Visinaro"
+      "creator": {
+        "@type": "Organization",
+        "name": "Visinaro"
       }
     }
     </script>
 
+    <!-- Favicon -->
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32' fill='none'%3E%3Cpath d='M8 6V26' stroke='%23F97316' stroke-width='5' stroke-linecap='round' /%3E%3Cpath d='M24 6V26' stroke='%2310B981' stroke-width='5' stroke-linecap='round' /%3E%3Cpath d='M8 26L24 6' stroke='%23EF4444' stroke-width='5' stroke-linecap='round' /%3E%3C/svg%3E" />
     
-    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Tailwind Config - LOAD BEFORE CDN -->
     <script>
-      tailwind.config = {
+      window.tailwind = {
         darkMode: 'class',
         theme: {
           extend: {
             colors: {
-              gray: {
-                750: '#2d3748',
+              slate: {
                 850: '#1a202c',
-                950: '#0d1117',
+                900: '#0f172a',
+                950: '#020617',
               }
             },
             fontFamily: {
               sans: ['Inter', 'sans-serif'],
               mono: ['Fira Code', 'monospace'],
+              serif: ['Playfair Display', 'serif'],
             },
             animation: {
-              'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+              'blob': 'blob 7s infinite',
+              'fade-in': 'fadeIn 0.5s ease-out forwards',
+            },
+            keyframes: {
+              blob: {
+                '0%': { transform: 'translate(0px, 0px) scale(1)' },
+                '33%': { transform: 'translate(30px, -50px) scale(1.1)' },
+                '66%': { transform: 'translate(-20px, 20px) scale(0.9)' },
+                '100%': { transform: 'translate(0px, 0px) scale(1)' },
+              },
+              fadeIn: {
+                '0%': { opacity: '0', transform: 'translateY(10px)' },
+                '100%': { opacity: '1', transform: 'translateY(0)' },
+              }
             }
           },
         },
       };
     </script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
-    <!-- PrismJS for Syntax Highlighting -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Fonts - preconnect for speed -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Fira+Code:wght@400;500&family=Playfair+Display:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet" />
+    
+    <!-- Code highlighting -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" rel="stylesheet" />
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-css.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-javascript.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-markup.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js" defer></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-css.min.js" defer></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-javascript.min.js" defer></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-markup.min.js" defer></script>
 
     <style>
       body {
         font-family: 'Inter', sans-serif;
-        background-color: #f8fafc; /* Slate-50 */
-        color: #0f172a; /* Slate-900 */
+        background-color: #020617;
+        color: #f8fafc;
         height: 100%;
         margin: 0;
-        overflow: hidden; /* Prevent body scroll, let React app handle scrolling */
-        transition: background-color 0.3s ease, color 0.3s ease;
-        -webkit-tap-highlight-color: transparent; /* Disable mobile tap highlight */
+        overflow: hidden;
       }
-      
-      html.dark body {
-        background-color: #0f172a; /* Slate-900 */
-        color: #f8fafc; /* Slate-50 */
+      #root { height: 100%; }
+      .aurora-bg {
+        background: radial-gradient(circle at 50% 0%, #1e1b4b 0%, #020617 100%);
       }
-
-      #root {
-        height: 100%;
-      }
-      /* Custom scrollbar for Webkit */
-      ::-webkit-scrollbar {
-        width: 8px;
-        height: 8px;
-      }
-      ::-webkit-scrollbar-track {
-        background: transparent; 
-      }
-      ::-webkit-scrollbar-thumb {
-        background: #cbd5e1; 
-        border-radius: 4px;
-      }
-      .dark ::-webkit-scrollbar-track {
-        background: #1e293b;
-      }
-      .dark ::-webkit-scrollbar-thumb {
-        background: #475569;
-      }
-      ::-webkit-scrollbar-thumb:hover {
-        background: #94a3b8; 
-      }
-      .dark ::-webkit-scrollbar-thumb:hover {
-        background: #64748b;
-      }
-      
-      /* Editor Overrides */
-      code[class*="language-"],
-      pre[class*="language-"] {
-        font-family: 'Fira Code', monospace !important;
-        font-size: 14px !important;
-        line-height: 1.5 !important;
-        direction: ltr;
-        text-align: left;
-        white-space: pre;
-        word-spacing: normal;
-        word-break: normal;
-        tab-size: 2;
-        hyphens: none;
-        background: transparent !important;
-        margin: 0 !important;
-        padding: 0 !important;
-        text-shadow: none !important;
-      }
+      ::-webkit-scrollbar { width: 6px; height: 6px; }
+      ::-webkit-scrollbar-track { background: transparent; }
+      ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
+      ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.2); }
     </style>
+    
   <script type="importmap">
 {
   "imports": {
@@ -167,67 +138,7 @@
 <link rel="stylesheet" href="/index.css">
 </head>
   <body>
-    <!-- 
-      SEO & LOADING CONTENT
-      This content is visible to search crawlers immediately.
-      It serves as the "index" content for SEO before React mounts.
-    -->
-    <div id="root">
-       <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; background-color: #0f172a; color: white; font-family: sans-serif; text-align: center; padding: 20px;">
-          
-          <!-- Primary H1 -->
-          <h1 style="font-size: 2.5rem; font-weight: 700; margin-bottom: 0.5rem; letter-spacing: -0.025em; background: linear-gradient(to right, #818cf8, #c084fc); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
-            AI Website Builder
-          </h1>
-          
-          <h2 style="font-size: 1.25rem; font-weight: 500; color: #94a3b8; margin-bottom: 2rem;">
-            Turn text into professional websites in seconds.
-          </h2>
-          
-          <!-- Spinner -->
-          <div style="width: 40px; height: 40px; border: 3px solid rgba(255,255,255,0.1); border-top-color: #6366f1; border-radius: 50%; animation: spin 0.8s linear infinite; margin-bottom: 3rem;"></div>
-          
-          <!-- SEO Keywords & Features (Visually subtle but readable by bots) -->
-          <div style="max-width: 800px; text-align: left; color: #475569; font-size: 0.9rem;">
-             <h3 style="color: #64748b; font-size: 1rem; font-weight: 600; margin-bottom: 1rem;">Why use Visinaro?</h3>
-             <ul style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; list-style: none; padding: 0;">
-                <li>✓ <strong>Instant AI Generation</strong>: Powered by Gemini 3.0</li>
-                <li>✓ <strong>Export to Code</strong>: Download HTML, CSS, & JS ZIP</li>
-                <li>✓ <strong>Mobile Responsive</strong>: Designs work on all devices</li>
-                <li>✓ <strong>No Sign-up Required</strong>: Completely free to start</li>
-                <li>✓ <strong>Single Page Applications</strong>: Modern SPA architecture</li>
-                <li>✓ <strong>Visual Editor</strong>: Customize text and images easily</li>
-             </ul>
-             
-             <h3 style="color: #64748b; font-size: 1rem; font-weight: 600; margin-top: 2rem; margin-bottom: 1rem;">Frequently Asked Questions</h3>
-             <div style="margin-bottom: 1rem;">
-                <strong>How does the AI Website Builder work?</strong><br>
-                Simply describe the website you want (e.g., "A portfolio for a photographer"), and our AI generates the complete code instantly.
-             </div>
-             <div>
-                <strong>Is this AI website generator free?</strong><br>
-                Yes, Visinaro is a free tool to generate website templates and code for your projects.
-             </div>
-          </div>
-          
-          <style>
-            @keyframes spin { to { transform: rotate(360deg); } }
-          </style>
-       </div>
-    </div>
-    
-    <noscript>
-      <div style="padding: 40px; text-align: center; color: #1e293b; background: #f8fafc; font-family: sans-serif;">
-        <h1 style="color: #4f46e5;">Free AI Website Builder</h1>
-        <p>You need to enable JavaScript to use Visinaro.</p>
-        <p>Visinaro is the ultimate <strong>no-code tool</strong> to create websites with AI. Features include:</p>
-        <ul>
-            <li>Text to Website Generation</li>
-            <li>Export HTML/CSS</li>
-            <li>Free to use</li>
-        </ul>
-      </div>
-    </noscript>
+    <div id="root"></div>
   <script type="module" src="/index.tsx"></script>
 </body>
 </html>

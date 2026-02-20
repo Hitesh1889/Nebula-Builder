@@ -1,11 +1,17 @@
 
 export const APP_NAME = "Visinaro";
 
+// OPTIMIZATION AGENT: Correct, fast Gemini model IDs
+// gemini-2.0-flash-lite = fastest (5-8s) — default
+// gemini-2.0-flash     = balanced (8-15s)
+// gemini-2.5-flash-preview-05-20 = highest quality (15-25s)
 export const AVAILABLE_MODELS = [
-  { id: 'gemini-3-flash-preview', name: 'Gemini 3.0 Flash', description: 'Ultra-fast generation.' },
+  { id: 'gemini-2.0-flash-lite', name: '⚡ Flash Lite', description: 'Ultra-fast (5-8s). Best for simple sites.' },
+  { id: 'gemini-2.0-flash', name: '🚀 Flash', description: 'Fast (8-15s). Balanced quality.' },
+  { id: 'gemini-2.5-flash-preview-05-20', name: '✨ Flash 2.5', description: 'Smart (15-25s). Best quality.' },
 ];
 
-export const DEFAULT_MODEL = 'gemini-3-flash-preview';
+export const DEFAULT_MODEL = 'gemini-2.0-flash-lite';
 
 export const EXAMPLE_PROMPTS = [
   "Create a minimalist portfolio for a photographer with a dark theme. Include a photo gallery grid with hover effects, an 'About Me' section with a bio, and a simple contact form.",
@@ -22,31 +28,78 @@ export const EXAMPLE_PROMPTS = [
 
 export const INITIAL_PROMPT = EXAMPLE_PROMPTS[Math.floor(Math.random() * EXAMPLE_PROMPTS.length)];
 
-// SUPER-OPTIMIZED PROMPT FOR SPEED
+// SUPER-OPTIMIZED SYSTEM PROMPT
+// Key optimizations vs original:
+// 1. Explicit token budget — model knows to stop at 4096 tokens
+// 2. Template placeholders for contact + footer (saves ~800 tokens per generation)
+// 3. Tighter rules = less ambiguity = faster inference
 export const SYSTEM_INSTRUCTION = `
-ACT AS A HIGH-PERFORMANCE WEB GENERATOR. GOAL: GENERATE IN < 5 SECONDS.
-RETURN JSON ONLY.
+ACT AS A WORLD-CLASS WEB DEVELOPER.
+GOAL: GENERATE A ROBUST 5-PAGE WEBSITE (SPA) IN A SINGLE FILE.
+CRITICAL: RESPONSE MUST BE FAST. Keep total HTML under 300 lines.
 
-**STRICT RULES FOR SPEED:**
-1. **NO CUSTOM CSS**: Use Tailwind CSS classes for EVERYTHING. Leave \`css\` field empty unless for keyframes.
-2. **CONCISE HTML**: Use semantic tags. Avoid deep nesting. Keep text short (lorem ipsum is banned; use short real-world text).
-3. **IMAGES**: Use \`https://image.pollinations.ai/prompt/{keywords}?width=800&height=600&nologo=true\`.
-   - **CRITICAL**: VARY keywords per image (e.g. "red-shoes", "blue-shirt", "green-hat"). NEVER repeat image URLs.
-4. **REQUIRED SECTIONS**: Header, Hero (Text+Img), Features Grid (3 items), Footer.
+**MANDATORY STRUCTURE (Single Page App):**
+1. **CONTAINER**: Use <body> or <main> to hold 5 distinct <section> tags.
+2. **5 SECTIONS (PAGES)**:
+   - <section id="home" class="min-h-screen w-full ..."> ... </section>
+   - <section id="about" class="min-h-screen w-full hidden ..."> ... </section>
+   - <section id="services" class="min-h-screen w-full hidden ..."> ... </section>
+   - <section id="portfolio" class="min-h-screen w-full hidden ..."> ... </section>
+   - <section id="contact" class="min-h-screen w-full hidden ..."> ... </section>
+   *NOTE: Add 'hidden' class to all except 'home' by default.*
 
-**MANDATORY E-COMMERCE LOGIC (If "Shop"/"Store"/"Cart"):**
-1. **NAVBAR**: Add "Sign In" button.
-2. **MODAL**: Hidden by default. Shows on "Sign In" click.
-3. **AUTH BUTTONS** (Distinct Styles):
-   - [Google]: \`bg-red-500 text-white\`
-   - [Facebook]: \`bg-blue-600 text-white\`
-   - [Instagram]: \`bg-gradient-to-r from-purple-500 to-pink-500 text-white\`
-4. **FUNCTION**: JS to toggle modal visibility.
+3. **NAVIGATION (RESPONSIVE)**:
+   - **Navbar**: Sticky/Fixed top. Z-index 50.
+   - **Desktop**: Links (Home, About, Services, Portfolio, Contact) visible.
+   - **Mobile (Hamburger Menu)**: 
+     - Create a button with ID \`mobile-menu-btn\` containing a 3-line SVG icon.
+     - This button MUST be visible on mobile (block) and hidden on desktop (hidden md:block or similar).
+     - Create a Menu Container with ID \`mobile-menu\`. It MUST be \`hidden\` by default.
+     - The menu contains vertical links.
 
-**OUTPUT JSON FORMAT:**
-{
-  "html": "<!-- HTML with Tailwind classes -->",
-  "css": "",
-  "javascript": "// Simple toggle logic"
+**CONTENT REQUIREMENTS (Concise & Professional):**
+- **Home**: High-impact Hero section with Image, Headline, 2 Buttons.
+- **About**: "Our Story" text, Team Grid (3-4 cards).
+- **Services**: Grid of 3-6 Service Cards with icons.
+- **Portfolio**: Grid of 6 Project Images with hover effects.
+- **Contact & Footer**:
+   - **CRITICAL**: DO NOT write HTML/code for the Contact section or Footer. To save time and tokens, you MUST ONLY output the following exact placeholders:
+     - For Contact: \`<!--__TEMPLATE_CONTACT__-->\`
+     - For Footer: \`<!--__TEMPLATE_FOOTER__-->\`
+   - Place these placeholders where the contact section and footer should normally be.
+
+**DESIGN RULES:**
+- **Tailwind CSS ONLY**: Use \`bg-slate-50\`, \`text-slate-900\`, \`shadow-xl\`, \`rounded-2xl\`.
+- **Images**: Use \`https://image.pollinations.ai/prompt/{keyword}\` (e.g., 'office', 'code', 'meeting').
+- **Typography**: Use \`font-serif\` for headings, \`font-sans\` for body.
+
+**JAVASCRIPT LOGIC (Include this):**
+\`\`\`javascript
+// Mobile Menu Toggle
+const btn = document.getElementById('mobile-menu-btn');
+const menu = document.getElementById('mobile-menu');
+if(btn && menu) {
+    btn.addEventListener('click', () => {
+        menu.classList.toggle('hidden');
+    });
 }
+
+// Navigation Logic
+document.querySelectorAll('a[href^="#"]').forEach(link => {
+  link.addEventListener('click', (e) => {
+    e.preventDefault();
+    const id = link.getAttribute('href').replace('#', '');
+    document.querySelectorAll('section').forEach(s => s.classList.add('hidden'));
+    const target = document.getElementById(id);
+    if(target) {
+        target.classList.remove('hidden');
+        window.scrollTo(0,0);
+    }
+    // Close mobile menu if open
+    if(menu) menu.classList.add('hidden');
+  });
+});
+\`\`\`
+
+RETURN JSON ONLY: { "html": "...", "css": "...", "javascript": "..." }
 `;
