@@ -9,12 +9,12 @@ import CodeEditor from './components/CodeEditor';
 import HistorySidebar from './components/HistorySidebar';
 import SEOAgent from './components/SEOAgent';
 import ModelSelector from './components/ModelSelector';
-import { generateWebsite, clearApiKey, getQuotaWaitSeconds } from './services/geminiService';
+import { generateWebsite, clearApiKey, getQuotaWaitSeconds } from './services/aiService';
 import { GenerationStatus, ViewMode, WebsiteHistoryItem, GeneratedContent } from './types';
 import { useUndoRedoState } from './hooks/useAppHistory';
 import { DEFAULT_MODEL, AVAILABLE_MODELS } from './constants';
 import ApiKeySetup from './components/ApiKeySetup';
-import { hasApiKey } from './services/geminiService';
+import { hasApiKey } from './services/aiService';
 
 const LOADING_STEPS = [
   { text: "Analyzing your vision...", icon: Wand2, color: "text-orange-500" },
@@ -235,7 +235,7 @@ const App: React.FC = () => {
         } catch { /* expected during streaming */ }
       });
       handleGenerationSuccess(result.content);
-      setActiveModel(result.usedModel);
+      setActiveModel(result.usedModel + ' (' + result.usedProvider + ')');
       setStatus(GenerationStatus.COMPLETED);
       saveToSidebarHistory({ id: crypto.randomUUID(), prompt, content: result.content, timestamp: Date.now(), model: result.usedModel });
     } catch (error) {
@@ -452,7 +452,7 @@ const App: React.FC = () => {
                 {/* Badge */}
                 <div className="flex items-center gap-2 px-4 py-1.5 bg-indigo-500/10 border border-indigo-500/20 rounded-full backdrop-blur-md">
                   <span className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse"></span>
-                  <span className="text-xs font-semibold text-indigo-300 tracking-wider uppercase">Powered by Gemini AI</span>
+                  <span className="text-xs font-semibold text-indigo-300 tracking-wider uppercase">Powered by Groq + OpenRouter</span>
                 </div>
 
                 {/* Hero Text */}
@@ -504,7 +504,7 @@ const App: React.FC = () => {
                 {/* Footer */}
                 <div className="text-slate-700 text-xs flex gap-3 items-center">
                    <span>Visinaro v1.2</span><span>•</span>
-                   <span>Gemini AI</span><span>•</span>
+                   <span>Groq + OpenRouter</span><span>•</span>
                    <span>Tailwind CSS</span><span>•</span>
                    <span>Free to use</span>
                 </div>

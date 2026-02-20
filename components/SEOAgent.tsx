@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { Search, Sparkles, X, ChevronDown, ChevronUp, CheckCircle, AlertCircle, Loader2 } from 'lucide-react';
-import { optimizeSEO } from '../services/geminiService';
+import { optimizeSEO } from '../services/aiService';
 import { GeneratedContent } from '../types';
 
 interface SEOAgentProps {

@@ -1,7 +1,7 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import { Lightbulb, Sparkles, Loader2, Zap, ChevronDown, Search, Pencil } from 'lucide-react';
-import { enhancePrompt } from '../services/geminiService';
+import { enhancePrompt } from '../services/aiService';
 
 interface SidebarToolsProps {
   setPrompt: (prompt: string) => void;

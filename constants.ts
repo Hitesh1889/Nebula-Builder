@@ -1,15 +1,15 @@
 
 export const APP_NAME = "Visinaro";
 
+// AVAILABLE_MODELS drives the model selector UI and estimated time display
+// The actual generation cascade is defined in services/aiService.ts
 export const AVAILABLE_MODELS = [
-  { id: 'gemini-2.0-flash-lite', name: '⚡ Flash Lite', description: 'Ultra-fast (~8s)', estimatedTime: 8 },
-  { id: 'gemini-2.0-flash', name: '🚀 Flash', description: 'Balanced (~15s)', estimatedTime: 15 },
-  { id: 'gemini-1.5-flash', name: '✨ Flash Pro', description: 'Best quality (~20s)', estimatedTime: 20 },
+  { id: 'groq-fast',    name: '⚡ Groq Fast',    description: 'Groq LPU (~3-5s)',   estimatedTime: 4  },
+  { id: 'groq-quality', name: '🦙 Groq Quality',  description: 'Groq LPU (~5-8s)',   estimatedTime: 6  },
+  { id: 'openrouter',   name: '🔀 OpenRouter',    description: 'DeepSeek/Llama (~15s)', estimatedTime: 15 },
 ];
 
-// Fallback chain used when quota is hit: Flash Lite → Flash → Flash Pro
-// All IDs are verified working with generateContent API
-export const DEFAULT_MODEL = 'gemini-2.0-flash-lite';
+export const DEFAULT_MODEL = 'groq-fast';
 
 export const EXAMPLE_PROMPTS = [
   "Create a minimalist portfolio for a photographer with a dark theme. Include a photo gallery grid with hover effects, an 'About Me' section with a bio, and a simple contact form.",

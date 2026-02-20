@@ -12,8 +12,10 @@ services:
         name: Content-Type
         value: application/javascript; charset=utf-8
     envVars:
-      - key: GEMINI_API_KEY
-        sync: false
+      - key: GROQ_API_KEY
+        sync: false   # Set in Render Dashboard → Environment
+      - key: OPENROUTER_API_KEY
+        sync: false   # Optional backup — set in Render Dashboard
     routes:
       - type: rewrite
         source: /*

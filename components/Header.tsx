@@ -2,7 +2,7 @@
 import React from 'react';
 import { Sparkles, Key } from 'lucide-react';
 import { APP_NAME } from '../constants';
-import { clearApiKey } from '../services/geminiService';
+import { clearApiKey } from '../services/aiService';
 
 interface HeaderProps {
   theme: 'light' | 'dark';
