@@ -4,9 +4,16 @@ services:
     runtime: static
     buildCommand: npm install && npm run build
     staticPublishPath: dist
+    headers:
+      - path: "/*.css"
+        name: Content-Type
+        value: text/css; charset=utf-8
+      - path: "/*.js"
+        name: Content-Type
+        value: application/javascript; charset=utf-8
     envVars:
       - key: GEMINI_API_KEY
-        sync: false   # Set this once in Render Dashboard → Environment
+        sync: false
     routes:
       - type: rewrite
         source: /*

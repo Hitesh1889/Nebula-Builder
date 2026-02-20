@@ -4,9 +4,11 @@ export const APP_NAME = "Visinaro";
 export const AVAILABLE_MODELS = [
   { id: 'gemini-2.0-flash-lite', name: '⚡ Flash Lite', description: 'Ultra-fast (~8s)', estimatedTime: 8 },
   { id: 'gemini-2.0-flash', name: '🚀 Flash', description: 'Balanced (~15s)', estimatedTime: 15 },
-  { id: 'gemini-2.5-flash-preview-05-20', name: '✨ Flash 2.5', description: 'Best quality (~25s)', estimatedTime: 25 },
+  { id: 'gemini-1.5-flash', name: '✨ Flash Pro', description: 'Best quality (~20s)', estimatedTime: 20 },
 ];
 
+// Fallback chain used when quota is hit: Flash Lite → Flash → Flash Pro
+// All IDs are verified working with generateContent API
 export const DEFAULT_MODEL = 'gemini-2.0-flash-lite';
 
 export const EXAMPLE_PROMPTS = [

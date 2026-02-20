@@ -1,60 +1,63 @@
 
 import { GoogleGenAI, Type, Schema } from "@google/genai";
-import { SYSTEM_INSTRUCTION, DEFAULT_MODEL } from "../constants";
+import { SYSTEM_INSTRUCTION, DEFAULT_MODEL, AVAILABLE_MODELS } from "../constants";
 import { GeneratedContent } from "../types";
 import { CONTACT_TEMPLATE, FOOTER_TEMPLATE } from "../templates";
 
 // ─────────────────────────────────────────────────────────────────────────────
-// API KEY RESOLUTION — No manual file edits needed
-// 
-// Priority order:
-//   1. GEMINI_API_KEY env variable (set in Render Dashboard → baked in at build)
-//   2. API_KEY env variable (legacy support)
-//   3. Key saved in browser localStorage (entered via UI key-setup screen)
-//
-// On Render: Just set GEMINI_API_KEY in the dashboard. That's it. ✓
-// Locally:   Set GEMINI_API_KEY in .env.local. That's it. ✓
+// API KEY RESOLUTION
+// Priority: 1. Render env var (baked at build)  2. localStorage (UI entry)
 // ─────────────────────────────────────────────────────────────────────────────
 
 const STORAGE_KEY = 'visinaro_gemini_key';
 
 export const getApiKey = (): string => {
-  // 1. Env var (baked in at Render build time)
   const envKey = process.env.GEMINI_API_KEY || process.env.API_KEY || '';
-  if (envKey && envKey !== 'PLACEHOLDER_API_KEY' && envKey.length > 10) {
-    return envKey;
-  }
-  // 2. Runtime key saved by user in browser
-  try {
-    return localStorage.getItem(STORAGE_KEY) || '';
-  } catch {
-    return '';
-  }
+  if (envKey && envKey !== 'PLACEHOLDER_API_KEY' && envKey.length > 10) return envKey;
+  try { return localStorage.getItem(STORAGE_KEY) || ''; } catch { return ''; }
 };
 
 export const saveApiKey = (key: string): void => {
-  try {
-    localStorage.setItem(STORAGE_KEY, key.trim());
-  } catch { /* ignore */ }
+  try { localStorage.setItem(STORAGE_KEY, key.trim()); } catch { /* ignore */ }
 };
 
 export const clearApiKey = (): void => {
-  try {
-    localStorage.removeItem(STORAGE_KEY);
-  } catch { /* ignore */ }
+  try { localStorage.removeItem(STORAGE_KEY); } catch { /* ignore */ }
 };
 
-export const hasApiKey = (): boolean => {
-  return getApiKey().length > 10;
+export const hasApiKey = (): boolean => getApiKey().length > 10;
+
+// ─────────────────────────────────────────────────────────────────────────────
+// RATE LIMIT TRACKING
+// Tracks which models have hit quota so we can auto-skip them
+// ─────────────────────────────────────────────────────────────────────────────
+
+interface QuotaRecord { until: number; }
+const quotaHits: Record<string, QuotaRecord> = {};
+
+const markQuotaHit = (modelId: string) => {
+  // Block this model for 60 seconds after a 429
+  quotaHits[modelId] = { until: Date.now() + 60_000 };
+};
+
+const isQuotaBlocked = (modelId: string): boolean => {
+  const rec = quotaHits[modelId];
+  if (!rec) return false;
+  if (Date.now() > rec.until) { delete quotaHits[modelId]; return false; }
+  return true;
+};
+
+export const getQuotaWaitSeconds = (modelId: string): number => {
+  const rec = quotaHits[modelId];
+  if (!rec) return 0;
+  return Math.max(0, Math.ceil((rec.until - Date.now()) / 1000));
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
 
 const getClient = () => {
   const apiKey = getApiKey();
-  if (!apiKey) {
-    throw new Error("API_KEY_MISSING");
-  }
+  if (!apiKey) throw new Error("API_KEY_MISSING");
   return new GoogleGenAI({ apiKey });
 };
 
@@ -63,112 +66,153 @@ const responseSchema: Schema = {
   properties: {
     html: { type: Type.STRING, description: "Complete HTML structure with Tailwind classes." },
     css: { type: Type.STRING, description: "Empty string unless custom keyframe animations needed." },
-    javascript: { type: Type.STRING, description: "Minimal JavaScript for interactions." },
+    javascript: { type: Type.STRING, description: "Minimal JavaScript for mobile menu only." },
   },
   required: ["html", "css", "javascript"],
 };
 
 const wait = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
-/**
- * Generates a website with streaming for reduced perceived latency.
- */
-export const generateWebsite = async (
-  prompt: string,
+const isQuotaError = (msg: string) =>
+  msg.includes('429') || msg.includes('quota') || msg.includes('resource exhausted') ||
+  msg.includes('rate limit') || msg.includes('exceeded');
+
+const isNotFoundError = (msg: string) =>
+  msg.includes('404') || msg.includes('not found') || msg.includes('not_found');
+
+const isAuthError = (msg: string) =>
+  msg.includes('401') || msg.includes('403') ||
+  (msg.includes('key') && !msg.includes('not found'));
+
+const isFatalError = (msg: string) =>
+  msg.includes('400') || isAuthError(msg) || msg === 'api_key_missing';
+
+// ─────────────────────────────────────────────────────────────────────────────
+// CORE GENERATION — with auto-fallback across models on quota errors
+// ─────────────────────────────────────────────────────────────────────────────
+
+const tryGenerateWithModel = async (
+  ai: GoogleGenAI,
   modelId: string,
+  prompt: string,
   onProgress?: (partial: string) => void
 ): Promise<GeneratedContent> => {
+  const config = {
+    systemInstruction: SYSTEM_INSTRUCTION,
+    temperature: 0.3,
+    responseMimeType: "application/json" as const,
+    responseSchema,
+    maxOutputTokens: 4096,
+  };
+
+  if (onProgress) {
+    const stream = await ai.models.generateContentStream({
+      model: modelId, config, contents: prompt,
+    });
+    let fullText = '';
+    for await (const chunk of stream) {
+      fullText += (chunk.text || '');
+      onProgress(fullText);
+    }
+    return injectTemplates(JSON.parse(fullText) as GeneratedContent);
+  }
+
+  const response = await ai.models.generateContent({ model: modelId, config, contents: prompt });
+  const text = response.text;
+  if (!text) throw new Error("No content generated by AI.");
+  return injectTemplates(JSON.parse(text) as GeneratedContent);
+};
+
+export const generateWebsite = async (
+  prompt: string,
+  preferredModelId: string,
+  onProgress?: (partial: string, activeModel?: string) => void
+): Promise<{ content: GeneratedContent; usedModel: string }> => {
   const ai = getClient();
-  const MAX_RETRIES = 3;
+
+  // Build model priority list: preferred first, then others as fallback
+  const allModelIds = AVAILABLE_MODELS.map(m => m.id);
+  const fallbackOrder = [
+    preferredModelId,
+    ...allModelIds.filter(id => id !== preferredModelId),
+  ];
+
   let lastError: any = null;
 
-  for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
-    try {
-      if (onProgress) {
-        // Streaming path for perceived speed
-        const stream = await ai.models.generateContentStream({
-          model: modelId,
-          config: {
-            systemInstruction: SYSTEM_INSTRUCTION,
-            temperature: 0.3,
-            responseMimeType: "application/json",
-            responseSchema,
-            maxOutputTokens: 4096,
-          },
-          contents: prompt,
-        });
+  for (const modelId of fallbackOrder) {
+    // Skip if this model is currently quota-blocked
+    if (isQuotaBlocked(modelId)) {
+      const waitSecs = getQuotaWaitSeconds(modelId);
+      console.warn(`Skipping ${modelId} — quota blocked for ${waitSecs}s more`);
+      continue;
+    }
 
-        let fullText = '';
-        for await (const chunk of stream) {
-          fullText += (chunk.text || '');
-          onProgress(fullText);
+    const MAX_RETRIES = 2; // Fewer retries per model since we have fallbacks
+    for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
+      try {
+        onProgress?.('', modelId); // Signal which model we're trying
+        const content = await tryGenerateWithModel(ai, modelId, prompt, onProgress);
+        return { content, usedModel: modelId };
+
+      } catch (error: any) {
+        lastError = error;
+        const raw = error.message || error.toString();
+        const msg = raw.toLowerCase();
+
+        console.warn(`[${modelId}] Attempt ${attempt + 1} failed:`, msg.slice(0, 120));
+
+        // Fatal errors — stop everything
+        if (isFatalError(msg)) throw wrapError(lastError);
+
+        // 404 — this model doesn't exist, skip to next
+        if (isNotFoundError(msg)) break;
+
+        // Quota / rate limit — mark model blocked and try next model
+        if (isQuotaError(msg)) {
+          markQuotaHit(modelId);
+          break; // Move to next model immediately
         }
 
-        const content = JSON.parse(fullText) as GeneratedContent;
-        return injectTemplates(content);
-      }
-
-      // Non-streaming fallback
-      const response = await ai.models.generateContent({
-        model: modelId,
-        config: {
-          systemInstruction: SYSTEM_INSTRUCTION,
-          temperature: 0.3,
-          responseMimeType: "application/json",
-          responseSchema,
-          maxOutputTokens: 4096,
-        },
-        contents: prompt,
-      });
-
-      const text = response.text;
-      if (!text) throw new Error("No content generated by AI.");
-
-      const content = JSON.parse(text) as GeneratedContent;
-      return injectTemplates(content);
-
-    } catch (error: any) {
-      lastError = error;
-      const msg = (error.message || error.toString()).toLowerCase();
-      console.warn(`Generation Attempt ${attempt + 1} failed:`, msg);
-
-      if (
-        msg.includes('400') || msg.includes('401') || msg.includes('403') ||
-        msg.includes('404') || msg.includes('key') || msg.includes('invalid argument') ||
-        msg === 'api_key_missing'
-      ) {
+        // Retryable error (503, 500, network) — wait then retry same model
+        if (attempt < MAX_RETRIES - 1) {
+          await wait(1500 * (attempt + 1));
+          continue;
+        }
         break;
-      }
-
-      if (attempt < MAX_RETRIES - 1) {
-        await wait(800 * Math.pow(2, attempt));
-        continue;
       }
     }
   }
 
+  // All models failed or all blocked
   const msg = (lastError?.message || String(lastError)).toLowerCase();
 
-  if (msg === 'api_key_missing' || msg.includes('api_key_missing')) {
-    throw new Error("API_KEY_MISSING");
+  if (msg === 'api_key_missing') throw new Error("API_KEY_MISSING");
+  if (isAuthError(msg)) throw new Error("API_KEY_INVALID");
+
+  // Check if ALL models are quota-blocked
+  const allBlocked = fallbackOrder.every(id => isQuotaBlocked(id));
+  if (allBlocked) {
+    const minWait = Math.min(...fallbackOrder.map(id => getQuotaWaitSeconds(id)));
+    throw new Error(`QUOTA_ALL_BLOCKED:${minWait}`);
   }
-  if (msg.includes('429') || msg.includes('quota') || msg.includes('resource exhausted')) {
-    throw new Error("High traffic: API rate limit hit. Please wait 30 seconds and try again.");
+
+  if (isQuotaError(msg)) {
+    throw new Error(`QUOTA_ALL_BLOCKED:60`);
   }
-  if (msg.includes('401') || msg.includes('403') || msg.includes('key')) {
-    throw new Error("API_KEY_INVALID");
-  }
-  if (msg.includes('503') || msg.includes('overloaded') || msg.includes('internal')) {
-    throw new Error("AI service is temporarily busy. Please try again.");
-  }
-  if (msg.includes('candidate') || msg.includes('safety') || msg.includes('blocked')) {
-    throw new Error("Request blocked by safety filters. Please try a different prompt.");
+  if (msg.includes('503') || msg.includes('overloaded')) {
+    throw new Error("AI service is temporarily busy. Please try again in a moment.");
   }
 
   throw new Error(lastError?.message || "Failed to generate website. Please try again.");
 };
 
-/** Injects contact + footer templates */
+function wrapError(error: any): Error {
+  const msg = (error?.message || String(error)).toLowerCase();
+  if (msg === 'api_key_missing') return new Error("API_KEY_MISSING");
+  if (isAuthError(msg)) return new Error("API_KEY_INVALID");
+  return error instanceof Error ? error : new Error(String(error));
+}
+
 function injectTemplates(content: GeneratedContent): GeneratedContent {
   if (content.html) {
     content.html = content.html
@@ -178,24 +222,28 @@ function injectTemplates(content: GeneratedContent): GeneratedContent {
   return content;
 }
 
-/**
- * SEO Agent: Analyzes generated HTML and returns SEO improvements.
- */
+// ─────────────────────────────────────────────────────────────────────────────
+// SEO AGENT
+// ─────────────────────────────────────────────────────────────────────────────
+
 export const optimizeSEO = async (
   generatedHtml: string,
   userPrompt: string
 ): Promise<{ improvedHtml: string; seoReport: string }> => {
   try {
     const ai = getClient();
+    // Use first non-blocked model for SEO
+    const seoModel = AVAILABLE_MODELS.find(m => !isQuotaBlocked(m.id))?.id || DEFAULT_MODEL;
+
     const response = await ai.models.generateContent({
-      model: DEFAULT_MODEL,
+      model: seoModel,
       config: {
         systemInstruction: `You are an elite SEO specialist. Analyze the HTML and:
 1. Add/improve meta tags (title, description, og:tags, twitter:card, canonical)
 2. Add JSON-LD structured data
-3. Fix semantic HTML (proper h1→h6 hierarchy, aria-labels, alt texts)
+3. Fix semantic HTML (h1→h6 hierarchy, aria-labels, img alt texts)
 4. Add rel="noopener noreferrer" to external links
-Return ONLY valid JSON: { "improvedHtml": "<full improved html>", "seoReport": "bullet list of changes" }`,
+Return ONLY valid JSON: { "improvedHtml": "...", "seoReport": "bullet list of changes" }`,
         temperature: 0.1,
         responseMimeType: "application/json",
         responseSchema: {
@@ -215,29 +263,26 @@ Return ONLY valid JSON: { "improvedHtml": "<full improved html>", "seoReport": "
       improvedHtml: result.improvedHtml || generatedHtml,
       seoReport: result.seoReport || "No changes made.",
     };
-  } catch (error) {
-    console.error("SEO Optimization Error:", error);
+  } catch {
     return { improvedHtml: generatedHtml, seoReport: "SEO optimization unavailable." };
   }
 };
 
-/**
- * Enhances a short prompt into a detailed professional one.
- */
 export const enhancePrompt = async (simpleIdea: string): Promise<string> => {
   try {
     const ai = getClient();
+    const model = AVAILABLE_MODELS.find(m => !isQuotaBlocked(m.id))?.id || DEFAULT_MODEL;
     const response = await ai.models.generateContent({
-      model: DEFAULT_MODEL,
+      model,
       config: {
-        systemInstruction: `You are an expert web consultant. Expand the user's short idea into a detailed, professional website prompt in 3-4 sentences. Output ONLY the prompt text.`,
+        systemInstruction: `Expand the user's short idea into a detailed, professional website prompt in 3-4 sentences. Output ONLY the prompt text.`,
         temperature: 0.7,
         maxOutputTokens: 256,
       },
       contents: `Expand: ${simpleIdea}`,
     });
     return response.text || simpleIdea;
-  } catch (error) {
+  } catch {
     return simpleIdea;
   }
 };

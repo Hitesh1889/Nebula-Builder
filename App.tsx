@@ -9,7 +9,7 @@ import CodeEditor from './components/CodeEditor';
 import HistorySidebar from './components/HistorySidebar';
 import SEOAgent from './components/SEOAgent';
 import ModelSelector from './components/ModelSelector';
-import { generateWebsite, clearApiKey } from './services/geminiService';
+import { generateWebsite, clearApiKey, getQuotaWaitSeconds } from './services/geminiService';
 import { GenerationStatus, ViewMode, WebsiteHistoryItem, GeneratedContent } from './types';
 import { useUndoRedoState } from './hooks/useAppHistory';
 import { DEFAULT_MODEL, AVAILABLE_MODELS } from './constants';
@@ -55,6 +55,9 @@ const App: React.FC = () => {
   const [errorMessage, setErrorMessage] = useState<string>('');
   const [selectedModel, setSelectedModel] = useState<string>(DEFAULT_MODEL);
   const [elapsedTime, setElapsedTime] = useState<number>(0);
+  const [quotaCountdown, setQuotaCountdown] = useState<number>(0);
+  const [activeModel, setActiveModel] = useState<string>('');
+  const quotaTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const generationStartRef = useRef<number>(0);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const [viewMode, setViewMode] = useState<ViewMode>('PREVIEW');
@@ -221,7 +224,8 @@ const App: React.FC = () => {
       setElapsedTime(Math.floor((Date.now() - generationStartRef.current) / 1000));
     }, 1000);
     try {
-      const content = await generateWebsite(prompt, model, (partialText: string) => {
+      const result = await generateWebsite(prompt, model, (partialText: string, tryingModel?: string) => {
+        if (tryingModel) setActiveModel(tryingModel);
         try {
           const partial = JSON.parse(partialText);
           if (partial?.html) {
@@ -230,18 +234,37 @@ const App: React.FC = () => {
           }
         } catch { /* expected during streaming */ }
       });
-      handleGenerationSuccess(content);
+      handleGenerationSuccess(result.content);
+      setActiveModel(result.usedModel);
       setStatus(GenerationStatus.COMPLETED);
-      saveToSidebarHistory({ id: crypto.randomUUID(), prompt, content, timestamp: Date.now(), model });
+      saveToSidebarHistory({ id: crypto.randomUUID(), prompt, content: result.content, timestamp: Date.now(), model: result.usedModel });
     } catch (error) {
       const msg = error instanceof Error ? error.message : "An unknown error occurred";
-      // If key is invalid/missing, show the setup screen again
       if (msg === 'API_KEY_MISSING' || msg === 'API_KEY_INVALID') {
         clearApiKey();
         setKeyReady(false);
         return;
       }
       if (timerRef.current) clearInterval(timerRef.current);
+      // Handle quota-all-blocked with auto-retry countdown
+      if (msg.startsWith('QUOTA_ALL_BLOCKED:')) {
+        const secs = parseInt(msg.split(':')[1]) || 60;
+        setQuotaCountdown(secs);
+        if (quotaTimerRef.current) clearInterval(quotaTimerRef.current);
+        quotaTimerRef.current = setInterval(() => {
+          setQuotaCountdown(prev => {
+            if (prev <= 1) {
+              clearInterval(quotaTimerRef.current!);
+              quotaTimerRef.current = null;
+              return 0;
+            }
+            return prev - 1;
+          });
+        }, 1000);
+        setStatus(GenerationStatus.ERROR);
+        setErrorMessage('QUOTA_BLOCKED');
+        return;
+      }
       setStatus(GenerationStatus.ERROR);
       setErrorMessage(msg);
     }
@@ -541,11 +564,44 @@ const App: React.FC = () => {
                         <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
                             <div className="bg-slate-900 border border-red-500/30 p-8 rounded-xl max-w-md w-full text-center shadow-2xl relative overflow-hidden">
                                 <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-red-500 to-orange-500"></div>
-                                <XCircle className="w-12 h-12 text-red-500 mx-auto mb-6" />
-                                <p className="text-white text-lg font-medium mb-6 font-serif">{errorMessage}</p>
-                                <button onClick={() => setStatus(GenerationStatus.IDLE)} className="px-6 py-2 bg-white/10 hover:bg-white/20 text-white border border-white/10 rounded-full transition-colors text-sm font-medium uppercase tracking-wide">
-                                    Close
-                                </button>
+                                
+                                {errorMessage === 'QUOTA_BLOCKED' ? (
+                                  <>
+                                    <div className="w-14 h-14 rounded-full bg-amber-500/20 border border-amber-500/30 flex items-center justify-center mx-auto mb-4">
+                                      <span className="text-2xl font-bold text-amber-400">{quotaCountdown}</span>
+                                    </div>
+                                    <h3 className="text-white text-lg font-bold mb-2">API Rate Limit Reached</h3>
+                                    <p className="text-slate-400 text-sm mb-2">
+                                      All Gemini models have hit their free-tier quota limit.<br/>
+                                      Auto-retrying in <span className="text-amber-400 font-bold">{quotaCountdown}s</span>...
+                                    </p>
+                                    <p className="text-slate-600 text-xs mb-6">
+                                      Free tier allows ~60 requests/minute. Try switching to a different model or wait a moment.
+                                    </p>
+                                    <div className="flex gap-3 justify-center">
+                                      <button 
+                                        onClick={() => { setStatus(GenerationStatus.IDLE); if(quotaTimerRef.current) clearInterval(quotaTimerRef.current); setQuotaCountdown(0); }}
+                                        className="px-4 py-2 bg-white/10 hover:bg-white/20 text-white border border-white/10 rounded-full transition-colors text-sm font-medium"
+                                      >
+                                        Dismiss
+                                      </button>
+                                      <button 
+                                        onClick={() => { setStatus(GenerationStatus.IDLE); if(quotaTimerRef.current) clearInterval(quotaTimerRef.current); setQuotaCountdown(0); setTimeout(() => handleGenerate(selectedModel), 100); }}
+                                        className="px-4 py-2 bg-amber-600 hover:bg-amber-500 text-white rounded-full transition-colors text-sm font-bold"
+                                      >
+                                        Retry Now
+                                      </button>
+                                    </div>
+                                  </>
+                                ) : (
+                                  <>
+                                    <XCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
+                                    <p className="text-white text-base font-medium mb-6 font-serif">{errorMessage}</p>
+                                    <button onClick={() => setStatus(GenerationStatus.IDLE)} className="px-6 py-2 bg-white/10 hover:bg-white/20 text-white border border-white/10 rounded-full transition-colors text-sm font-medium uppercase tracking-wide">
+                                        Close
+                                    </button>
+                                  </>
+                                )}
                             </div>
                         </div>
                     )}
@@ -578,7 +634,16 @@ const App: React.FC = () => {
                                          <h3 className="text-xl font-serif italic text-white mb-1 animate-fade-in tracking-wide">
                                            {LOADING_STEPS[loadingStep].text}
                                          </h3>
-                                         <p className="text-slate-500 text-sm">{modelInfo.name} model</p>
+                                         <div className="flex items-center justify-center gap-2 mt-1">
+                                           <p className="text-slate-500 text-sm">
+                                             Using {AVAILABLE_MODELS.find(m => m.id === (activeModel || selectedModel))?.name || modelInfo.name}
+                                           </p>
+                                           {activeModel && activeModel !== selectedModel && (
+                                             <span className="text-xs px-2 py-0.5 bg-amber-500/20 text-amber-400 rounded-full border border-amber-500/30">
+                                               auto-switched
+                                             </span>
+                                           )}
+                                         </div>
                                        </div>
 
                                        {/* Real progress bar */}

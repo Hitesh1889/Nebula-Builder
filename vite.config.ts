@@ -42,6 +42,8 @@ export default defineConfig(({ mode }) => {
         },
         sourcemap: false,
         chunkSizeWarningLimit: 1000,
+        assetsInlineLimit: 0, // Ensure CSS/assets are always separate files with correct MIME types
+        cssCodeSplit: true,
       }
     };
 });
