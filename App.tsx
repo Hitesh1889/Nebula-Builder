@@ -12,7 +12,7 @@ import ModelSelector from './components/ModelSelector';
 import { generateWebsite, clearApiKey } from './services/geminiService';
 import { GenerationStatus, ViewMode, WebsiteHistoryItem, GeneratedContent } from './types';
 import { useUndoRedoState } from './hooks/useAppHistory';
-import { DEFAULT_MODEL } from './constants';
+import { DEFAULT_MODEL, AVAILABLE_MODELS } from './constants';
 import ApiKeySetup from './components/ApiKeySetup';
 import { hasApiKey } from './services/geminiService';
 
@@ -54,6 +54,9 @@ const App: React.FC = () => {
   const [status, setStatus] = useState<GenerationStatus>(GenerationStatus.IDLE);
   const [errorMessage, setErrorMessage] = useState<string>('');
   const [selectedModel, setSelectedModel] = useState<string>(DEFAULT_MODEL);
+  const [elapsedTime, setElapsedTime] = useState<number>(0);
+  const generationStartRef = useRef<number>(0);
+  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const [viewMode, setViewMode] = useState<ViewMode>('PREVIEW');
   const [previewDevice, setPreviewDevice] = useState<'desktop' | 'tablet' | 'mobile'>('desktop');
   const [isHistoryOpen, setIsHistoryOpen] = useState(false);
@@ -148,6 +151,7 @@ const App: React.FC = () => {
   }, [status]);
 
   const handleGenerationSuccess = (content: GeneratedContent) => {
+    if (timerRef.current) clearInterval(timerRef.current);
     setGeneratedContent(content); 
     setPreviewContent(content); 
     setIsPreviewLoading(false);
@@ -155,7 +159,7 @@ const App: React.FC = () => {
     setErrorMessage('');
     setIframeKey(prev => prev + 1); 
     setHighlightNewTabBtn(true);
-    setUiState('WORKSPACE'); // Switch to workspace on success
+    setUiState('WORKSPACE');
   }
 
   const handleHistorySelect = (content: GeneratedContent) => {
@@ -210,6 +214,12 @@ const App: React.FC = () => {
     setViewMode('PREVIEW');
     setHighlightNewTabBtn(false);
     setUiState('WORKSPACE');
+    setElapsedTime(0);
+    generationStartRef.current = Date.now();
+    if (timerRef.current) clearInterval(timerRef.current);
+    timerRef.current = setInterval(() => {
+      setElapsedTime(Math.floor((Date.now() - generationStartRef.current) / 1000));
+    }, 1000);
     try {
       const content = await generateWebsite(prompt, model, (partialText: string) => {
         try {
@@ -231,6 +241,7 @@ const App: React.FC = () => {
         setKeyReady(false);
         return;
       }
+      if (timerRef.current) clearInterval(timerRef.current);
       setStatus(GenerationStatus.ERROR);
       setErrorMessage(msg);
     }
@@ -254,14 +265,11 @@ const App: React.FC = () => {
       function fixImage(img) {
         if (img.dataset.retries) return;
         img.dataset.retries = '1';
-        const str = (img.alt || '') + (img.getAttribute('src') || '');
-        let hash = 0;
-        for (let i = 0; i < str.length; i++) {
-          hash = ((hash << 5) - hash) + str.charCodeAt(i);
-          hash |= 0; 
-        }
-        const seed = Math.abs(hash);
-        img.src = "https://picsum.photos/seed/" + seed + "/800/600";
+        // Use alt text as keyword for topic-specific fallback
+        const keyword = encodeURIComponent((img.alt || 'nature').split(' ').slice(0,2).join(','));
+        const w = img.naturalWidth || img.width || 800;
+        const h = img.naturalHeight || img.height || 600;
+        img.src = 'https://source.unsplash.com/featured/' + w + 'x' + h + '/?' + keyword;
         img.style.objectFit = 'cover';
       }
       window.addEventListener('error', function(e) {
@@ -371,11 +379,13 @@ const App: React.FC = () => {
   const handleOpenNewTab = () => {
     const fullHtml = getFullHtml();
     if(!fullHtml) return;
-    const newWindow = window.open();
-    if (newWindow) {
-        newWindow.document.write(fullHtml);
-        newWindow.document.close();
-    }
+    // FIX: Use Blob URL instead of document.write
+    // document.write strips injected scripts and breaks SPA navigation
+    const blob = new Blob([fullHtml], { type: 'text/html' });
+    const url = URL.createObjectURL(blob);
+    window.open(url, '_blank');
+    // Revoke after a delay to allow the tab to load
+    setTimeout(() => URL.revokeObjectURL(url), 10000);
   }
 
   // --- RENDER ---
@@ -413,16 +423,31 @@ const App: React.FC = () => {
 
       {/* --- SCREEN 1: LANDING (INPUT) --- */}
       {uiState === 'LANDING' && (
-          <main className="flex-1 flex flex-col items-center justify-center relative z-20 p-6 animate-fade-in">
-             <div className="w-full max-w-2xl flex flex-col items-center gap-8">
+          <main className="flex-1 flex flex-col items-center justify-center relative z-20 p-6 animate-fade-in overflow-y-auto">
+             <div className="w-full max-w-2xl flex flex-col items-center gap-6 py-8">
+
+                {/* Badge */}
+                <div className="flex items-center gap-2 px-4 py-1.5 bg-indigo-500/10 border border-indigo-500/20 rounded-full backdrop-blur-md">
+                  <span className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse"></span>
+                  <span className="text-xs font-semibold text-indigo-300 tracking-wider uppercase">Powered by Gemini AI</span>
+                </div>
+
                 {/* Hero Text */}
-                <div className="text-center space-y-4">
-                   <h1 className="text-4xl md:text-6xl font-bold tracking-tight text-transparent bg-clip-text bg-gradient-to-b from-white to-white/60">
-                      What do you want to build?
+                <div className="text-center space-y-3">
+                   <h1 className="text-4xl md:text-6xl font-bold tracking-tight text-transparent bg-clip-text bg-gradient-to-b from-white via-white to-white/50">
+                      Build any website<br/>
+                      <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400">in under 10 seconds</span>
                    </h1>
-                   <p className="text-lg text-slate-400 max-w-md mx-auto">
-                      Generate production-ready websites in seconds.
+                   <p className="text-base text-slate-400 max-w-lg mx-auto leading-relaxed">
+                      Describe your dream website. Visinaro generates a full 5-page site — with unique images, SEO meta tags, responsive design, and working navigation — instantly.
                    </p>
+                </div>
+
+                {/* Feature Pills */}
+                <div className="flex flex-wrap items-center justify-center gap-2">
+                  {['🖼️ Unique Images', '🎨 Custom Logo', '📱 Responsive', '🔍 SEO Ready', '⚡ 5 Pages', '📥 Exportable'].map(f => (
+                    <span key={f} className="px-3 py-1 bg-white/5 border border-white/10 rounded-full text-xs text-slate-400 backdrop-blur-md">{f}</span>
+                  ))}
                 </div>
 
                 {/* Central Prompt Input */}
@@ -434,14 +459,31 @@ const App: React.FC = () => {
                         onGenerate={handleGenerate} 
                         onShowHistory={() => setIsHistoryOpen(true)}
                         isLanding={true}
+                        selectedModel={selectedModel}
+                        onModelChange={setSelectedModel}
                     />
                 </div>
 
-                {/* Footer Credits */}
-                <div className="text-slate-600 text-sm mt-12 flex gap-4">
-                   <span>Powered by Gemini 3.0</span>
-                   <span>•</span>
-                   <span>Tailwind CSS</span>
+                {/* Stats Row */}
+                <div className="flex items-center gap-6 text-center">
+                  {[
+                    { val: '10s', label: 'Avg. Generation' },
+                    { val: '5', label: 'Pages Generated' },
+                    { val: '100%', label: 'Copyright-Free' },
+                  ].map(({ val, label }) => (
+                    <div key={label} className="flex flex-col items-center gap-0.5">
+                      <span className="text-xl font-bold text-white">{val}</span>
+                      <span className="text-xs text-slate-500">{label}</span>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Footer */}
+                <div className="text-slate-700 text-xs flex gap-3 items-center">
+                   <span>Visinaro v1.2</span><span>•</span>
+                   <span>Gemini AI</span><span>•</span>
+                   <span>Tailwind CSS</span><span>•</span>
+                   <span>Free to use</span>
                 </div>
              </div>
           </main>
@@ -516,29 +558,45 @@ const App: React.FC = () => {
                                 ${previewDevice === 'tablet' ? 'w-[768px] h-[1024px] rounded-[2rem] border-[8px] border-slate-800 shadow-xl overflow-hidden' : ''}
                                 ${previewDevice === 'desktop' ? 'w-full h-full rounded-none border-0' : ''}
                             `}>
-                                {status === GenerationStatus.GENERATING && (
-                                    <div className="absolute inset-0 z-20 bg-slate-950/90 backdrop-blur-md flex flex-col items-center justify-center rounded-inherit transition-all duration-500">
+                                {status === GenerationStatus.GENERATING && (() => {
+                                    const modelInfo = AVAILABLE_MODELS.find(m => m.id === selectedModel) || AVAILABLE_MODELS[0];
+                                    const progress = Math.min((elapsedTime / modelInfo.estimatedTime) * 100, 95);
+                                    return (
+                                    <div className="absolute inset-0 z-20 bg-slate-950/92 backdrop-blur-md flex flex-col items-center justify-center rounded-inherit transition-all duration-500 gap-6">
+                                       {/* Animated icon */}
                                        <div className="relative">
-                                           {/* Ping effect behind */}
                                            <div className={`absolute inset-0 ${LOADING_STEPS[loadingStep].color.replace('text-', 'bg-')}/20 rounded-full animate-ping`}></div>
-                                           
-                                           <div className="relative bg-slate-900 border border-white/10 p-4 rounded-full shadow-2xl mb-8">
+                                           <div className="relative bg-slate-900 border border-white/10 p-5 rounded-full shadow-2xl">
                                                {React.createElement(LOADING_STEPS[loadingStep].icon, { 
                                                    className: `w-10 h-10 ${LOADING_STEPS[loadingStep].color} animate-pulse` 
                                                })}
                                            </div>
                                        </div>
                                        
-                                       <h3 className="text-xl md:text-2xl font-serif italic text-white mb-2 animate-fade-in text-center px-4 tracking-wide">
-                                          {LOADING_STEPS[loadingStep].text}
-                                       </h3>
-                                       
-                                       {/* Progress Bar (Fake) */}
-                                       <div className="w-48 h-0.5 bg-slate-800 rounded-full overflow-hidden mt-6">
-                                          <div className={`h-full ${LOADING_STEPS[loadingStep].color.replace('text-', 'bg-')} animate-[pulse_1s_ease-in-out_infinite] w-full origin-left`}></div>
+                                       {/* Status text */}
+                                       <div className="text-center">
+                                         <h3 className="text-xl font-serif italic text-white mb-1 animate-fade-in tracking-wide">
+                                           {LOADING_STEPS[loadingStep].text}
+                                         </h3>
+                                         <p className="text-slate-500 text-sm">{modelInfo.name} model</p>
+                                       </div>
+
+                                       {/* Real progress bar */}
+                                       <div className="w-64 space-y-2">
+                                         <div className="w-full h-1.5 bg-slate-800 rounded-full overflow-hidden">
+                                           <div 
+                                             className={`h-full ${LOADING_STEPS[loadingStep].color.replace('text-', 'bg-')} rounded-full transition-all duration-1000`}
+                                             style={{ width: `${progress}%` }}
+                                           />
+                                         </div>
+                                         <div className="flex justify-between text-xs text-slate-600">
+                                           <span>{elapsedTime}s elapsed</span>
+                                           <span>~{modelInfo.estimatedTime}s estimated</span>
+                                         </div>
                                        </div>
                                     </div>
-                                )}
+                                    );
+                                })()}
                                 <div className={`w-full h-full overflow-hidden bg-white ${previewDevice !== 'desktop' ? 'rounded-[2.4rem]' : ''}`}>
                                     <PreviewFrame content={previewContent} refreshKey={iframeKey} isLoading={isPreviewLoading} isEditable={isEditable} onContentUpdate={handleVisualEditUpdate} />
                                 </div>

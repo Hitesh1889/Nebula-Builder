@@ -350,17 +350,22 @@ const PreviewFrame: React.FC<PreviewFrameProps> = ({
         function fixImage(img) {
           if (img.dataset.retries) return;
           img.dataset.retries = '1';
-          const str = img.alt || 'default';
-          let hash = 0;
-          for (let i = 0; i < str.length; i++) {
-            hash = ((hash << 5) - hash) + str.charCodeAt(i);
-            hash |= 0;
-          }
-          const seed = Math.abs(hash);
-          img.src = "https://picsum.photos/seed/" + seed + "/800/600";
+          // Use alt text as topic-specific Unsplash keyword
+          const raw = (img.alt || img.getAttribute('data-keyword') || 'professional').trim();
+          const keyword = encodeURIComponent(raw.split(/\s+/).slice(0,3).join(','));
+          const w = img.getAttribute('width') || 800;
+          const h = img.getAttribute('height') || 600;
+          img.src = 'https://source.unsplash.com/featured/' + w + 'x' + h + '/?' + keyword;
           img.style.objectFit = 'cover';
         }
         window.addEventListener('error', (e) => { if (e.target && e.target.tagName === 'IMG') fixImage(e.target); }, true);
+        window.addEventListener('DOMContentLoaded', () => {
+          document.querySelectorAll('img').forEach(img => {
+            if (!img.src || img.src.includes('undefined') || img.src.includes('null') || img.src === window.location.href) {
+              fixImage(img);
+            }
+          });
+        });
       </script>
     `;
 

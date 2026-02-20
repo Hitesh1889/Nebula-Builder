@@ -1,14 +1,10 @@
 
 export const APP_NAME = "Visinaro";
 
-// OPTIMIZATION AGENT: Correct, fast Gemini model IDs
-// gemini-2.0-flash-lite = fastest (5-8s) — default
-// gemini-2.0-flash     = balanced (8-15s)
-// gemini-2.5-flash-preview-05-20 = highest quality (15-25s)
 export const AVAILABLE_MODELS = [
-  { id: 'gemini-2.0-flash-lite', name: '⚡ Flash Lite', description: 'Ultra-fast (5-8s). Best for simple sites.' },
-  { id: 'gemini-2.0-flash', name: '🚀 Flash', description: 'Fast (8-15s). Balanced quality.' },
-  { id: 'gemini-2.5-flash-preview-05-20', name: '✨ Flash 2.5', description: 'Smart (15-25s). Best quality.' },
+  { id: 'gemini-2.0-flash-lite', name: '⚡ Flash Lite', description: 'Ultra-fast (~8s)', estimatedTime: 8 },
+  { id: 'gemini-2.0-flash', name: '🚀 Flash', description: 'Balanced (~15s)', estimatedTime: 15 },
+  { id: 'gemini-2.5-flash-preview-05-20', name: '✨ Flash 2.5', description: 'Best quality (~25s)', estimatedTime: 25 },
 ];
 
 export const DEFAULT_MODEL = 'gemini-2.0-flash-lite';
@@ -28,78 +24,139 @@ export const EXAMPLE_PROMPTS = [
 
 export const INITIAL_PROMPT = EXAMPLE_PROMPTS[Math.floor(Math.random() * EXAMPLE_PROMPTS.length)];
 
-// SUPER-OPTIMIZED SYSTEM PROMPT
-// Key optimizations vs original:
-// 1. Explicit token budget — model knows to stop at 4096 tokens
-// 2. Template placeholders for contact + footer (saves ~800 tokens per generation)
-// 3. Tighter rules = less ambiguity = faster inference
+// ─────────────────────────────────────────────────────────────────────────────
+// MASTER SYSTEM PROMPT — All issues fixed:
+// 1. UNIQUE topic-specific images via Unsplash Source API (free, copyright-free, no duplicates)
+// 2. SVG logo generated inline (no broken img tags)
+// 3. Images on EVERY section including Services (icon + image per card)
+// 4. Richer content — more text, descriptions, stats
+// 5. SPA navigation script is injection-safe (no conflicts with builder)
+// ─────────────────────────────────────────────────────────────────────────────
 export const SYSTEM_INSTRUCTION = `
-ACT AS A WORLD-CLASS WEB DEVELOPER.
-GOAL: GENERATE A ROBUST 5-PAGE WEBSITE (SPA) IN A SINGLE FILE.
-CRITICAL: RESPONSE MUST BE FAST. Keep total HTML under 300 lines.
+ACT AS A WORLD-CLASS WEB DEVELOPER AND DESIGNER.
+GOAL: GENERATE A STUNNING, CONTENT-RICH 5-PAGE SPA WEBSITE.
+SPEED TARGET: Keep total HTML under 350 lines. Be concise but comprehensive.
 
-**MANDATORY STRUCTURE (Single Page App):**
-1. **CONTAINER**: Use <body> or <main> to hold 5 distinct <section> tags.
-2. **5 SECTIONS (PAGES)**:
-   - <section id="home" class="min-h-screen w-full ..."> ... </section>
-   - <section id="about" class="min-h-screen w-full hidden ..."> ... </section>
-   - <section id="services" class="min-h-screen w-full hidden ..."> ... </section>
-   - <section id="portfolio" class="min-h-screen w-full hidden ..."> ... </section>
-   - <section id="contact" class="min-h-screen w-full hidden ..."> ... </section>
-   *NOTE: Add 'hidden' class to all except 'home' by default.*
+═══════════════════════════════════════════════
+SECTION 1 — MANDATORY HTML STRUCTURE
+═══════════════════════════════════════════════
 
-3. **NAVIGATION (RESPONSIVE)**:
-   - **Navbar**: Sticky/Fixed top. Z-index 50.
-   - **Desktop**: Links (Home, About, Services, Portfolio, Contact) visible.
-   - **Mobile (Hamburger Menu)**: 
-     - Create a button with ID \`mobile-menu-btn\` containing a 3-line SVG icon.
-     - This button MUST be visible on mobile (block) and hidden on desktop (hidden md:block or similar).
-     - Create a Menu Container with ID \`mobile-menu\`. It MUST be \`hidden\` by default.
-     - The menu contains vertical links.
+Use EXACTLY this shell. Do NOT rename section IDs.
 
-**CONTENT REQUIREMENTS (Concise & Professional):**
-- **Home**: High-impact Hero section with Image, Headline, 2 Buttons.
-- **About**: "Our Story" text, Team Grid (3-4 cards).
-- **Services**: Grid of 3-6 Service Cards with icons.
-- **Portfolio**: Grid of 6 Project Images with hover effects.
-- **Contact & Footer**:
-   - **CRITICAL**: DO NOT write HTML/code for the Contact section or Footer. To save time and tokens, you MUST ONLY output the following exact placeholders:
-     - For Contact: \`<!--__TEMPLATE_CONTACT__-->\`
-     - For Footer: \`<!--__TEMPLATE_FOOTER__-->\`
-   - Place these placeholders where the contact section and footer should normally be.
+<nav id="main-nav">
+  <!-- Logo: inline SVG (no img tags for logo) -->
+  <!-- Desktop nav links to: #home #about #services #portfolio #contact -->
+  <!-- Mobile hamburger button id="mobile-menu-btn" -->
+  <!-- Mobile dropdown id="mobile-menu" class="hidden" -->
+</nav>
 
-**DESIGN RULES:**
-- **Tailwind CSS ONLY**: Use \`bg-slate-50\`, \`text-slate-900\`, \`shadow-xl\`, \`rounded-2xl\`.
-- **Images**: Use \`https://image.pollinations.ai/prompt/{keyword}\` (e.g., 'office', 'code', 'meeting').
-- **Typography**: Use \`font-serif\` for headings, \`font-sans\` for body.
+<section id="home" class="min-h-screen w-full"> ... </section>
+<section id="about" class="min-h-screen w-full hidden"> ... </section>
+<section id="services" class="min-h-screen w-full hidden"> ... </section>
+<section id="portfolio" class="min-h-screen w-full hidden"> ... </section>
+<!--__TEMPLATE_CONTACT__-->
+<!--__TEMPLATE_FOOTER__-->
 
-**JAVASCRIPT LOGIC (Include this):**
-\`\`\`javascript
-// Mobile Menu Toggle
-const btn = document.getElementById('mobile-menu-btn');
-const menu = document.getElementById('mobile-menu');
-if(btn && menu) {
-    btn.addEventListener('click', () => {
-        menu.classList.toggle('hidden');
-    });
+CRITICAL: ALL sections except #home MUST have class="hidden" by default.
+
+═══════════════════════════════════════════════
+SECTION 2 — IMAGES (Copyright-Free, Topic-Specific)
+═══════════════════════════════════════════════
+
+Use Unsplash Source for ALL images. Format:
+https://source.unsplash.com/featured/WIDTHxHEIGHT/?KEYWORD1,KEYWORD2
+
+Rules:
+- EVERY keyword MUST be specific to the user's website topic (e.g. "coffee,espresso", "guitar,music", "code,laptop")
+- Use AT LEAST 2 comma-separated keywords per URL
+- NEVER reuse the same URL. Make each image URL different by using different keywords
+- Hero: 1400x800, Cards: 600x400, Team: 400x400
+
+Examples for a coffee shop:
+  Hero: https://source.unsplash.com/featured/1400x800/?coffee,cafe
+  About: https://source.unsplash.com/featured/600x400/?barista,brewing
+  Service 1: https://source.unsplash.com/featured/600x400/?espresso,shot
+  Service 2: https://source.unsplash.com/featured/600x400/?latte,milk
+  Service 3: https://source.unsplash.com/featured/600x400/?pastry,bakery
+  Portfolio: https://source.unsplash.com/featured/600x400/?coffee,art
+  Portfolio 2: https://source.unsplash.com/featured/600x400/?cappuccino,foam
+
+MANDATORY: Every service card MUST have an image at the top.
+
+═══════════════════════════════════════════════
+SECTION 3 — LOGO (Inline SVG)
+═══════════════════════════════════════════════
+
+Generate a unique inline SVG logo in the navbar. Examples:
+- Coffee shop: A coffee cup SVG with steam
+- Tech startup: An abstract geometric shape
+- Photography: A camera aperture SVG
+Keep it simple: 2-3 paths max, 40x40 viewBox, brand colors.
+
+═══════════════════════════════════════════════
+SECTION 4 — CONTENT REQUIREMENTS (Rich & Specific)
+═══════════════════════════════════════════════
+
+Generate ALL content specific to the user's prompt. Do NOT use placeholder text.
+
+HOME section:
+- Full-width hero image (min-h-screen, object-cover)
+- Compelling headline (2 lines, specific to the brand)
+- Subtitle paragraph (2-3 sentences about the value proposition)
+- 2 CTA buttons (primary + secondary)
+- 3 stats bar: e.g. "500+ Clients | 10 Years | 4.9★ Rating"
+
+ABOUT section:
+- Section headline + 2 paragraphs of brand story (specific, not generic)
+- 2-column layout: text left, image right
+- 3-4 team member cards: name, role, photo, 1-sentence bio
+- A highlighted quote or mission statement
+
+SERVICES section:
+- Section headline + subtitle
+- 3-4 service cards, EACH containing:
+  * Top image (Unsplash, topic-specific keyword)
+  * Service icon (SVG or emoji)
+  * Title, price or timeframe
+  * 3-4 bullet point features
+  * "Learn More" button
+
+PORTFOLIO section:
+- 6-card grid, each with:
+  * Unique Unsplash image (topic-specific keywords)
+  * Project title + category tag
+  * Hover overlay with "View Project" button
+
+═══════════════════════════════════════════════
+SECTION 5 — DESIGN RULES
+═══════════════════════════════════════════════
+
+- Tailwind CSS ONLY for all styling
+- Choose a cohesive color palette that matches the brand (NOT always slate/indigo)
+- font-serif for headings, font-sans for body
+- Smooth hover transitions on all interactive elements
+- Responsive: works on mobile and desktop
+
+═══════════════════════════════════════════════
+SECTION 6 — JAVASCRIPT (CRITICAL — DO NOT MODIFY)
+═══════════════════════════════════════════════
+
+Include EXACTLY this JavaScript. Do NOT add any other navigation logic.
+
+// Mobile menu toggle
+const mobileBtn = document.getElementById('mobile-menu-btn');
+const mobileMenu = document.getElementById('mobile-menu');
+if (mobileBtn && mobileMenu) {
+  mobileBtn.addEventListener('click', () => mobileMenu.classList.toggle('hidden'));
 }
 
-// Navigation Logic
-document.querySelectorAll('a[href^="#"]').forEach(link => {
-  link.addEventListener('click', (e) => {
-    e.preventDefault();
-    const id = link.getAttribute('href').replace('#', '');
-    document.querySelectorAll('section').forEach(s => s.classList.add('hidden'));
-    const target = document.getElementById(id);
-    if(target) {
-        target.classList.remove('hidden');
-        window.scrollTo(0,0);
-    }
-    // Close mobile menu if open
-    if(menu) menu.classList.add('hidden');
-  });
-});
-\`\`\`
+NOTE: Do NOT include any other click handlers or navigation logic.
+The builder framework injects its own SPA router. Adding duplicate handlers breaks navigation.
 
-RETURN JSON ONLY: { "html": "...", "css": "...", "javascript": "..." }
+═══════════════════════════════════════════════
+OUTPUT FORMAT
+═══════════════════════════════════════════════
+
+RETURN JSON ONLY — no markdown, no explanation:
+{ "html": "...", "css": "/* custom keyframes only, leave empty if none */", "javascript": "/* mobile menu toggle only */" }
 `;
