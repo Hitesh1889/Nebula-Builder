@@ -5,8 +5,8 @@ import react from '@vitejs/plugin-react';
 export default defineConfig(({ mode }) => {
     const env = loadEnv(mode, '.', '');
 
-    // The API key is injected at BUILD TIME from the environment variable.
-    // On Render: set GEMINI_API_KEY in the dashboard — it gets baked into the build automatically.
+    // API key is injected at BUILD TIME from the environment variable.
+    // On Render Static Site: set GEMINI_API_KEY in dashboard → baked into build automatically.
     // Locally: set GEMINI_API_KEY in .env.local
     const apiKey = env.GEMINI_API_KEY || env.API_KEY || '';
 
@@ -17,7 +17,6 @@ export default defineConfig(({ mode }) => {
       },
       plugins: [react()],
       define: {
-        // Both names supported for compatibility
         'process.env.API_KEY': JSON.stringify(apiKey),
         'process.env.GEMINI_API_KEY': JSON.stringify(apiKey),
       },
@@ -28,15 +27,12 @@ export default defineConfig(({ mode }) => {
       },
       build: {
         target: 'es2020',
-        minify: 'terser',
-        terserOptions: {
-          compress: {
-            drop_console: true,
-            drop_debugger: true,
-          }
-        },
+        // FIX: Use esbuild (built into Vite, zero extra deps) instead of terser
+        // terser requires a separate install and was causing the Render build failure
+        minify: 'esbuild',
         rollupOptions: {
           output: {
+            // Code-split for faster initial load
             manualChunks: {
               'vendor-react': ['react', 'react-dom'],
               'vendor-genai': ['@google/genai'],

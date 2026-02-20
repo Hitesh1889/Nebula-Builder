@@ -1,12 +1,13 @@
 services:
   - type: web
-    name: visinaro-ai-web-builder
-    runtime: node
-    plan: free
+    name: visinaro
+    runtime: static
     buildCommand: npm install && npm run build
-    startCommand: npm start
+    staticPublishPath: dist
     envVars:
       - key: GEMINI_API_KEY
-        sync: false
-      - key: NODE_VERSION
-        value: "20"
+        sync: false   # Set this once in Render Dashboard → Environment
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
