@@ -285,22 +285,22 @@ const App: React.FC = () => {
 
   const imageHandlerScript = `
     <script>
+      // Picsum: reliable, fast, always works — seed-based for consistency
       function fixImage(img) {
-        if (img.dataset.retries) return;
-        img.dataset.retries = '1';
-        // Use alt text as keyword for topic-specific fallback
-        const keyword = encodeURIComponent((img.alt || 'nature').split(' ').slice(0,2).join(','));
-        const w = img.naturalWidth || img.width || 800;
-        const h = img.naturalHeight || img.height || 600;
-        img.src = 'https://source.unsplash.com/featured/' + w + 'x' + h + '/?' + keyword;
+        if (img.dataset.fixed) return;
+        img.dataset.fixed = '1';
+        const raw = (img.alt || img.dataset.seed || 'photo').replace(/[^a-zA-Z0-9]/g, '').toLowerCase().slice(0,20) || 'photo';
+        img.src = 'https://picsum.photos/seed/' + raw + '/800/500';
         img.style.objectFit = 'cover';
+        img.onerror = null;
       }
       window.addEventListener('error', function(e) {
         if (e.target && e.target.tagName === 'IMG') fixImage(e.target);
       }, true);
       window.addEventListener('DOMContentLoaded', () => {
          document.querySelectorAll('img').forEach(img => {
-            if (!img.src || img.src === window.location.href || img.src.includes('null') || img.src.includes('undefined')) {
+            const src = img.getAttribute('src') || '';
+            if (!src || src === window.location.href || src.includes('null') || src.includes('undefined') || src === '#' || src.startsWith('data:') === false && src.length < 5) {
                 fixImage(img);
             }
          });
@@ -503,7 +503,7 @@ const App: React.FC = () => {
 
                 {/* Footer */}
                 <div className="text-slate-700 text-xs flex gap-3 items-center">
-                   <span>Visinaro v1.2</span><span>•</span>
+                   <span>Visinaro v2.0</span><span>•</span>
                    <span>Groq + OpenRouter</span><span>•</span>
                    <span>Tailwind CSS</span><span>•</span>
                    <span>Free to use</span>

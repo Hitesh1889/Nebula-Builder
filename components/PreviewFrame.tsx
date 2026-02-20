@@ -348,20 +348,18 @@ const PreviewFrame: React.FC<PreviewFrameProps> = ({
     const globalImageScript = `
       <script data-visinaro-injected="true">
         function fixImage(img) {
-          if (img.dataset.retries) return;
-          img.dataset.retries = '1';
-          // Use alt text as topic-specific Unsplash keyword
-          const raw = (img.alt || img.getAttribute('data-keyword') || 'professional').trim();
-          const keyword = encodeURIComponent(raw.split(/\s+/).slice(0,3).join(','));
-          const w = img.getAttribute('width') || 800;
-          const h = img.getAttribute('height') || 600;
-          img.src = 'https://source.unsplash.com/featured/' + w + 'x' + h + '/?' + keyword;
+          if (img.dataset.fixed) return;
+          img.dataset.fixed = '1';
+          const raw = (img.alt || img.getAttribute('data-seed') || 'photo').replace(/[^a-zA-Z0-9]/g,'').toLowerCase().slice(0,20) || 'photo';
+          img.src = 'https://picsum.photos/seed/' + raw + '/800/500';
           img.style.objectFit = 'cover';
+          img.onerror = null;
         }
         window.addEventListener('error', (e) => { if (e.target && e.target.tagName === 'IMG') fixImage(e.target); }, true);
         window.addEventListener('DOMContentLoaded', () => {
           document.querySelectorAll('img').forEach(img => {
-            if (!img.src || img.src.includes('undefined') || img.src.includes('null') || img.src === window.location.href) {
+            const src = img.getAttribute('src') || '';
+            if (!src || src.includes('undefined') || src.includes('null') || src === window.location.href || src === '#' || src.length < 5) {
               fixImage(img);
             }
           });
@@ -371,84 +369,128 @@ const PreviewFrame: React.FC<PreviewFrameProps> = ({
 
     const spaLogicScript = `
       <script data-visinaro-injected="true">
-        // 1. CLICK HANDLER (Navigation)
-        document.addEventListener('click', (e) => {
-           const link = e.target.closest('a');
-           if (!link) return;
-           if (e.ctrlKey || e.metaKey) return; 
-           
-           const href = link.getAttribute('href');
-           if (!href) return;
-           
-           // External Links
-           if (href.startsWith('http') || href.startsWith('//')) {
-               e.preventDefault();
-               window.open(href, '_blank');
-               return;
-           }
+      // ═══════════════════════════════════════════════════════════
+      // VISINARO SPA ROUTER v3 — Robust navigation for any structure
+      // ═══════════════════════════════════════════════════════════
 
-           // Internal Links
-           e.preventDefault();
-           
-           let targetId = href.replace(/\\.html$/, '').replace(/^\\//, '').replace(/^\\./, '').replace(/^#/, '');
-           if (targetId === '' || targetId === 'index') targetId = 'home';
+      // Collect ALL navigable page sections (anywhere in DOM)
+      // KNOWN IDs for all Visinaro-generated sections
+      var KNOWN_PAGE_IDS = ['home','about','services','portfolio','contact','auth','shop','cart','checkout','login','signup','gallery','blog','pricing','team','faq','menu','visit','solutions','features'];
 
-           // Find target
-           let section = document.getElementById(targetId);
-           
-           // Fallback: If no section matches, and it looks like a "page" request, 
-           // try to find the first section as home if asking for home
-           if (!section && targetId === 'home') {
-               section = document.querySelector('section[id="hero"]') || document.querySelector('section:first-of-type');
-           }
-
-           if (section) {
-               // Hide all other top-level sections
-               const allSections = document.querySelectorAll('body > section, body > main > section, body > div > section');
-               allSections.forEach(el => {
-                   // Ensure we are toggling "pages" (elements with IDs usually)
-                   if (el.id) {
-                       el.style.display = 'none';
-                       el.classList.add('hidden');
-                   }
-               });
-
-               // Show target
-               section.style.display = 'block';
-               section.classList.remove('hidden');
-               window.scrollTo({ top: 0, behavior: 'smooth' });
-               
-               // Update Nav State
-               document.querySelectorAll('nav a').forEach(navLink => {
-                   navLink.classList.remove('text-indigo-600', 'font-bold', 'opacity-100');
-                   navLink.classList.add('opacity-70');
-                   if(navLink.getAttribute('href').includes(targetId)) {
-                        navLink.classList.add('text-indigo-600', 'font-bold', 'opacity-100');
-                        navLink.classList.remove('opacity-70');
-                   }
-               });
-
-               // CLOSE MOBILE MENU (Added Logic)
-               const mobileMenu = document.getElementById('mobile-menu') || document.querySelector('[id*="mobile"][id*="menu"]');
-               if (mobileMenu && !mobileMenu.classList.contains('hidden')) {
-                   mobileMenu.classList.add('hidden');
-               }
-           }
-        }, true);
-
-        // 2. INIT HANDLER (Show Home, Hide Others)
-        window.addEventListener('DOMContentLoaded', () => {
-             const sections = document.querySelectorAll('body > section, body > main > section');
-             const home = document.getElementById('home');
-             if (home && sections.length > 1) {
-                 sections.forEach(s => {
-                     if (s.id !== 'home') {
-                         s.style.display = 'none';
-                         s.classList.add('hidden');
-                     }
-                 });
-             }
+      function getPageSections() {
+        // Strategy 1: page-section class (explicitly tagged)
+        var tagged = Array.from(document.querySelectorAll('.page-section'));
+        if (tagged.length >= 2) return tagged;
+        
+        // Strategy 2: known IDs
+        var byId = KNOWN_PAGE_IDS
+          .map(id => document.getElementById(id))
+          .filter(Boolean);
+        if (byId.length >= 2) return byId;
+        
+        // Strategy 3: any section/div with min-h-screen 
+        var byClass = Array.from(document.querySelectorAll('section[id]')).filter(s => {
+          return s.classList.contains('min-h-screen') || s.style.minHeight;
         });
+        if (byClass.length >= 2) return byClass;
+        
+        // Strategy 4: all top-level sections with IDs
+        return Array.from(document.querySelectorAll('body > section[id], main > section[id]'));
+      }
+
+      function navigateTo(targetId, pushState) {
+        if (!targetId) return;
+        const sections = getPageSections();
+        let found = false;
+
+        sections.forEach(s => {
+          if (s.id === targetId) {
+            s.style.removeProperty('display');
+            s.style.removeProperty('visibility');
+            s.classList.remove('hidden');
+            // Force visibility if still hidden
+            var cs = window.getComputedStyle(s);
+            if (cs.display === 'none') s.style.display = 'block';
+            found = true;
+          } else {
+            s.style.display = 'none';
+            s.classList.add('hidden');
+          }
+        });
+
+        // If not found by id, try first section as home fallback
+        if (!found) {
+          const first = sections[0];
+          if (first) {
+            first.style.display = '';
+            first.classList.remove('hidden');
+          }
+          sections.slice(1).forEach(s => { s.style.display = 'none'; s.classList.add('hidden'); });
+        }
+
+        // Update active nav link styling
+        document.querySelectorAll('nav a[href]').forEach(a => {
+          const href = a.getAttribute('href') || '';
+          const linkTarget = href.replace(/^#/, '').replace(/\.html$/, '').trim();
+          const isActive = linkTarget === targetId || (targetId === 'home' && (linkTarget === '' || linkTarget === 'index'));
+          a.classList.toggle('text-indigo-500', isActive);
+          a.classList.toggle('font-bold', isActive);
+        });
+
+        // Close mobile menu
+        const mMenu = document.getElementById('mobile-menu');
+        if (mMenu) mMenu.classList.add('hidden');
+
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+
+      // Click handler — intercepts ALL internal links
+      document.addEventListener('click', (e) => {
+        const link = e.target.closest('a[href]');
+        if (!link) return;
+        if (e.ctrlKey || e.metaKey || e.shiftKey) return;
+
+        const href = link.getAttribute('href') || '';
+
+        // Skip purely external links
+        if (href.startsWith('http') || href.startsWith('//') || href.startsWith('mailto:') || href.startsWith('tel:')) {
+          e.preventDefault();
+          window.open(href, '_blank');
+          return;
+        }
+
+        // Skip pure anchor (# with no id)
+        if (href === '#') { e.preventDefault(); return; }
+
+        // Internal navigation
+        e.preventDefault();
+        let targetId = href.replace(/^#/, '').replace(/\.html$/, '').replace(/^\//, '').trim();
+        if (!targetId || targetId === 'index') targetId = 'home';
+        navigateTo(targetId, true);
+      }, true);
+
+      // Init on DOMContentLoaded
+      function initRouter() {
+        const sections = getPageSections();
+        if (sections.length === 0) return;
+        // Show home, hide everything else
+        sections.forEach(s => {
+          if (s.id === 'home') {
+            s.style.display = '';
+            s.classList.remove('hidden');
+          } else {
+            s.style.display = 'none';
+            s.classList.add('hidden');
+          }
+        });
+      }
+
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initRouter);
+      } else {
+        // Already loaded (e.g. srcdoc)
+        setTimeout(initRouter, 0);
+      }
       </script>
     `;
 

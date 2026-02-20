@@ -1,164 +1,212 @@
 
 export const APP_NAME = "Visinaro";
 
-// AVAILABLE_MODELS drives the model selector UI and estimated time display
-// The actual generation cascade is defined in services/aiService.ts
 export const AVAILABLE_MODELS = [
-  { id: 'groq-fast',    name: '⚡ Groq Fast',    description: 'Groq LPU (~3-5s)',   estimatedTime: 4  },
-  { id: 'groq-quality', name: '🦙 Groq Quality',  description: 'Groq LPU (~5-8s)',   estimatedTime: 6  },
+  { id: 'groq-fast',    name: '⚡ Groq Fast',    description: 'Groq LPU (~3-5s)',      estimatedTime: 4  },
+  { id: 'groq-quality', name: '🦙 Groq Quality',  description: 'Groq LPU (~5-8s)',      estimatedTime: 6  },
   { id: 'openrouter',   name: '🔀 OpenRouter',    description: 'DeepSeek/Llama (~15s)', estimatedTime: 15 },
 ];
 
 export const DEFAULT_MODEL = 'groq-fast';
 
 export const EXAMPLE_PROMPTS = [
-  "Create a minimalist portfolio for a photographer with a dark theme. Include a photo gallery grid with hover effects, an 'About Me' section with a bio, and a simple contact form.",
-  "Design a modern landing page for a coffee shop called 'Brew & Bean'. Use a warm color palette with amber accents. Include a hero section, a menu grid with prices, and a footer with location info.",
-  "Build a vibrant event page for a music festival. Use neon colors and a dark background. Include a lineup schedule, a ticket pricing table, and a countdown timer to the event.",
-  "Create a clean documentation site for a software library. It should have a fixed sidebar navigation, syntax-highlighted code snippets, and a search bar in the header.",
-  "Design a personal blog with a sticky header and a masonry layout for articles. Include a featured post slider at the top and a newsletter subscription form in the footer.",
-  "Build an online resume for a software engineer. Include a skills section with progress bars, a vertical timeline for work experience, and a button to download the CV as PDF.",
-  "Create a product showcase page for high-end headphones. Use parallax scrolling effects, large high-quality images, feature benefit cards, and a sticky 'Buy Now' button.",
-  "Design a restaurant reservation page. Include a date and time picker, a table selection visualizer, and a section for customer testimonials with star ratings.",
-  "Build a dashboard layout for a fitness tracker application. Include charts for daily steps and calories burned, a hydration log, and a list of recent workouts.",
-  "Create a 'Coming Soon' landing page for a startup. Use a full-screen blurred background image, a centered email capture form, and social media icon links."
+  "Create a modern e-commerce store for handmade jewelry. Include a product grid with cart, checkout with Razorpay & Stripe, and a login/signup page with Google & Facebook auth.",
+  "Design a coffee shop website called 'Brew & Bean' with warm amber colors. Hero with real coffee images, menu grid with prices, team section, and contact form.",
+  "Build a SaaS landing page for a project management tool. Dark theme, pricing table with 3 tiers, feature comparison, testimonials, and a login portal.",
+  "Create a photography portfolio with a masonry gallery, lightbox viewer, package pricing, about section, and a booking contact form.",
+  "Build a fitness gym website with hero video background, class schedule, trainer profiles, membership plans with signup, and a BMI calculator.",
+  "Design a restaurant website with mouth-watering food photos, interactive menu with categories, reservation system, chef profiles, and Google Maps location.",
+  "Create a real estate listing site with property cards, search filters, map view, agent profiles, mortgage calculator, and inquiry form.",
+  "Build a personal blog with featured posts, category filter, newsletter signup, about me page, and social media links.",
+  "Design an online course platform with course cards, curriculum accordion, instructor profile, student testimonials, and enrollment with payment options.",
+  "Create a tech startup landing page with animated hero, product screenshots, investor logos, team section, and a demo request form.",
 ];
 
 export const INITIAL_PROMPT = EXAMPLE_PROMPTS[Math.floor(Math.random() * EXAMPLE_PROMPTS.length)];
 
 // ─────────────────────────────────────────────────────────────────────────────
-// MASTER SYSTEM PROMPT — All issues fixed:
-// 1. UNIQUE topic-specific images via Unsplash Source API (free, copyright-free, no duplicates)
-// 2. SVG logo generated inline (no broken img tags)
-// 3. Images on EVERY section including Services (icon + image per card)
-// 4. Richer content — more text, descriptions, stats
-// 5. SPA navigation script is injection-safe (no conflicts with builder)
+// PROMPT ANALYSIS — detect intent to add special pages
 // ─────────────────────────────────────────────────────────────────────────────
-export const SYSTEM_INSTRUCTION = `
+
+export const analyzePrompt = (prompt: string): { isEcommerce: boolean; needsAuth: boolean } => {
+  const p = prompt.toLowerCase();
+  const isEcommerce = /shop|store|ecommerce|e-commerce|product|buy|cart|checkout|sell|marketplace|catalog|inventory/.test(p);
+  const needsAuth   = /login|signup|sign up|sign-up|register|auth|account|member|user|portal|dashboard/.test(p) || isEcommerce;
+  return { isEcommerce, needsAuth };
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
+// BASE SYSTEM PROMPT (always injected)
+// ─────────────────────────────────────────────────────────────────────────────
+
+export const SYSTEM_INSTRUCTION_BASE = `
 ACT AS A WORLD-CLASS WEB DEVELOPER AND DESIGNER.
-GOAL: GENERATE A STUNNING, CONTENT-RICH 5-PAGE SPA WEBSITE.
-SPEED TARGET: Keep total HTML under 350 lines. Be concise but comprehensive.
+GOAL: GENERATE A STUNNING, CONTENT-RICH MULTI-PAGE SPA WEBSITE.
 
-═══════════════════════════════════════════════
-SECTION 1 — MANDATORY HTML STRUCTURE
-═══════════════════════════════════════════════
+═══════════════════════════════════════════════════════
+PART 1 — MANDATORY STRUCTURE
+═══════════════════════════════════════════════════════
 
-Use EXACTLY this shell. Do NOT rename section IDs.
+Use EXACTLY these section IDs. Never rename them.
 
-<nav id="main-nav">
-  <!-- Logo: inline SVG (no img tags for logo) -->
-  <!-- Desktop nav links to: #home #about #services #portfolio #contact -->
-  <!-- Mobile hamburger button id="mobile-menu-btn" -->
-  <!-- Mobile dropdown id="mobile-menu" class="hidden" -->
-</nav>
-
-<section id="home" class="min-h-screen w-full"> ... </section>
-<section id="about" class="min-h-screen w-full hidden"> ... </section>
-<section id="services" class="min-h-screen w-full hidden"> ... </section>
-<section id="portfolio" class="min-h-screen w-full hidden"> ... </section>
+<nav id="main-nav"> ... </nav>
+<section id="home"      class="page-section min-h-screen w-full"> ... </section>
+<section id="about"     class="page-section min-h-screen w-full hidden"> ... </section>
+<section id="services"  class="page-section min-h-screen w-full hidden"> ... </section>
+<section id="portfolio" class="page-section min-h-screen w-full hidden"> ... </section>
+<!--__TEMPLATE_AUTH__-->
 <!--__TEMPLATE_CONTACT__-->
 <!--__TEMPLATE_FOOTER__-->
 
-CRITICAL: ALL sections except #home MUST have class="hidden" by default.
+CRITICAL RULES:
+- ALL sections except #home MUST have class="hidden" AND class="page-section"
+- #home MUST have class="page-section" but NOT "hidden"
+- EVERY nav link href MUST exactly match a section id: href="#home" href="#about" etc.
+- DO NOT nest sections inside divs — they must be direct children of <body>
+- ALWAYS include these two nav links in desktop + mobile menu:
+  * Login/Sign In → href="#auth"
+  * Contact → href="#contact"
+- The <!--__TEMPLATE_AUTH__--> comment is MANDATORY — do NOT remove it
 
-═══════════════════════════════════════════════
-SECTION 2 — IMAGES (Copyright-Free, Topic-Specific)
-═══════════════════════════════════════════════
+═══════════════════════════════════════════════════════
+PART 2 — IMAGES (Use Picsum — always works, no 404s)
+═══════════════════════════════════════════════════════
 
-Use Unsplash Source for ALL images. Format:
-https://source.unsplash.com/featured/WIDTHxHEIGHT/?KEYWORD1,KEYWORD2
+Use Picsum Photos for ALL images — these never fail:
+  Hero:     https://picsum.photos/seed/KEYWORD/1400/700
+  Cards:    https://picsum.photos/seed/KEYWORD/600/400
+  Portrait: https://picsum.photos/seed/KEYWORD/400/400
 
-Rules:
-- EVERY keyword MUST be specific to the user's website topic (e.g. "coffee,espresso", "guitar,music", "code,laptop")
-- Use AT LEAST 2 comma-separated keywords per URL
-- NEVER reuse the same URL. Make each image URL different by using different keywords
-- Hero: 1400x800, Cards: 600x400, Team: 400x400
+Replace KEYWORD with a relevant word (e.g. "coffee", "team", "product1", "product2").
+Use a DIFFERENT seed word for each image to get different photos.
+NEVER use the same seed twice — each image must be unique.
 
-Examples for a coffee shop:
-  Hero: https://source.unsplash.com/featured/1400x800/?coffee,cafe
-  About: https://source.unsplash.com/featured/600x400/?barista,brewing
-  Service 1: https://source.unsplash.com/featured/600x400/?espresso,shot
-  Service 2: https://source.unsplash.com/featured/600x400/?latte,milk
-  Service 3: https://source.unsplash.com/featured/600x400/?pastry,bakery
-  Portfolio: https://source.unsplash.com/featured/600x400/?coffee,art
-  Portfolio 2: https://source.unsplash.com/featured/600x400/?cappuccino,foam
+Example for coffee shop:
+  Hero:      https://picsum.photos/seed/coffeehero/1400/700
+  About:     https://picsum.photos/seed/cafeinterior/600/400
+  Service 1: https://picsum.photos/seed/espresso/600/400
+  Service 2: https://picsum.photos/seed/latte/600/400
+  Team 1:    https://picsum.photos/seed/barista1/400/400
 
-MANDATORY: Every service card MUST have an image at the top.
+═══════════════════════════════════════════════════════
+PART 3 — LOGO (Inline SVG — never use img tag for logo)
+═══════════════════════════════════════════════════════
 
-═══════════════════════════════════════════════
-SECTION 3 — LOGO (Inline SVG)
-═══════════════════════════════════════════════
+Generate a unique inline SVG logo in the navbar:
+- Coffee: cup with steam paths
+- Tech: geometric/circuit shapes  
+- Store: shopping bag silhouette
+- Health: heartbeat line or leaf
+Keep it under 5 SVG paths, 40x40 viewBox, use brand colors.
 
-Generate a unique inline SVG logo in the navbar. Examples:
-- Coffee shop: A coffee cup SVG with steam
-- Tech startup: An abstract geometric shape
-- Photography: A camera aperture SVG
-Keep it simple: 2-3 paths max, 40x40 viewBox, brand colors.
+═══════════════════════════════════════════════════════
+PART 4 — CONTENT (Rich, specific, never placeholder)
+═══════════════════════════════════════════════════════
 
-═══════════════════════════════════════════════
-SECTION 4 — CONTENT REQUIREMENTS (Rich & Specific)
-═══════════════════════════════════════════════
+HOME:
+- Full-width hero with overlay: <div class="relative min-h-screen"><img src="picsum-url" class="absolute inset-0 w-full h-full object-cover"><div class="absolute inset-0 bg-black/50"></div><div class="relative z-10 flex items-center justify-center min-h-screen text-white text-center px-6">...content...</div></div>
+- Specific headline (2 lines), subtitle (2-3 sentences), 2 CTAs
+- Stats bar: 3 impressive numbers (500+ Clients, 10 Years, 4.9★)
+- Feature highlights: 3 icon+text cards below hero
 
-Generate ALL content specific to the user's prompt. Do NOT use placeholder text.
+ABOUT:
+- Brand story in 2 paragraphs (be specific to their industry)
+- 2-column: story left + hero image right
+- Mission statement in a styled blockquote
+- Team grid: 4 cards, each with photo, name, role, 1-line bio
 
-HOME section:
-- Full-width hero image (min-h-screen, object-cover)
-- Compelling headline (2 lines, specific to the brand)
-- Subtitle paragraph (2-3 sentences about the value proposition)
-- 2 CTA buttons (primary + secondary)
-- 3 stats bar: e.g. "500+ Clients | 10 Years | 4.9★ Rating"
+SERVICES:
+- 3-4 cards, each with:
+  * Top image (picsum, unique seed)
+  * Icon (SVG or emoji) + title + price/timeframe
+  * 4 bullet point features
+  * Styled CTA button
 
-ABOUT section:
-- Section headline + 2 paragraphs of brand story (specific, not generic)
-- 2-column layout: text left, image right
-- 3-4 team member cards: name, role, photo, 1-sentence bio
-- A highlighted quote or mission statement
+PORTFOLIO:
+- 6-image masonry/grid
+- Each: picsum image, project title, category badge, hover overlay with "View Project"
+- Include client name and year
 
-SERVICES section:
-- Section headline + subtitle
-- 3-4 service cards, EACH containing:
-  * Top image (Unsplash, topic-specific keyword)
-  * Service icon (SVG or emoji)
-  * Title, price or timeframe
-  * 3-4 bullet point features
-  * "Learn More" button
+═══════════════════════════════════════════════════════
+PART 5 — DESIGN
+═══════════════════════════════════════════════════════
 
-PORTFOLIO section:
-- 6-card grid, each with:
-  * Unique Unsplash image (topic-specific keywords)
-  * Project title + category tag
-  * Hover overlay with "View Project" button
+- Tailwind CSS ONLY — all utilities from CDN
+- Choose brand-appropriate palette (warm for food, dark for tech, etc.)
+- Smooth transitions: hover:scale-105, hover:shadow-xl, transition-all duration-300
+- Gradient accents on buttons and headings
+- font-serif for h1/h2 headings, font-sans for body
+- Fully responsive: mobile-first
 
-═══════════════════════════════════════════════
-SECTION 5 — DESIGN RULES
-═══════════════════════════════════════════════
+═══════════════════════════════════════════════════════
+PART 6 — JAVASCRIPT (EXACT — do not modify)
+═══════════════════════════════════════════════════════
 
-- Tailwind CSS ONLY for all styling
-- Choose a cohesive color palette that matches the brand (NOT always slate/indigo)
-- font-serif for headings, font-sans for body
-- Smooth hover transitions on all interactive elements
-- Responsive: works on mobile and desktop
-
-═══════════════════════════════════════════════
-SECTION 6 — JAVASCRIPT (CRITICAL — DO NOT MODIFY)
-═══════════════════════════════════════════════
-
-Include EXACTLY this JavaScript. Do NOT add any other navigation logic.
-
-// Mobile menu toggle
+// Mobile menu toggle ONLY — do not add any navigation logic
 const mobileBtn = document.getElementById('mobile-menu-btn');
 const mobileMenu = document.getElementById('mobile-menu');
 if (mobileBtn && mobileMenu) {
   mobileBtn.addEventListener('click', () => mobileMenu.classList.toggle('hidden'));
 }
 
-NOTE: Do NOT include any other click handlers or navigation logic.
-The builder framework injects its own SPA router. Adding duplicate handlers breaks navigation.
+THE FRAMEWORK INJECTS ITS OWN SPA ROUTER. Do NOT add any other click/nav handlers.
 
-═══════════════════════════════════════════════
+═══════════════════════════════════════════════════════
 OUTPUT FORMAT
-═══════════════════════════════════════════════
+═══════════════════════════════════════════════════════
 
-RETURN JSON ONLY — no markdown, no explanation:
-{ "html": "...", "css": "/* custom keyframes only, leave empty if none */", "javascript": "/* mobile menu toggle only */" }
+Return ONLY valid JSON, no markdown fences:
+{ "html": "...", "css": "", "javascript": "// mobile menu toggle only" }
 `;
+
+// ─────────────────────────────────────────────────────────────────────────────
+// E-COMMERCE ADDON — appended to base when ecommerce detected
+// ─────────────────────────────────────────────────────────────────────────────
+
+export const ECOMMERCE_ADDON = `
+
+═══════════════════════════════════════════════════════
+E-COMMERCE REQUIREMENTS (add these sections)
+═══════════════════════════════════════════════════════
+
+AFTER #portfolio, add EXACTLY these 3 comment placeholders (they will be replaced with full templates):
+<!--__TEMPLATE_SHOP__-->
+<!--__TEMPLATE_CART__-->
+<!--__TEMPLATE_CHECKOUT__-->
+
+Add these nav links to navbar (desktop and mobile):
+  * Shop → href="#shop"  
+  * Cart → href="#cart" with a <span class="cart-badge"> badge
+  * Checkout → href="#checkout"
+
+JAVASCRIPT for cart (add to the javascript field):
+let cartCount = 2;
+function updateCartBadge() {
+  document.querySelectorAll('.cart-badge').forEach(el => el.textContent = cartCount);
+}
+document.querySelectorAll('.add-to-cart').forEach(btn => {
+  btn.addEventListener('click', () => {
+    cartCount++;
+    updateCartBadge();
+    const orig = btn.textContent;
+    btn.textContent = '✓ Added!';
+    btn.classList.add('bg-green-600');
+    setTimeout(() => { btn.textContent = orig; btn.classList.remove('bg-green-600'); }, 1500);
+  });
+});
+updateCartBadge();
+`;
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Build final system instruction based on prompt analysis
+// ─────────────────────────────────────────────────────────────────────────────
+
+export const buildSystemInstruction = (prompt: string): string => {
+  const { isEcommerce } = analyzePrompt(prompt);
+  let instruction = SYSTEM_INSTRUCTION_BASE;
+  if (isEcommerce) instruction += ECOMMERCE_ADDON;
+  return instruction;
+};
+
+// Keep backward compat export
+export const SYSTEM_INSTRUCTION = SYSTEM_INSTRUCTION_BASE;

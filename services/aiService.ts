@@ -20,9 +20,9 @@
  * No SDKs needed — pure fetch.
  */
 
-import { SYSTEM_INSTRUCTION } from "../constants";
+import { buildSystemInstruction } from "../constants";
 import { GeneratedContent } from "../types";
-import { CONTACT_TEMPLATE, FOOTER_TEMPLATE } from "../templates";
+import { AUTH_TEMPLATE, SHOP_TEMPLATE, CART_TEMPLATE, CHECKOUT_TEMPLATE, CONTACT_TEMPLATE, FOOTER_TEMPLATE } from "../templates";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // KEY STORAGE
@@ -220,9 +220,10 @@ export const generateWebsite = async (
     try {
       onProgress?.('', spec.displayName);
 
+      const systemInstruction = buildSystemInstruction(prompt);
       const raw = await streamCompletion(
         spec,
-        SYSTEM_INSTRUCTION,
+        systemInstruction,
         prompt,
         (partial) => onProgress?.(partial, spec.displayName),
       );
@@ -240,7 +241,7 @@ export const generateWebsite = async (
       if (!parsed?.html) throw new Error('AI returned empty HTML.');
 
       return {
-        content:      injectTemplates(parsed),
+        content:      injectTemplates(parsed, prompt),
         usedModel:    spec.modelId,
         usedProvider: spec.provider,
         tokensPerSec: spec.tokensPerSec,
@@ -336,13 +337,47 @@ Return ONLY valid JSON: { "improvedHtml": "...", "seoReport": "bullet list of ch
 // ─────────────────────────────────────────────────────────────────────────────
 
 function injectTemplates(c: GeneratedContent): GeneratedContent {
-  if (c.html) {
-    c.html = c.html
-      .replace(/<!--__TEMPLATE_CONTACT__-->/g, CONTACT_TEMPLATE)
-      .replace(/<!--__TEMPLATE_FOOTER__-->/g,   FOOTER_TEMPLATE);
+  if (!c.html) return c;
+  
+  const { isEcommerce } = analyzePromptForTemplates(c.html);
+
+  // Replace template placeholders
+  c.html = c.html
+    .replace(/<!--__TEMPLATE_AUTH__-->/g,     AUTH_TEMPLATE)
+    .replace(/<!--__TEMPLATE_SHOP__-->/g,     isEcommerce ? SHOP_TEMPLATE : '')
+    .replace(/<!--__TEMPLATE_CART__-->/g,     isEcommerce ? CART_TEMPLATE : '')
+    .replace(/<!--__TEMPLATE_CHECKOUT__-->/g, isEcommerce ? CHECKOUT_TEMPLATE : '')
+    .replace(/<!--__TEMPLATE_CONTACT__-->/g,  CONTACT_TEMPLATE)
+    .replace(/<!--__TEMPLATE_FOOTER__-->/g,   FOOTER_TEMPLATE);
+
+  // Ensure auth is always present (AI sometimes omits the placeholder)
+  if (!c.html.includes('id="auth"')) {
+    c.html = c.html.replace('</body>', AUTH_TEMPLATE + '\n</body>');
   }
+  // Ensure contact is present
+  if (!c.html.includes('id="contact"')) {
+    c.html = c.html.replace('</body>', CONTACT_TEMPLATE + '\n</body>');
+  }
+  // Ensure footer is present
+  if (!c.html.includes('<footer')) {
+    c.html = c.html.replace('</body>', FOOTER_TEMPLATE + '\n</body>');
+  }
+  // Ecommerce: ensure shop/cart/checkout if needed
+  if (isEcommerce) {
+    if (!c.html.includes('id="shop"'))    c.html = c.html.replace('</body>', SHOP_TEMPLATE + '\n</body>');
+    if (!c.html.includes('id="cart"'))    c.html = c.html.replace('</body>', CART_TEMPLATE + '\n</body>');
+    if (!c.html.includes('id="checkout"')) c.html = c.html.replace('</body>', CHECKOUT_TEMPLATE + '\n</body>');
+  }
+
   return c;
 }
+
+function analyzePromptForTemplates(html: string) {
+  const h = html.toLowerCase();
+  const isEcommerce = /shop|cart|checkout|product|store|ecommerce/.test(h);
+  return { isEcommerce };
+}
+
 
 export const enhancePrompt = async (simpleIdea: string): Promise<string> => {
   const spec = MODEL_CASCADE.find(s =>
