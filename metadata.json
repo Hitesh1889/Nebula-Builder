@@ -1,5 +1,5 @@
 {
   "name": "Visinaro AI Web Builder",
-  "description": "A powerful AI-driven tool that generates complete, single-file websites using Gemini 3 models. Describe your vision, and watch it come to life.",
+  "description": "Visinaro: AI website builder powered by Groq + OpenRouter. Generate complete multi-page websites in seconds.",
   "requestFramePermissions": []
 }

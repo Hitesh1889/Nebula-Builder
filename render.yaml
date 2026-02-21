@@ -12,10 +12,10 @@ services:
         name: Content-Type
         value: application/javascript; charset=utf-8
     envVars:
-      - key: GROQ_API_KEY
-        sync: false   # Set in Render Dashboard → Environment
-      - key: OPENROUTER_API_KEY
-        sync: false   # Optional backup — set in Render Dashboard
+      - key: VITE_GROQ_API_KEY
+        sync: false
+      - key: VITE_OPENROUTER_API_KEY
+        sync: false
     routes:
       - type: rewrite
         source: /*
