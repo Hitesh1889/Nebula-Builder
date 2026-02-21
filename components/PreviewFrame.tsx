@@ -135,7 +135,7 @@ const PreviewFrame: React.FC<PreviewFrameProps> = ({
     }
   },true);
 })();
-<\/script>\`;
+<\/script>`;
 
     // ── Edit mode (only injected, no MutationObserver that triggers re-renders) ──
     const editScript = `<script data-vi="1">
