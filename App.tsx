@@ -206,142 +206,116 @@ export default function App(){
     </div>
   );
 
-  // ── LANDING PAGE ──────────────────────────────────────────────────────────
+  // ── LANDING PAGE — fits exactly in viewport, prompt always centred ──────────
   if(screen==='landing') return(
-    <div style={{minHeight:'100dvh',background:'#06060f',color:'white',fontFamily:'Inter,system-ui,sans-serif',overflowX:'hidden',overflowY:'auto',position:'relative'}}>
+    <div style={{height:'100dvh',background:'#06060f',color:'white',fontFamily:'Inter,system-ui,sans-serif',display:'flex',flexDirection:'column',overflow:'hidden',position:'relative'}}>
 
       {/* Ambient background */}
-      <div style={{position:'fixed',inset:0,pointerEvents:'none',zIndex:0,overflow:'hidden'}}>
-        <div style={{position:'absolute',top:'-20%',left:'-15%',width:700,height:700,background:'radial-gradient(circle,rgba(99,102,241,0.12) 0%,transparent 65%)',borderRadius:'50%'}}/>
-        <div style={{position:'absolute',top:'35%',right:'-20%',width:600,height:600,background:'radial-gradient(circle,rgba(139,92,246,0.09) 0%,transparent 65%)',borderRadius:'50%'}}/>
-        <div style={{position:'absolute',bottom:'-5%',left:'20%',width:500,height:500,background:'radial-gradient(circle,rgba(236,72,153,0.07) 0%,transparent 65%)',borderRadius:'50%'}}/>
-        <div style={{position:'absolute',inset:0,backgroundImage:'linear-gradient(rgba(255,255,255,0.013) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.013) 1px,transparent 1px)',backgroundSize:'60px 60px'}}/>
+      <div style={{position:'absolute',inset:0,pointerEvents:'none',zIndex:0,overflow:'hidden'}}>
+        <div style={{position:'absolute',top:'-20%',left:'-15%',width:600,height:600,background:'radial-gradient(circle,rgba(99,102,241,0.14) 0%,transparent 65%)',borderRadius:'50%'}}/>
+        <div style={{position:'absolute',top:'30%',right:'-15%',width:500,height:500,background:'radial-gradient(circle,rgba(139,92,246,0.10) 0%,transparent 65%)',borderRadius:'50%'}}/>
+        <div style={{position:'absolute',bottom:'-10%',left:'20%',width:450,height:450,background:'radial-gradient(circle,rgba(236,72,153,0.08) 0%,transparent 65%)',borderRadius:'50%'}}/>
+        <div style={{position:'absolute',inset:0,backgroundImage:'linear-gradient(rgba(255,255,255,0.012) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.012) 1px,transparent 1px)',backgroundSize:'60px 60px'}}/>
       </div>
 
-      {/* Nav */}
-      <nav style={{position:'sticky',top:0,zIndex:50,backdropFilter:'blur(24px)',background:'rgba(6,6,15,0.8)',borderBottom:'1px solid rgba(255,255,255,0.05)'}}>
-        <div style={{maxWidth:1080,margin:'0 auto',padding:'0 24px',height:56,display:'flex',alignItems:'center',justifyContent:'space-between'}}>
-          <div style={{display:'flex',alignItems:'center',gap:10}}>
-            <Logo size={22}/>
-            <span style={{fontWeight:800,fontSize:17,letterSpacing:'-0.5px',color:'white'}}>Visinaro</span>
+      {/* Nav — fixed height */}
+      <nav style={{flexShrink:0,zIndex:50,backdropFilter:'blur(24px)',background:'rgba(6,6,15,0.85)',borderBottom:'1px solid rgba(255,255,255,0.06)'}}>
+        <div style={{maxWidth:1080,margin:'0 auto',padding:'0 24px',height:52,display:'flex',alignItems:'center',justifyContent:'space-between'}}>
+          <div style={{display:'flex',alignItems:'center',gap:9}}>
+            <Logo size={20}/>
+            <span style={{fontWeight:800,fontSize:16,letterSpacing:'-0.5px'}}>Visinaro</span>
           </div>
           {history.length>0&&(
             <button onClick={()=>setIsHistoryOpen(true)}
-              style={{display:'flex',alignItems:'center',gap:6,padding:'6px 14px',background:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,255,255,0.08)',borderRadius:8,color:'#64748b',fontSize:12,cursor:'pointer',fontFamily:'inherit'}}>
+              style={{display:'flex',alignItems:'center',gap:6,padding:'5px 12px',background:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,255,255,0.08)',borderRadius:8,color:'#64748b',fontSize:12,cursor:'pointer',fontFamily:'inherit'}}>
               <History style={{width:12,height:12}}/> Recent sites
             </button>
           )}
         </div>
       </nav>
 
-      {/* Hero section */}
-      <section style={{maxWidth:760,margin:'0 auto',padding:'96px 24px 72px',textAlign:'center',position:'relative',zIndex:10}}>
+      {/* Centre column — takes remaining height, flex centres content */}
+      <div style={{flex:1,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',padding:'0 24px',zIndex:10,overflow:'hidden'}}>
+        <div style={{width:'100%',maxWidth:640}}>
 
-        {/* Live badge */}
-        <div style={{display:'inline-flex',alignItems:'center',gap:8,padding:'5px 16px',background:'rgba(99,102,241,0.08)',border:'1px solid rgba(99,102,241,0.2)',borderRadius:999,marginBottom:40}}>
-          <span style={{width:6,height:6,background:'#4ade80',borderRadius:'50%',display:'block',boxShadow:'0 0 8px #4ade80'}}/>
-          <span style={{fontSize:11,fontWeight:700,color:'#a5b4fc',letterSpacing:'0.1em',textTransform:'uppercase'}}>AI Website Builder · Live</span>
-        </div>
-
-        {/* Headline */}
-        <h1 style={{fontSize:'clamp(40px,7vw,72px)',fontWeight:800,lineHeight:1.05,letterSpacing:'-2.5px',margin:'0 0 22px',fontFamily:'Inter,system-ui,sans-serif',color:'white'}}>
-          Build any website<br/>
-          <span style={{background:'linear-gradient(130deg,#818cf8 0%,#c084fc 50%,#f472b6 100%)',WebkitBackgroundClip:'text',WebkitTextFillColor:'transparent',backgroundClip:'text'}}>
-            in seconds, not days
-          </span>
-        </h1>
-
-        <p style={{fontSize:17,color:'#475569',maxWidth:520,margin:'0 auto 56px',lineHeight:1.75}}>
-          Describe your website in plain English. Get a complete, production-ready site with pages, images, login, and e-commerce — instantly.
-        </p>
-
-        {/* Prompt box */}
-        <div style={{background:'rgba(255,255,255,0.025)',border:'1px solid rgba(255,255,255,0.09)',borderRadius:20,padding:20,marginBottom:14,boxShadow:'0 0 60px rgba(99,102,241,0.06)',textAlign:'left'}}>
-          <textarea
-            value={prompt}
-            onChange={e=>setPrompt(e.target.value)}
-            onKeyDown={e=>{if(e.key==='Enter'&&(e.ctrlKey||e.metaKey))doGenerate();}}
-            placeholder={'Describe your website…\ne.g. "Modern coffee shop with warm colors, menu, team, and contact form"'}
-            rows={4}
-            style={{width:'100%',background:'transparent',border:'none',outline:'none',color:'white',fontSize:15,lineHeight:1.75,resize:'none',fontFamily:'Inter,system-ui,sans-serif',boxSizing:'border-box',display:'block'}}
-          />
-          <div style={{display:'flex',justifyContent:'flex-end',marginTop:14,paddingTop:14,borderTop:'1px solid rgba(255,255,255,0.06)'}}>
-            <button onClick={doGenerate} disabled={!prompt.trim()}
-              style={{display:'flex',alignItems:'center',gap:8,padding:'11px 28px',
-                background:prompt.trim()?'white':'rgba(255,255,255,0.05)',
-                color:prompt.trim()?'#0f172a':'#374151',
-                borderRadius:12,fontWeight:700,fontSize:15,cursor:prompt.trim()?'pointer':'default',border:'none',
-                boxShadow:prompt.trim()?'0 4px 20px rgba(255,255,255,0.15)':'none',
-                transition:'all 0.2s',fontFamily:'inherit'}}>
-              <Zap style={{width:14,height:14}}/> Generate Website
-            </button>
+          {/* Badge */}
+          <div style={{display:'flex',justifyContent:'center',marginBottom:20}}>
+            <div style={{display:'inline-flex',alignItems:'center',gap:7,padding:'4px 14px',background:'rgba(99,102,241,0.09)',border:'1px solid rgba(99,102,241,0.22)',borderRadius:999}}>
+              <span style={{width:6,height:6,background:'#4ade80',borderRadius:'50%',display:'block',boxShadow:'0 0 7px #4ade80'}}/>
+              <span style={{fontSize:10,fontWeight:700,color:'#a5b4fc',letterSpacing:'0.1em',textTransform:'uppercase'}}>AI Website Builder · Free · Live</span>
+            </div>
           </div>
-        </div>
 
-        {/* Quick examples */}
-        <div style={{display:'flex',flexWrap:'wrap',gap:8,justifyContent:'center',marginBottom:64}}>
-          {EXAMPLES.map(e=>(
-            <button key={e.label} onClick={()=>setPrompt(e.text)}
-              style={{padding:'6px 14px',background:'rgba(255,255,255,0.03)',border:'1px solid rgba(255,255,255,0.07)',
-                borderRadius:999,color:'#4b5563',fontSize:12,cursor:'pointer',fontFamily:'inherit',
-                transition:'all 0.15s'}}>
-              {e.label}
-            </button>
-          ))}
-        </div>
+          {/* Headline */}
+          <h1 style={{fontSize:'clamp(32px,5vw,58px)',fontWeight:800,lineHeight:1.08,letterSpacing:'-2px',margin:'0 0 14px',textAlign:'center',fontFamily:'Inter,system-ui,sans-serif'}}>
+            Build any website<br/>
+            <span style={{background:'linear-gradient(130deg,#818cf8 0%,#c084fc 50%,#f472b6 100%)',WebkitBackgroundClip:'text',WebkitTextFillColor:'transparent',backgroundClip:'text'}}>
+              in seconds, not days
+            </span>
+          </h1>
 
-        {/* Stats */}
-        <div style={{display:'flex',justifyContent:'center',gap:56,borderTop:'1px solid rgba(255,255,255,0.05)',paddingTop:32}}>
-          {[['5+','Pages per site'],['Free','No credit card'],['<10s','Generation speed']].map(([v,l])=>(
-            <div key={l} style={{textAlign:'center'}}>
-              <div style={{fontSize:24,fontWeight:800,color:'white',lineHeight:1}}>{v}</div>
-              <div style={{fontSize:12,color:'#1e293b',marginTop:5}}>{l}</div>
+          <p style={{fontSize:15,color:'#4b5563',margin:'0 0 24px',lineHeight:1.65,textAlign:'center'}}>
+            Describe your website in plain English — get a complete, production-ready site instantly.
+          </p>
+
+          {/* Prompt box */}
+          <div style={{background:'rgba(255,255,255,0.03)',border:'1px solid rgba(255,255,255,0.1)',borderRadius:18,padding:16,marginBottom:12,boxShadow:'0 0 60px rgba(99,102,241,0.07)'}}>
+            <textarea
+              value={prompt}
+              onChange={e=>setPrompt(e.target.value)}
+              onKeyDown={e=>{if(e.key==='Enter'&&(e.ctrlKey||e.metaKey))doGenerate();}}
+              placeholder='e.g. "Modern coffee shop with warm colors, hero image, menu, team section, and contact form"'
+              rows={3}
+              style={{width:'100%',background:'transparent',border:'none',outline:'none',color:'white',fontSize:14,lineHeight:1.7,resize:'none',fontFamily:'Inter,system-ui,sans-serif',boxSizing:'border-box',display:'block'}}
+            />
+            <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginTop:12,paddingTop:12,borderTop:'1px solid rgba(255,255,255,0.06)'}}>
+              <span style={{fontSize:11,color:'#1e293b'}}>Ctrl+Enter to generate</span>
+              <button onClick={doGenerate} disabled={!prompt.trim()}
+                style={{display:'flex',alignItems:'center',gap:7,padding:'9px 22px',
+                  background:prompt.trim()?'white':'rgba(255,255,255,0.05)',
+                  color:prompt.trim()?'#0f172a':'#374151',
+                  borderRadius:10,fontWeight:700,fontSize:14,cursor:prompt.trim()?'pointer':'default',border:'none',
+                  boxShadow:prompt.trim()?'0 4px 18px rgba(255,255,255,0.13)':'none',
+                  transition:'all 0.2s',fontFamily:'inherit'}}>
+                <Zap style={{width:13,height:13}}/> Generate
+              </button>
             </div>
-          ))}
-        </div>
-      </section>
+          </div>
 
-      {/* Features */}
-      <section style={{maxWidth:1040,margin:'0 auto',padding:'0 24px 88px',position:'relative',zIndex:10}}>
-        <div style={{textAlign:'center',marginBottom:44}}>
-          <p style={{fontSize:11,fontWeight:700,color:'#6366f1',textTransform:'uppercase',letterSpacing:'0.12em',marginBottom:10,margin:'0 0 10px'}}>What you get</p>
-          <h2 style={{fontSize:28,fontWeight:700,color:'white',letterSpacing:'-0.5px',margin:0}}>Everything built-in. Nothing extra needed.</h2>
-        </div>
-        <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(280px,1fr))',gap:14}}>
-          {[
-            ['⚡','Instant Results',       'Full website built in under 10 seconds with smart AI'],
-            ['🖼️','Real Images',           'Every image auto-filled with topic-specific photos'],
-            ['🛒','E-commerce',            'Product grid, cart, checkout — Razorpay & Stripe ready'],
-            ['🔐','Login & Sign Up',       'Google, Facebook, Instagram social auth built in'],
-            ['📱','Fully Responsive',      'Perfect on mobile, tablet, and desktop automatically'],
-            ['📥','Export Instantly',      'Download as ZIP or preview in a new browser tab'],
-          ].map(([icon,title,desc])=>(
-            <div key={title} style={{padding:22,background:'rgba(255,255,255,0.02)',border:'1px solid rgba(255,255,255,0.06)',borderRadius:14,display:'flex',gap:14,alignItems:'flex-start'}}>
-              <span style={{fontSize:20,lineHeight:1,paddingTop:2,flexShrink:0}}>{icon}</span>
-              <div>
-                <div style={{fontWeight:600,color:'white',fontSize:14,marginBottom:4}}>{title}</div>
-                <div style={{color:'#374151',fontSize:13,lineHeight:1.55}}>{desc}</div>
-              </div>
-            </div>
-          ))}
-        </div>
-      </section>
+          {/* Suggestion chips */}
+          <div style={{display:'flex',flexWrap:'wrap',gap:7,justifyContent:'center'}}>
+            {EXAMPLES.map(e=>(
+              <button key={e.label} onClick={()=>{setPrompt(e.text);}}
+                style={{padding:'5px 13px',background:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,255,255,0.09)',
+                  borderRadius:999,color:'#6b7280',fontSize:12,cursor:'pointer',fontFamily:'inherit',
+                  transition:'all 0.15s',whiteSpace:'nowrap'}}>
+                {e.label}
+              </button>
+            ))}
+          </div>
 
-      {/* Footer */}
-      <footer style={{borderTop:'1px solid rgba(255,255,255,0.04)',padding:'20px 24px',textAlign:'center',position:'relative',zIndex:10}}>
-        <div style={{display:'flex',alignItems:'center',justifyContent:'center',gap:8,marginBottom:4}}>
-          <Logo size={14}/><span style={{color:'#1e293b',fontSize:12,fontWeight:600}}>Visinaro</span>
         </div>
-        <p style={{color:'#111827',fontSize:11,margin:0}}>AI website builder · Free to use</p>
-      </footer>
+      </div>
+
+      {/* Bottom stats bar */}
+      <div style={{flexShrink:0,borderTop:'1px solid rgba(255,255,255,0.05)',padding:'12px 24px',display:'flex',justifyContent:'center',gap:40,zIndex:10}}>
+        {[['5+','Pages'],['Free','Forever'],['<10s','Speed']].map(([v,l])=>(
+          <div key={l} style={{textAlign:'center'}}>
+            <div style={{fontSize:16,fontWeight:800,color:'white',lineHeight:1}}>{v}</div>
+            <div style={{fontSize:11,color:'#1e293b',marginTop:3}}>{l}</div>
+          </div>
+        ))}
+      </div>
 
       <HistorySidebar isOpen={isHistoryOpen} onClose={()=>setIsHistoryOpen(false)} history={history}
         onSelect={item=>{setPrompt(item.prompt);setContent(item.content);setPreview(item.content);setScreen('workspace');setIframeKey(k=>k+1);}}
         onClear={()=>{setHistory([]);store.del('visinaro_history');}}/>
 
-      <style>{`*{box-sizing:border-box} textarea::placeholder{color:#1e293b} button:hover{opacity:0.82}`}</style>
+      <style>{`*{box-sizing:border-box} textarea::placeholder{color:#334155} button:hover{opacity:0.82}`}</style>
     </div>
   );
+
+
 
   // ── WORKSPACE ─────────────────────────────────────────────────────────────
   return(
@@ -483,19 +457,42 @@ export default function App(){
 
         {/* Preview */}
         {(content||status===GenerationStatus.GENERATING)&&viewMode==='PREVIEW'&&(
-          <div style={{flex:1,display:'flex',alignItems:'center',justifyContent:'center',overflow:'hidden',padding:device==='desktop'?0:14,background:'#090912'}}>
-            <div style={{
-              width:device==='mobile'?375:device==='tablet'?768:'100%',
-              height:device==='mobile'?812:device==='tablet'?1024:'100%',
-              borderRadius:device==='desktop'?0:device==='mobile'?36:20,
-              border:device==='desktop'?'none':'7px solid #1e293b',
-              overflow:'hidden',background:'white',
-              boxShadow:device==='desktop'?'none':'0 32px 72px rgba(0,0,0,0.7)',
-              transition:'all 0.35s ease',flexShrink:device==='desktop'?1:0,
-            }}>
-              <PreviewFrame content={preview} refreshKey={iframeKey} isEditable={isEditable}
-                onContentUpdate={html=>{if(content){const nc={...content,html};updateContent(nc);setPreview(nc);}}}/>
-            </div>
+          <div style={{flex:1,display:'flex',alignItems:'center',justifyContent:'center',overflow:'hidden',
+            padding:device==='desktop'?0:'16px',background:'#090912',position:'relative'}}>
+            {device==='desktop'?(
+              /* Desktop — full bleed, fills all available space */
+              <div style={{width:'100%',height:'100%',background:'white',overflow:'hidden'}}>
+                <PreviewFrame content={preview} refreshKey={iframeKey} isEditable={isEditable}
+                  onContentUpdate={html=>{if(content){const nc={...content,html};updateContent(nc);setPreview(nc);}}}/>
+              </div>
+            ):(
+              /* Mobile / Tablet — device frame that scales to fit height */
+              <div style={{
+                position:'relative',
+                /* Scale down the frame if it's taller than available area */
+                transformOrigin:'center center',
+              }}>
+                <div style={{
+                  width:device==='mobile'?375:768,
+                  height:device==='mobile'?720:900,
+                  maxHeight:'calc(100vh - 160px)',
+                  borderRadius:device==='mobile'?32:20,
+                  border:device==='mobile'?'8px solid #1e293b':'6px solid #1e293b',
+                  overflow:'hidden',
+                  background:'white',
+                  boxShadow:'0 24px 60px rgba(0,0,0,0.8), 0 0 0 1px rgba(255,255,255,0.05)',
+                  transition:'all 0.3s ease',
+                  position:'relative',
+                }}>
+                  {/* Device notch for mobile */}
+                  {device==='mobile'&&(
+                    <div style={{position:'absolute',top:0,left:'50%',transform:'translateX(-50%)',width:100,height:22,background:'#1e293b',borderRadius:'0 0 14px 14px',zIndex:10}}/>
+                  )}
+                  <PreviewFrame content={preview} refreshKey={iframeKey} isEditable={isEditable}
+                    onContentUpdate={html=>{if(content){const nc={...content,html};updateContent(nc);setPreview(nc);}}}/>
+                </div>
+              </div>
+            )}
           </div>
         )}
 
