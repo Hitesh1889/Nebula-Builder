@@ -138,104 +138,84 @@ export default function App(){
 
   const getStandaloneHtml=()=>{
     if(!content)return'';
-    const spa=[
-      '<script>',
-      '(function(){',
-      'var IDS=["home","about","services","portfolio","contact","auth","shop","cart","checkout","gallery","blog","pricing","team","menu","faq","solutions","features"];',
-
-      // Core show function - FORCE display via inline style, never rely on class alone
-      'function showSection(tid){',
-      '  var sections=getSections();',
-      '  if(!sections.length){ setTimeout(function(){showSection(tid);},100); return; }',
-      '  var found=false;',
-      '  sections.forEach(function(s){',
-      '    if(s.id===tid){',
-      '      s.classList.remove('hidden'); s.style.removeProperty('display'); s.style.setProperty('display','block','important');',
-      '      s.classList.remove("hidden");',
-      '      found=true;',
-      '    } else {',
-      '      s.classList.add('hidden'); s.style.setProperty('display','none','important');',
-      '    }',
-      '  });',
-      '  if(!found && sections.length){ showSection(sections[0].id); return; }',
-      '  window.scrollTo(0,0);',
-      '  document.querySelectorAll("nav a[href]").forEach(function(a){',
-      '    var h=(a.getAttribute("href")||"").replace(/^#/,"").replace(/\.html$/,"").trim();',
-      '    if(h===tid||(tid==="home"&&(!h||h==="index"))){',
-      '      a.style.color="#6366f1"; a.style.fontWeight="700";',
-      '    } else {',
-      '      a.style.color=""; a.style.fontWeight="";',
-      '    }',
-      '  });',
-      '  var mm=document.getElementById("mobile-menu"); if(mm) mm.style.display="none";',
-      '}',
-
-      // getSections
-      'function getSections(){',
-      '  var t=Array.from(document.querySelectorAll(".page-section[id]"));',
-      '  if(t.length>=2) return t;',
-      '  var b=IDS.map(function(id){return document.getElementById(id);}).filter(Boolean);',
-      '  if(b.length>=2) return b;',
-      '  return Array.from(document.querySelectorAll("body > section[id]"));',
-      '}',
-
-      // Expose navigateTo globally
-      'window.navigateTo=showSection;',
-
-      // Click handler - capture phase
-      'document.addEventListener("click",function(e){',
-      '  var link=e.target.closest("a[href]"); if(!link) return;',
-      '  var href=(link.getAttribute("href")||"").trim();',
-      '  if(!href || href==="#") { e.preventDefault(); return; }',
-      '  if(href.startsWith("http")||href.startsWith("//")||href.startsWith("mailto:")||href.startsWith("tel:")){',
-      '    e.preventDefault(); window.open(href,"_blank"); return;',
-      '  }',
-      '  e.preventDefault();',
-      '  e.stopPropagation();',
-      '  var tid=href.replace(/^#/,"").replace(/\.html$/,"").replace(/^\//,"").trim();',
-      '  if(!tid||tid==="index") tid="home";',
-      '  showSection(tid);',
-      '  try{ history.pushState(null,"","#"+tid); }catch(err){}',
-      '},true);',
-
-      // hashchange fallback - handles cases where browser updates hash anyway
-      'window.addEventListener("hashchange",function(){',
-      '  var hash=location.hash.replace(/^#/,"").trim();',
-      '  if(hash) showSection(hash);',
-      '});',
-
-      // Init - hide all except home, using inline styles so Tailwind timing doesn't matter
-      'function init(){',
-      '  var s=getSections();',
-      '  if(!s.length){ setTimeout(init,200); return; }',
-      '  // Check for hash in URL first
-      '  var initHash=location.hash.replace(/^#/,"").trim();',
-      '  var initId = (initHash && IDS.indexOf(initHash)>=0) ? initHash : (s[0]?s[0].id:"home");',
-      '  s.forEach(function(x){',
-      '    if(x.id===initId){',
-      '      x.classList.remove('hidden'); x.style.removeProperty('display'); x.style.setProperty('display','block','important');',
-      '      x.classList.remove("hidden");',
-      '    } else {',
-      '      x.classList.add('hidden'); x.style.setProperty('display','none','important');',
-      '    }',
-      '  });',
-      '}',
-      // Wait for full page load (Tailwind CDN included) before init
-      'window.addEventListener("load", function(){ setTimeout(init,100); });',
-      'if(document.readyState!=="loading") setTimeout(init,100);',
-
-      // Image fallback
-      'window.addEventListener("error",function(e){',
-      '  if(e.target&&e.target.tagName==="IMG"){',
-      '    var img=e.target; if(img.dataset.vf) return; img.dataset.vf="1";',
-      '    var seed=(img.alt||"photo").replace(/[^a-zA-Z0-9]/g,"").toLowerCase().slice(0,20)||"photo";',
-      '    img.src="https://picsum.photos/seed/"+seed+"/800/500"; img.style.objectFit="cover";',
-      '  }',
-      '},true);',
-
-      '})();',
-      '<\/script>'
-    ].join('\n');
+    const spa=`<script>
+(function(){
+  var IDS=["home","about","services","portfolio","contact","auth","shop","cart","checkout","gallery","blog","pricing","team","menu","faq","solutions","features"];
+  function getSections(){
+    var t=Array.from(document.querySelectorAll(".page-section[id]"));
+    if(t.length>=2)return t;
+    var b=IDS.map(function(id){return document.getElementById(id);}).filter(Boolean);
+    if(b.length>=2)return b;
+    return Array.from(document.querySelectorAll("body > section[id]"));
+  }
+  function showSection(tid){
+    var sections=getSections();
+    if(!sections.length){setTimeout(function(){showSection(tid);},100);return;}
+    var found=false;
+    sections.forEach(function(s){
+      if(s.id===tid){
+        s.classList.remove("hidden");
+        s.style.removeProperty("display");
+        s.style.setProperty("display","block","important");
+        s.style.setProperty("visibility","visible","important");
+        found=true;
+      } else {
+        s.classList.add("hidden");
+        s.style.setProperty("display","none","important");
+      }
+    });
+    if(!found&&sections.length){showSection(sections[0].id);return;}
+    window.scrollTo(0,0);
+    document.querySelectorAll("nav a[href]").forEach(function(a){
+      var h=(a.getAttribute("href")||"").replace(/^#/,"").replace(/\\.html$/,"").trim();
+      if(h===tid||(tid==="home"&&(!h||h==="index"))){a.style.color="#6366f1";a.style.fontWeight="700";}
+      else{a.style.color="";a.style.fontWeight="";}
+    });
+    var mm=document.getElementById("mobile-menu");if(mm)mm.style.display="none";
+  }
+  window.navigateTo=showSection;
+  document.addEventListener("click",function(e){
+    var link=e.target.closest("a[href]");if(!link)return;
+    var href=(link.getAttribute("href")||"").trim();
+    if(!href||href==="#"){e.preventDefault();return;}
+    if(href.startsWith("http")||href.startsWith("//")||href.startsWith("mailto:")||href.startsWith("tel:")){e.preventDefault();window.open(href,"_blank");return;}
+    e.preventDefault();e.stopPropagation();
+    var tid=href.replace(/^#/,"").replace(/\\.html$/,"").replace(/^\\//,"").trim();
+    if(!tid||tid==="index")tid="home";
+    showSection(tid);
+    try{history.pushState(null,"","#"+tid);}catch(err){}
+  },true);
+  window.addEventListener("hashchange",function(){
+    var hash=location.hash.replace(/^#/,"").trim();
+    if(hash)showSection(hash);
+  });
+  function init(){
+    var s=getSections();
+    if(!s.length){setTimeout(init,200);return;}
+    var initHash=location.hash.replace(/^#/,"").trim();
+    var initId=(initHash&&document.getElementById(initHash))?initHash:(s[0]?s[0].id:"home");
+    s.forEach(function(x){
+      if(x.id===initId){
+        x.classList.remove("hidden");
+        x.style.removeProperty("display");
+        x.style.setProperty("display","block","important");
+      } else {
+        x.classList.add("hidden");
+        x.style.setProperty("display","none","important");
+      }
+    });
+  }
+  window.addEventListener("load",function(){setTimeout(init,100);});
+  if(document.readyState!=="loading")setTimeout(init,100);
+  window.addEventListener("error",function(e){
+    if(e.target&&e.target.tagName==="IMG"){
+      var img=e.target;if(img.dataset.vf)return;img.dataset.vf="1";
+      var seed=(img.alt||"photo").replace(/[^a-zA-Z0-9]/g,"").toLowerCase().slice(0,20)||"photo";
+      img.src="https://picsum.photos/seed/"+seed+"/800/500";img.style.objectFit="cover";
+    }
+  },true);
+})();
+<\/script>`;
 
     const parts=[
       '<!DOCTYPE html><html lang="en"><head>',
