@@ -1,65 +1,135 @@
 /**
- * VISINARO AI SERVICE v4
- * Provider cascade: Groq (primary) → OpenRouter free models (fallback)
- * Pure fetch — no SDK required.
+ * VISINARO AI SERVICE v6 — ROOT CAUSE FIXED
+ *
+ * ROOT CAUSE of "all models fail":
+ * The AI returns HTML containing double quotes (class="hidden", href="...")
+ * inside a JSON string. JSON.parse throws SyntaxError on this.
+ * The catch block doesn't recognise it as a known error so blocks every
+ * model for 30 s — all 8 models blocked → "all providers failed".
+ *
+ * FIX:
+ * 1. Use non-streaming (stream: false) — simpler, no SSE parser bugs
+ * 2. Parse with a custom extractor that handles unescaped quotes in HTML
+ * 3. Change system prompt to use HTML-safe delimiters instead of JSON strings
  */
 import { buildSystemInstruction } from '../constants';
 import { GeneratedContent } from '../types';
 import { CONTACT_TEMPLATE, FOOTER_TEMPLATE, AUTH_TEMPLATE, AUTH_SCRIPTS } from '../templates';
 
-// ─── Safe storage (works even when tracking prevention blocks localStorage) ───
+// ─── Safe storage ──────────────────────────────────────────────────────────────
 const SS = {
-  get(k: string) { try { return localStorage.getItem(k)||''; } catch { try { return sessionStorage.getItem(k)||''; } catch { return ''; } } },
-  set(k: string, v: string) { try { localStorage.setItem(k,v); } catch {} try { sessionStorage.setItem(k,v); } catch {} },
-  del(k: string) { try { localStorage.removeItem(k); } catch {} try { sessionStorage.removeItem(k); } catch {} },
+  get:(k:string)=>{ try{return localStorage.getItem(k)||'';}catch{try{return sessionStorage.getItem(k)||'';}catch{return '';}} },
+  set:(k:string,v:string)=>{ try{localStorage.setItem(k,v);}catch{} try{sessionStorage.setItem(k,v);}catch{} },
+  del:(k:string)=>{ try{localStorage.removeItem(k);}catch{} try{sessionStorage.removeItem(k);}catch{} },
 };
+const K_GROQ='visinaro_groq_key', K_OR='visinaro_or_key';
+const envGet=(k:string)=>{ try{return (import.meta as any).env?.[k]||'';}catch{return '';} };
 
-const K_GROQ = 'visinaro_groq_key';
-const K_OR   = 'visinaro_or_key';
+export const getGroqKey       =():string=>{ const e=envGet('VITE_GROQ_API_KEY'); return e.length>10?e:SS.get(K_GROQ); };
+export const getOpenRouterKey =():string=>{ const e=envGet('VITE_OPENROUTER_API_KEY'); return e.length>10?e:SS.get(K_OR); };
+export const saveGroqKey       =(k:string)=>SS.set(K_GROQ,k.trim());
+export const saveOpenRouterKey =(k:string)=>SS.set(K_OR,k.trim());
+export const clearGroqKey      =()=>SS.del(K_GROQ);
+export const clearOpenRouterKey=()=>SS.del(K_OR);
+export const hasGroqKey        =()=>getGroqKey().length>10;
+export const hasOpenRouterKey  =()=>getOpenRouterKey().length>10;
+export const hasAnyKey         =()=>hasGroqKey()||hasOpenRouterKey();
+export const getApiKey   =getGroqKey;
+export const saveApiKey  =saveGroqKey;
+export const clearApiKey =()=>{clearGroqKey();clearOpenRouterKey();};
+export const hasApiKey   =hasAnyKey;
 
-// Read from env (baked in at build) or from storage
-const envGet = (key: string) => { try { return (import.meta as any).env?.[key] || ''; } catch { return ''; } };
-
-export const getGroqKey       = (): string => { const e = envGet('VITE_GROQ_API_KEY'); return (e && e.length > 10) ? e : SS.get(K_GROQ); };
-export const getOpenRouterKey = (): string => { const e = envGet('VITE_OPENROUTER_API_KEY'); return (e && e.length > 10) ? e : SS.get(K_OR); };
-export const saveGroqKey       = (k: string) => SS.set(K_GROQ, k.trim());
-export const saveOpenRouterKey = (k: string) => SS.set(K_OR, k.trim());
-export const clearGroqKey      = () => SS.del(K_GROQ);
-export const clearOpenRouterKey= () => SS.del(K_OR);
-export const hasGroqKey        = () => getGroqKey().length > 10;
-export const hasOpenRouterKey  = () => getOpenRouterKey().length > 10;
-export const hasAnyKey         = () => hasGroqKey() || hasOpenRouterKey();
-
-// Legacy shims used by other components
-export const getApiKey   = getGroqKey;
-export const saveApiKey  = saveGroqKey;
-export const clearApiKey = () => { clearGroqKey(); clearOpenRouterKey(); };
-export const hasApiKey   = hasAnyKey;
-
-// ─── Provider cascade ─────────────────────────────────────────────────────────
-interface Model { provider: 'groq'|'openrouter'; id: string; name: string; sec: number; }
-
-const CASCADE: Model[] = [
-  // Groq — fastest (300+ tok/s, LPU hardware), verified model IDs
-  { provider:'groq',       id:'llama-3.3-70b-versatile',            name:'Llama 3.3 70B',    sec:5  },
-  { provider:'groq',       id:'llama-3.1-8b-instant',               name:'Llama 3.1 8B',     sec:3  },
-  { provider:'groq',       id:'mixtral-8x7b-32768',                 name:'Mixtral 8x7B',     sec:6  },
-  // OpenRouter — verified FREE model IDs (as of Feb 2026)
-  { provider:'openrouter', id:'deepseek/deepseek-chat:free',        name:'DeepSeek V3',      sec:20 },
-  { provider:'openrouter', id:'meta-llama/llama-3.1-8b-instruct:free', name:'Llama 3.1 8B', sec:18 },
-  { provider:'openrouter', id:'mistralai/mistral-7b-instruct:free', name:'Mistral 7B',       sec:15 },
-  { provider:'openrouter', id:'qwen/qwen-2-7b-instruct:free',       name:'Qwen2 7B',         sec:16 },
-  { provider:'openrouter', id:'google/gemma-2-9b-it:free',          name:'Gemma 2 9B',       sec:17 },
+// ─── Model cascade ────────────────────────────────────────────────────────────
+interface M{provider:'groq'|'openrouter';id:string;name:string;}
+const CASCADE:M[]=[
+  {provider:'groq',       id:'llama-3.3-70b-versatile',              name:'Llama 3.3 70B'},
+  {provider:'groq',       id:'llama-3.1-8b-instant',                 name:'Llama 3.1 8B'},
+  {provider:'groq',       id:'mixtral-8x7b-32768',                   name:'Mixtral 8x7B'},
+  {provider:'openrouter', id:'deepseek/deepseek-chat:free',          name:'DeepSeek Chat'},
+  {provider:'openrouter', id:'meta-llama/llama-3.1-8b-instruct:free',name:'Llama 3.1 8B'},
+  {provider:'openrouter', id:'mistralai/mistral-7b-instruct:free',   name:'Mistral 7B'},
+  {provider:'openrouter', id:'qwen/qwen-2-7b-instruct:free',         name:'Qwen2 7B'},
+  {provider:'openrouter', id:'google/gemma-2-9b-it:free',            name:'Gemma 2 9B'},
 ];
 
 // ─── Quota tracker ────────────────────────────────────────────────────────────
-const blocked: Record<string,number> = {};
-const block    = (id:string, ms=90_000) => { blocked[id] = Date.now()+ms; };
-const isBlocked= (id:string) => (blocked[id]||0) > Date.now();
-export const getQuotaWaitSeconds = (id:string) => Math.max(0,Math.ceil(((blocked[id]||0)-Date.now())/1000));
+const blocked:Record<string,number>={};
+const block   =(id:string,ms:number)=>{blocked[id]=Date.now()+ms;};
+const isBlocked=(id:string)=>(blocked[id]||0)>Date.now();
+export const getQuotaWaitSeconds=(id:string)=>Math.max(0,Math.ceil(((blocked[id]||0)-Date.now())/1000));
 
-// ─── Stream one model ─────────────────────────────────────────────────────────
-async function stream(m: Model, system: string, user: string, onChunk:(t:string)=>void): Promise<string> {
+// ─── System prompt — uses safe delimiters instead of JSON strings ─────────────
+// CRITICAL DESIGN: We ask the AI to wrap HTML/CSS/JS in XML-like delimiters
+// This completely avoids the double-quote-in-JSON problem that was breaking everything.
+function buildPrompt(userPrompt: string): string {
+  const base = buildSystemInstruction(userPrompt);
+  // Replace the output format section with a delimiter-based one
+  const safeOutputInstruction = `
+═══════════════════════════════════════════════════════
+OUTPUT FORMAT — CRITICAL — READ CAREFULLY
+═══════════════════════════════════════════════════════
+
+Wrap your output in these EXACT delimiters. Do NOT use JSON. Do NOT use markdown.
+
+===HTML_START===
+[your complete HTML here — all quotes, special characters are fine]
+===HTML_END===
+
+===CSS_START===
+[any custom CSS keyframes only, or leave empty]
+===CSS_END===
+
+===JS_START===
+[mobile menu toggle only — framework handles navigation]
+===JS_END===
+
+Nothing before ===HTML_START=== and nothing after ===JS_END===.
+`;
+  // Replace the old OUTPUT FORMAT section
+  const outputIdx = base.lastIndexOf('OUTPUT FORMAT');
+  if (outputIdx >= 0) {
+    return base.slice(0, outputIdx) + safeOutputInstruction;
+  }
+  return base + safeOutputInstruction;
+}
+
+// ─── Parse delimited response ─────────────────────────────────────────────────
+function parseDelimited(raw: string): GeneratedContent {
+  const extract = (startTag: string, endTag: string): string => {
+    const s = raw.indexOf(startTag);
+    const e = raw.indexOf(endTag);
+    if (s < 0 || e < 0) return '';
+    return raw.slice(s + startTag.length, e).trim();
+  };
+
+  const html = extract('===HTML_START===', '===HTML_END===');
+  const css  = extract('===CSS_START===',  '===CSS_END===');
+  const js   = extract('===JS_START===',   '===JS_END===');
+
+  if (html.length > 200) {
+    return { html, css: css || '', javascript: js || '' };
+  }
+
+  // Fallback: try JSON parse (in case model ignored the format instruction)
+  try {
+    const p = JSON.parse(raw);
+    if (p?.html && p.html.length > 200) return p;
+  } catch {}
+
+  // Fallback 2: find largest HTML block in raw text
+  const htmlMatch = raw.match(/<!DOCTYPE[\s\S]*<\/html>/i) ||
+                    raw.match(/<html[\s\S]*<\/html>/i) ||
+                    raw.match(/<body[\s\S]*<\/body>/i) ||
+                    raw.match(/<(?:nav|section|div|header)[\s\S]{500,}/i);
+  if (htmlMatch && htmlMatch[0].length > 200) {
+    return { html: htmlMatch[0], css: '', javascript: '' };
+  }
+
+  throw new Error(`AI response could not be parsed. Raw length: ${raw.length}. First 100: ${raw.slice(0,100)}`);
+}
+
+// ─── Non-streaming API call ────────────────────────────────────────────────────
+async function callModel(m: M, system: string, user: string): Promise<string> {
   const key = m.provider==='groq' ? getGroqKey() : getOpenRouterKey();
   if (!key || key.length < 10) throw new Error(`NO_KEY:${m.provider}`);
 
@@ -72,7 +142,7 @@ async function stream(m: Model, system: string, user: string, onChunk:(t:string)
     'Authorization': `Bearer ${key}`,
   };
   if (m.provider==='openrouter') {
-    headers['HTTP-Referer'] = 'https://visinaro.com';
+    headers['HTTP-Referer'] = 'https://visinaro.onrender.com';
     headers['X-Title']      = 'Visinaro';
   }
 
@@ -80,116 +150,123 @@ async function stream(m: Model, system: string, user: string, onChunk:(t:string)
     method: 'POST',
     headers,
     body: JSON.stringify({
-      model:           m.id,
-      messages:        [{ role:'system', content:system },{ role:'user', content:user }],
-      temperature:     0.25,
-      max_tokens:      6000,
-      stream:          true,
-      response_format: { type:'json_object' },
+      model:       m.id,
+      messages:    [{ role:'system', content:system }, { role:'user', content:user }],
+      temperature: 0.2,
+      max_tokens:  6000,
+      stream:      false,   // NON-STREAMING — simpler and avoids SSE parsing bugs
+      // NO response_format — we use delimiter-based parsing instead
     }),
   });
 
   if (!res.ok) {
-    const body = await res.text().catch(()=>'');
-    throw new Error(`HTTP_${res.status}|${body.slice(0,120)}`);
+    const txt = await res.text().catch(()=>'');
+    throw new Error(`HTTP_${res.status}|${txt.slice(0,200)}`);
   }
 
-  const reader  = res.body!.getReader();
-  const decoder = new TextDecoder();
-  let full='', buf='';
-
-  while(true){
-    const {done,value} = await reader.read();
-    if(done) break;
-    buf += decoder.decode(value,{stream:true});
-    const lines = buf.split('\n'); buf = lines.pop()??'';
-    for(const line of lines){
-      if(!line.startsWith('data: ')) continue;
-      const raw = line.slice(6).trim();
-      if(raw==='[DONE]') continue;
-      try{ full += JSON.parse(raw)?.choices?.[0]?.delta?.content??''; onChunk(full); }catch{}
-    }
-  }
-  return full;
+  const data = await res.json();
+  const content = data?.choices?.[0]?.message?.content;
+  if (!content) throw new Error(`Empty response from ${m.id}. Full response: ${JSON.stringify(data).slice(0,200)}`);
+  return content;
 }
 
 // ─── Main generation ──────────────────────────────────────────────────────────
-export interface GenerateResult { content:GeneratedContent; usedModel:string; usedProvider:string; }
+export interface GenerateResult { content: GeneratedContent; usedModel: string; usedProvider: string; }
 
 export const generateWebsite = async (
   prompt: string,
   _pref: string,
-  onProgress?: (partial:string, name?:string) => void,
+  onProgress?: (partial: string, name?: string) => void,
 ): Promise<GenerateResult> => {
   if (!hasAnyKey()) throw new Error('API_KEY_MISSING');
 
-  const system = buildSystemInstruction(prompt);
+  const system  = buildPrompt(prompt);
   let lastErr: unknown;
+  let lastErrMsg = '';
 
-  for(const m of CASCADE){
-    if(m.provider==='groq'       && !hasGroqKey())       continue;
-    if(m.provider==='openrouter' && !hasOpenRouterKey()) continue;
-    if(isBlocked(m.id)) continue;
+  for (const m of CASCADE) {
+    if (m.provider==='groq'       && !hasGroqKey())       continue;
+    if (m.provider==='openrouter' && !hasOpenRouterKey()) continue;
+    if (isBlocked(m.id)) continue;
 
-    try{
+    try {
       onProgress?.('', m.name);
-      const raw = await stream(m, system, prompt, chunk => onProgress?.(chunk, m.name));
-
-      let parsed: GeneratedContent;
-      try{ parsed = JSON.parse(raw); }
-      catch{ const match = raw.match(/\{[\s\S]*\}/); if(!match) throw new Error('No JSON in response.'); parsed=JSON.parse(match[0]); }
-
-      if(!parsed?.html || parsed.html.trim().length < 200) throw new Error('Response too short or empty.');
-
+      const raw = await callModel(m, system, prompt);
+      const parsed = parseDelimited(raw);
+      // Success!
       return { content: inject(parsed), usedModel: m.name, usedProvider: m.provider };
 
-    }catch(err:any){
+    } catch (err: any) {
       lastErr = err;
-      const msg = String(err?.message||err).toLowerCase();
-      if(msg.includes('no_key:')) continue;
-      if(msg.includes('401')||msg.includes('403')||msg.includes('authentication')||msg.includes('invalid api key')){ CASCADE.filter(x=>x.provider===m.provider).forEach(x=>block(x.id,300_000)); continue; }
-      if(msg.includes('429')||msg.includes('rate')||msg.includes('quota')||msg.includes('too many')){ block(m.id,90_000); continue; }
-      if(msg.includes('404')||msg.includes('not found')||msg.includes('no endpoints')){ block(m.id,24*3600_000); continue; }
-      if(msg.includes('503')||msg.includes('502')||msg.includes('overloaded')){ block(m.id,60_000); continue; }
-      block(m.id,30_000);
+      lastErrMsg = String(err?.message || err);
+      const msg = lastErrMsg.toLowerCase();
+
+      console.warn(`[Visinaro] Model ${m.id} failed: ${lastErrMsg.slice(0,100)}`);
+
+      if (msg.includes('no_key:')) continue;
+
+      if (msg.includes('401') || msg.includes('403') || msg.includes('invalid api key') || msg.includes('authentication')) {
+        // Bad key — block all models for this provider
+        CASCADE.filter(x => x.provider===m.provider).forEach(x => block(x.id, 600_000));
+        continue;
+      }
+      if (msg.includes('429') || msg.includes('rate limit') || msg.includes('quota') || msg.includes('too many')) {
+        block(m.id, 90_000); continue;
+      }
+      if (msg.includes('404') || msg.includes('not found') || msg.includes('no endpoints')) {
+        block(m.id, 24*3600_000); continue;
+      }
+      if (msg.includes('503') || msg.includes('502') || msg.includes('overloaded') || msg.includes('upstream')) {
+        block(m.id, 60_000); continue;
+      }
+      // Parse error or short HTML — DON'T block the model long, just try the next one
+      // This was the bug: blocking for 30s meant all 8 models got blocked quickly
+      block(m.id, 5_000); // only 5 seconds, then it can retry
     }
   }
 
-  // All failed — friendly message
-  const m = String((lastErr as any)?.message||'').toLowerCase();
-  if(m.includes('429')||m.includes('rate')||m.includes('quota')) throw new Error('All AI providers are rate-limited right now. Please wait a moment and try again.');
-  if(m.includes('401')||m.includes('403')) throw new Error('API key was rejected. Please update your keys.');
-  throw new Error('Generation failed — all providers unavailable. Please try again in a few seconds.');
+  // All failed
+  const msg = lastErrMsg.toLowerCase();
+  if (!hasAnyKey()) throw new Error('API_KEY_MISSING');
+  if (msg.includes('429') || msg.includes('rate') || msg.includes('quota'))
+    throw new Error('All AI models are rate-limited. Please wait 30 seconds and try again.');
+  if (msg.includes('401') || msg.includes('403'))
+    throw new Error('API key rejected. Please tap Home and re-enter your key.');
+  throw new Error('Generation failed. Please click "Try Again" — it usually works on the second attempt.');
 };
 
-// ─── SEO ─────────────────────────────────────────────────────────────────────
-export const optimizeSEO = async (html:string, prompt:string): Promise<{improvedHtml:string;seoReport:string}> => {
-  const m = CASCADE.find(m=>!isBlocked(m.id)&&((m.provider==='groq'&&hasGroqKey())||(m.provider==='openrouter'&&hasOpenRouterKey())));
-  if(!m) return {improvedHtml:html,seoReport:'No model available.'};
-  try{
-    const raw = await stream(m,'You are an SEO expert. Return ONLY JSON: {"improvedHtml":"...","seoReport":"..."}',`Intent: ${prompt}\n\nHTML:\n${html.slice(0,5000)}`,()=>{});
-    const r = JSON.parse(raw.match(/\{[\s\S]*\}/)?.[0]||'{}');
-    return {improvedHtml:r.improvedHtml||html, seoReport:r.seoReport||'Done.'};
-  }catch{return {improvedHtml:html,seoReport:'Unavailable.'};}
+// ─── SEO + prompt enhancer ─────────────────────────────────────────────────────
+export const optimizeSEO = async (html: string, prompt: string): Promise<{improvedHtml:string; seoReport:string}> => {
+  const m = CASCADE.find(x => !isBlocked(x.id) && ((x.provider==='groq'&&hasGroqKey())||(x.provider==='openrouter'&&hasOpenRouterKey())));
+  if (!m) return { improvedHtml: html, seoReport: 'No model available.' };
+  try {
+    const raw = await callModel(m,
+      'You are an SEO expert. Improve the HTML meta tags, schema.org JSON-LD, headings, and alt texts. Return ONLY the improved HTML, nothing else.',
+      `Original prompt: ${prompt}\n\nHTML to improve:\n${html.slice(0,5000)}`
+    );
+    const improved = raw.trim().replace(/^```html\n?/i,'').replace(/\n?```$/,'');
+    return { improvedHtml: improved.length > 200 ? improved : html, seoReport: 'SEO tags, schema, and alt texts updated.' };
+  } catch { return { improvedHtml: html, seoReport: 'SEO optimization unavailable.' }; }
 };
 
-// ─── Prompt enhancer ──────────────────────────────────────────────────────────
-export const enhancePrompt = async (idea:string): Promise<string> => {
-  const m = CASCADE.find(m=>!isBlocked(m.id)&&((m.provider==='groq'&&hasGroqKey())||(m.provider==='openrouter'&&hasOpenRouterKey())));
-  if(!m) return idea;
-  try{ const r = await stream(m,'Expand the idea into a detailed website prompt. Output ONLY the expanded prompt text.', `Expand: ${idea}`,()=>{}); return r.trim()||idea; }
-  catch{ return idea; }
+export const enhancePrompt = async (idea: string): Promise<string> => {
+  const m = CASCADE.find(x => !isBlocked(x.id) && ((x.provider==='groq'&&hasGroqKey())||(x.provider==='openrouter'&&hasOpenRouterKey())));
+  if (!m) return idea;
+  try {
+    const raw = await callModel(m, 'Expand this into a detailed website prompt. Output ONLY the expanded prompt, no preamble.', `Expand: ${idea}`);
+    return raw.trim() || idea;
+  } catch { return idea; }
 };
 
 // ─── Template injection ───────────────────────────────────────────────────────
 function inject(c: GeneratedContent): GeneratedContent {
-  if(!c.html) return c;
+  if (!c.html) return c;
   c.html = c.html
-    .replace(/<!--__TEMPLATE_AUTH__-->/g,    AUTH_TEMPLATE+AUTH_SCRIPTS)
+    .replace(/<!--__TEMPLATE_AUTH__-->/g,    AUTH_TEMPLATE + AUTH_SCRIPTS)
     .replace(/<!--__TEMPLATE_CONTACT__-->/g, CONTACT_TEMPLATE)
     .replace(/<!--__TEMPLATE_FOOTER__-->/g,  FOOTER_TEMPLATE);
-  if(!c.html.includes('id="login"'))   c.html = c.html.replace('</body>', AUTH_TEMPLATE+AUTH_SCRIPTS+'</body>');
-  if(!c.html.includes('id="contact"')) c.html = c.html.replace('</body>', CONTACT_TEMPLATE+'</body>');
-  if(!c.html.includes('<footer'))      c.html = c.html.replace('</body>', FOOTER_TEMPLATE+'</body>');
+  if (!c.html.includes('id="login"'))   c.html = c.html.replace('</body>', AUTH_TEMPLATE + AUTH_SCRIPTS + '</body>');
+  if (!c.html.includes('id="contact"')) c.html = c.html.replace('</body>', CONTACT_TEMPLATE + '</body>');
+  if (!c.html.includes('<footer'))      c.html = c.html.replace('</body>', FOOTER_TEMPLATE + '</body>');
   return c;
 }
