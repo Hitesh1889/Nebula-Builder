@@ -14,7 +14,7 @@
  */
 import { buildSystemInstruction } from '../constants';
 import { GeneratedContent } from '../types';
-import { CONTACT_TEMPLATE, FOOTER_TEMPLATE, AUTH_TEMPLATE, AUTH_SCRIPTS } from '../templates';
+import { CONTACT_TEMPLATE, FOOTER_TEMPLATE, AUTH_TEMPLATE, AUTH_SCRIPTS, SHOP_TEMPLATE, CART_TEMPLATE, CHECKOUT_TEMPLATE } from '../templates';
 
 // ─── Safe storage ──────────────────────────────────────────────────────────────
 const SS = {
@@ -261,12 +261,39 @@ export const enhancePrompt = async (idea: string): Promise<string> => {
 // ─── Template injection ───────────────────────────────────────────────────────
 function inject(c: GeneratedContent): GeneratedContent {
   if (!c.html) return c;
+
+  // Replace placeholder comments first
   c.html = c.html
-    .replace(/<!--__TEMPLATE_AUTH__-->/g,    AUTH_TEMPLATE + AUTH_SCRIPTS)
-    .replace(/<!--__TEMPLATE_CONTACT__-->/g, CONTACT_TEMPLATE)
-    .replace(/<!--__TEMPLATE_FOOTER__-->/g,  FOOTER_TEMPLATE);
-  if (!c.html.includes('id="login"'))   c.html = c.html.replace('</body>', AUTH_TEMPLATE + AUTH_SCRIPTS + '</body>');
-  if (!c.html.includes('id="contact"')) c.html = c.html.replace('</body>', CONTACT_TEMPLATE + '</body>');
-  if (!c.html.includes('<footer'))      c.html = c.html.replace('</body>', FOOTER_TEMPLATE + '</body>');
+    .replace(/<!--__TEMPLATE_AUTH__-->/g,     AUTH_TEMPLATE + AUTH_SCRIPTS)
+    .replace(/<!--__TEMPLATE_CONTACT__-->/g,  CONTACT_TEMPLATE)
+    .replace(/<!--__TEMPLATE_FOOTER__-->/g,   FOOTER_TEMPLATE)
+    .replace(/<!--__TEMPLATE_SHOP__-->/g,     SHOP_TEMPLATE)
+    .replace(/<!--__TEMPLATE_CART__-->/g,     CART_TEMPLATE)
+    .replace(/<!--__TEMPLATE_CHECKOUT__-->/g, CHECKOUT_TEMPLATE);
+
+  // Ensure auth section exists (only if not already present)
+  if (!c.html.includes('id="auth"')) {
+    c.html = c.html.replace('</body>', AUTH_TEMPLATE + AUTH_SCRIPTS + '</body>');
+  } else if (!c.html.includes('function switchAuthTab')) {
+    // Auth section exists but scripts missing
+    c.html = c.html.replace('</body>', AUTH_SCRIPTS + '</body>');
+  }
+
+  // Ensure contact section exists — but ONLY once
+  // The AI sometimes generates its own contact section. Remove it and use our template.
+  if (c.html.includes('id="contact"')) {
+    // AI generated its own — strip it and replace with our cleaner template
+    c.html = c.html.replace(/<section[^>]*id="contact"[^>]*>[\s\S]*?<\/section>/i, CONTACT_TEMPLATE);
+  } else {
+    c.html = c.html.replace('</body>', CONTACT_TEMPLATE + '</body>');
+  }
+
+  // Footer: remove any AI-generated footer and use our clean one
+  if (c.html.includes('<footer')) {
+    c.html = c.html.replace(/<footer[\s\S]*?<\/footer>/i, FOOTER_TEMPLATE);
+  } else {
+    c.html = c.html.replace('</body>', FOOTER_TEMPLATE + '</body>');
+  }
+
   return c;
 }

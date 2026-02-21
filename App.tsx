@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import {
   Eye, Code, Download, ExternalLink, Monitor, Smartphone, Tablet,
-  Pencil, Sparkles, ArrowLeft, RefreshCw, AlertTriangle, CheckCircle2,
+  Pencil, Sparkles, ArrowLeft, RefreshCw, AlertTriangle,
   History, Wand2, Palette, Layers, Globe, Play, Zap
 } from 'lucide-react';
 import JSZip from 'jszip';
@@ -137,8 +137,47 @@ export default function App(){
 
   const getStandaloneHtml=()=>{
     if(!content)return'';
-    return`<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><script src="https://cdn.tailwindcss.com"><\/script><link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet"><style>${content.css||''}</style></head><body>${content.html||''}<script>${content.javascript||''}<\/script></body></html>`;
+    const spaRouter=`<script>
+(function(){
+  var PAGE_IDS=['home','about','services','portfolio','contact','auth','shop','cart','checkout','gallery','blog','pricing','team','menu'];
+  function getSections(){
+    var t=Array.from(document.querySelectorAll('.page-section[id]'));
+    if(t.length>=2)return t;
+    var b=PAGE_IDS.map(function(id){return document.getElementById(id);}).filter(Boolean);
+    if(b.length>=2)return b;
+    return Array.from(document.querySelectorAll('section[id]'));
+  }
+  window.navigateTo=function(tid){
+    getSections().forEach(function(s){
+      if(s.id===tid){s.style.display='';s.classList.remove('hidden');if(window.getComputedStyle(s).display==='none')s.style.display='block';window.scrollTo(0,0);}
+      else{s.style.display='none';}
+    });
+    document.querySelectorAll('nav a[href]').forEach(function(a){
+      var h=(a.getAttribute('href')||'').replace(/^#/,'').replace(/\.html$/,'').trim();
+      a.classList.toggle('active-nav',h===tid||(tid==='home'&&(!h||h==='index')));
+    });
+    var mm=document.getElementById('mobile-menu');if(mm)mm.classList.add('hidden');
   };
+  document.addEventListener('click',function(e){
+    var link=e.target.closest('a[href]');if(!link)return;
+    var href=link.getAttribute('href')||'';
+    if(href.startsWith('http')||href.startsWith('//')||href.startsWith('mailto:')||href.startsWith('tel:')){e.preventDefault();window.open(href,'_blank');return;}
+    if(href==='#'){e.preventDefault();return;}
+    e.preventDefault();
+    var tid=href.replace(/^#/,'').replace(/\.html$/,'').replace(/^\//,'').trim();
+    if(!tid||tid==='index')tid='home';
+    window.navigateTo(tid);
+  },true);
+  function init(){
+    var s=getSections();if(!s.length){setTimeout(init,200);return;}
+    s.forEach(function(x){if(x.id==='home'||x===s[0]){x.style.display='';x.classList.remove('hidden');}else{x.style.display='none';}});
+  }
+  document.readyState==='loading'?document.addEventListener('DOMContentLoaded',function(){setTimeout(init,100);}):setTimeout(init,100);
+  window.addEventListener('error',function(e){if(e.target&&e.target.tagName==='IMG'){var img=e.target;if(img.dataset.vf)return;img.dataset.vf='1';var seed=(img.alt||'photo').replace(/[^a-zA-Z0-9]/g,'').toLowerCase().slice(0,20)||'photo';img.src='https://picsum.photos/seed/'+seed+'/800/500';img.style.objectFit='cover';}},true);
+})();
+<\/script>`;
+    return"<!DOCTYPE html><html lang=\"en\"><head><meta charset=\"UTF-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"><title>Website</title><script src=\"https://cdn.tailwindcss.com\"><\/script><link href=\"https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap\" rel=\"stylesheet\"><style>.active-nav{color:#6366f1!important;font-weight:700!important;}"+( content.css||'')+"</style></head><body>"+(content.html||'')+spaRouter+"<script>"+(content.javascript||'')+"<\/script></body></html>";
+  };;
 
   const handleDownload=async()=>{
     if(!content)return;
@@ -318,88 +357,93 @@ export default function App(){
 
 
   // ── WORKSPACE ─────────────────────────────────────────────────────────────
+  const isGenerated = status === GenerationStatus.COMPLETED && !!content;
+
   return(
     <div style={{height:'100dvh',display:'flex',flexDirection:'column',background:'#06060f',color:'white',fontFamily:'Inter,system-ui,sans-serif',overflow:'hidden'}}>
 
-      {/* Top bar — no model names, no provider info */}
-      <div style={{height:50,background:'rgba(6,6,15,0.97)',borderBottom:'1px solid rgba(255,255,255,0.06)',display:'flex',alignItems:'center',justifyContent:'space-between',padding:'0 14px',flexShrink:0,zIndex:50}}>
+      {/* ── Top bar ─────────────────────────────────────────────────── */}
+      <div style={{height:48,background:'#0a0a14',borderBottom:'1px solid rgba(255,255,255,0.07)',display:'flex',alignItems:'center',justifyContent:'space-between',padding:'0 10px',flexShrink:0,zIndex:50,gap:6}}>
 
-        {/* Left */}
-        <div style={{display:'flex',alignItems:'center',gap:8}}>
-          <button onClick={()=>setScreen('landing')}
-            style={{display:'flex',alignItems:'center',gap:5,padding:'5px 11px',background:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,255,255,0.07)',borderRadius:7,color:'#64748b',fontSize:12,cursor:'pointer',fontFamily:'inherit'}}>
-            <ArrowLeft style={{width:12,height:12}}/> Home
+        {/* Left: logo (click → landing) + view toggle */}
+        <div style={{display:'flex',alignItems:'center',gap:6,flexShrink:0}}>
+          <button onClick={()=>setScreen('landing')} title="Back to home"
+            style={{display:'flex',alignItems:'center',gap:7,padding:'5px 10px',background:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,255,255,0.08)',borderRadius:8,color:'#94a3b8',fontSize:12,cursor:'pointer',fontFamily:'inherit',flexShrink:0}}>
+            <ArrowLeft style={{width:12,height:12,flexShrink:0}}/>
+            <Logo size={16}/>
+            <span style={{fontWeight:700,fontSize:13}}>Visinaro</span>
           </button>
-          <Logo size={18}/>
-          <span style={{fontWeight:700,fontSize:14,color:'#e2e8f0'}}>Visinaro</span>
-          {status===GenerationStatus.COMPLETED&&(
-            <span style={{fontSize:11,padding:'2px 9px',background:'rgba(52,211,153,0.1)',border:'1px solid rgba(52,211,153,0.2)',borderRadius:99,color:'#34d399',display:'flex',alignItems:'center',gap:3}}>
-              <CheckCircle2 style={{width:9,height:9}}/> Ready
-            </span>
-          )}
-        </div>
 
-        {/* Center — view mode only */}
-        <div style={{display:'flex',background:'rgba(255,255,255,0.04)',borderRadius:7,padding:3,gap:2}}>
-          {(['PREVIEW','CODE'] as const).map(v=>(
-            <button key={v} onClick={()=>setViewMode(v)}
-              style={{padding:'4px 13px',borderRadius:5,fontSize:12,fontWeight:600,cursor:'pointer',border:'none',fontFamily:'inherit',
-                background:viewMode===v?'rgba(255,255,255,0.1)':'transparent',
-                color:viewMode===v?'white':'#4b5563',transition:'all 0.15s'}}>
-              {v==='PREVIEW'?'Preview':'Code'}
+          {/* Preview / Code toggle — always visible */}
+          <div style={{display:'flex',background:'rgba(255,255,255,0.05)',borderRadius:7,padding:3,gap:2,flexShrink:0}}>
+            <button onClick={()=>setViewMode('PREVIEW')}
+              style={{padding:'4px 10px',borderRadius:5,fontSize:12,fontWeight:600,cursor:'pointer',border:'none',fontFamily:'inherit',
+                background:viewMode==='PREVIEW'?'rgba(255,255,255,0.12)':'transparent',
+                color:viewMode==='PREVIEW'?'white':'#4b5563',transition:'all 0.15s',flexShrink:0}}>
+              Preview
             </button>
-          ))}
-        </div>
+            <button onClick={()=>setViewMode('CODE')}
+              style={{padding:'4px 10px',borderRadius:5,fontSize:12,fontWeight:600,cursor:'pointer',border:'none',fontFamily:'inherit',
+                background:viewMode==='CODE'?'rgba(255,255,255,0.12)':'transparent',
+                color:viewMode==='CODE'?'white':'#4b5563',transition:'all 0.15s',flexShrink:0}}>
+              Code
+            </button>
+          </div>
 
-        {/* Right — actions */}
-        <div style={{display:'flex',alignItems:'center',gap:5}}>
+          {/* Device switcher — only in Preview */}
           {viewMode==='PREVIEW'&&(
-            <div style={{display:'flex',background:'rgba(255,255,255,0.04)',borderRadius:7,padding:3,gap:1}}>
-              {([['mobile',Smartphone],['tablet',Tablet],['desktop',Monitor]] as const).map(([d,Icon])=>(
-                <button key={d} onClick={()=>setDevice(d as any)}
+            <div style={{display:'flex',background:'rgba(255,255,255,0.04)',borderRadius:7,padding:3,gap:1,flexShrink:0}}>
+              {([['desktop',Monitor],['tablet',Tablet],['mobile',Smartphone]] as const).map(([d,Icon])=>(
+                <button key={d} onClick={()=>setDevice(d as any)} title={d}
                   style={{padding:'4px 7px',borderRadius:5,cursor:'pointer',border:'none',
-                    background:device===d?'rgba(255,255,255,0.1)':'transparent',
-                    color:device===d?'white':'#4b5563',transition:'all 0.15s'}}>
+                    background:device===d?'rgba(99,102,241,0.2)':'transparent',
+                    color:device===d?'#a5b4fc':'#4b5563',transition:'all 0.15s'}}>
                   <Icon style={{width:13,height:13}}/>
                 </button>
               ))}
             </div>
           )}
-          <div style={{width:1,height:18,background:'rgba(255,255,255,0.07)'}}/>
+        </div>
+
+        {/* Right: actions */}
+        <div style={{display:'flex',alignItems:'center',gap:5,flexShrink:0}}>
           <SEOAgent content={content} prompt={prompt} onContentUpdate={c=>{updateContent(c);setPreview(c);setIframeKey(k=>k+1);}}/>
-          <button onClick={()=>setIsEditable(!isEditable)} title="Edit mode"
-            style={{padding:'4px 7px',borderRadius:5,cursor:'pointer',border:'none',
-              background:isEditable?'rgba(99,102,241,0.15)':'transparent',
-              color:isEditable?'#818cf8':'#4b5563'}}>
+          <button onClick={()=>setIsEditable(!isEditable)} title="Toggle edit mode"
+            style={{padding:'5px 7px',borderRadius:6,cursor:'pointer',border:'none',
+              background:isEditable?'rgba(99,102,241,0.2)':'rgba(255,255,255,0.04)',
+              color:isEditable?'#a5b4fc':'#4b5563',flexShrink:0}}>
             <Pencil style={{width:13,height:13}}/>
           </button>
           <button onClick={handleNewTab} title="Open in new tab"
-            style={{padding:'4px 7px',borderRadius:5,cursor:'pointer',border:'none',background:'transparent',color:'#4b5563'}}>
+            style={{padding:'5px 7px',borderRadius:6,cursor:'pointer',border:'none',background:'rgba(255,255,255,0.04)',color:'#4b5563',flexShrink:0}}>
             <ExternalLink style={{width:13,height:13}}/>
           </button>
           <button onClick={handleDownload} disabled={!content}
-            style={{display:'flex',alignItems:'center',gap:5,padding:'5px 13px',background:content?'white':'rgba(255,255,255,0.05)',
-              color:content?'#0f172a':'#374151',borderRadius:8,fontWeight:700,fontSize:12,cursor:content?'pointer':'default',border:'none',fontFamily:'inherit'}}>
-            <Download style={{width:11,height:11}}/> Export
+            style={{display:'flex',alignItems:'center',gap:4,padding:'5px 11px',
+              background:content?'rgba(255,255,255,0.08)':'rgba(255,255,255,0.03)',
+              color:content?'#e2e8f0':'#374151',borderRadius:7,fontWeight:600,fontSize:12,cursor:content?'pointer':'default',border:'1px solid rgba(255,255,255,0.08)',fontFamily:'inherit',flexShrink:0}}>
+            <Download style={{width:11,height:11}}/> <span style={{display:'none',whiteSpace:'nowrap'}} className="sm-show">Export</span>
           </button>
           <button onClick={()=>{setStatus(GenerationStatus.IDLE);setErrorMsg('');setTimeout(doGenerate,100);}}
-            style={{display:'flex',alignItems:'center',gap:5,padding:'5px 13px',background:'rgba(99,102,241,0.12)',border:'1px solid rgba(99,102,241,0.25)',color:'#a5b4fc',borderRadius:8,fontWeight:700,fontSize:12,cursor:'pointer',fontFamily:'inherit'}}>
+            style={{display:'flex',alignItems:'center',gap:4,padding:'5px 11px',background:'#4f46e5',color:'white',borderRadius:7,fontWeight:700,fontSize:12,cursor:'pointer',border:'none',fontFamily:'inherit',flexShrink:0,whiteSpace:'nowrap'}}>
             <RefreshCw style={{width:11,height:11}}/> Regenerate
           </button>
         </div>
       </div>
 
-      {/* Prompt bar */}
-      <div style={{background:'rgba(6,6,15,0.9)',borderBottom:'1px solid rgba(255,255,255,0.04)',padding:'7px 14px',display:'flex',gap:9,flexShrink:0}}>
-        <textarea value={prompt} onChange={e=>setPrompt(e.target.value)} rows={1}
-          onKeyDown={e=>{if(e.key==='Enter'&&(e.ctrlKey||e.metaKey))doGenerate();}}
-          placeholder="Describe your website…"
-          style={{flex:1,background:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,255,255,0.07)',borderRadius:8,padding:'7px 12px',color:'white',fontSize:13,fontFamily:'inherit',resize:'none',outline:'none',lineHeight:1.5}}/>
-        <button onClick={doGenerate}
-          style={{padding:'7px 18px',background:'white',color:'#0f172a',borderRadius:8,fontWeight:700,fontSize:13,cursor:'pointer',border:'none',flexShrink:0,display:'flex',alignItems:'center',gap:5,fontFamily:'inherit'}}>
-          <Play style={{width:11,height:11}}/> Generate
-        </button>
-      </div>
+      {/* Prompt bar — ONLY shown while generating or if no content yet (not after generation complete) */}
+      {!isGenerated&&(
+        <div style={{background:'rgba(6,6,15,0.9)',borderBottom:'1px solid rgba(255,255,255,0.04)',padding:'7px 14px',display:'flex',gap:9,flexShrink:0}}>
+          <textarea value={prompt} onChange={e=>setPrompt(e.target.value)} rows={1}
+            onKeyDown={e=>{if(e.key==='Enter'&&(e.ctrlKey||e.metaKey))doGenerate();}}
+            placeholder="Describe your website…"
+            style={{flex:1,background:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,255,255,0.07)',borderRadius:8,padding:'7px 12px',color:'white',fontSize:13,fontFamily:'inherit',resize:'none',outline:'none',lineHeight:1.5}}/>
+          <button onClick={doGenerate}
+            style={{padding:'7px 18px',background:'white',color:'#0f172a',borderRadius:8,fontWeight:700,fontSize:13,cursor:'pointer',border:'none',flexShrink:0,display:'flex',alignItems:'center',gap:5,fontFamily:'inherit'}}>
+            <Play style={{width:11,height:11}}/> Generate
+          </button>
+        </div>
+      )}
 
       {/* Content area */}
       <div style={{flex:1,overflow:'hidden',position:'relative',display:'flex',flexDirection:'column'}}>

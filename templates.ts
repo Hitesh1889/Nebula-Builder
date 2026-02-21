@@ -1,8 +1,5 @@
-
 // ─────────────────────────────────────────────────────────────────────────────
 // VISINARO — Injected section templates
-// These replace placeholder comments in AI-generated HTML so the AI doesn't
-// have to generate these heavyweight sections and slow down generation.
 // ─────────────────────────────────────────────────────────────────────────────
 
 // ── AUTH / LOGIN ──────────────────────────────────────────────────────────────
@@ -10,43 +7,25 @@ export const AUTH_TEMPLATE = `
 <section id="auth" class="page-section min-h-screen w-full hidden flex items-center justify-center bg-gradient-to-br from-slate-900 to-slate-800 px-4 py-16">
   <div class="w-full max-w-md">
     <div class="bg-white rounded-3xl shadow-2xl overflow-hidden">
-      <!-- Header -->
       <div class="bg-gradient-to-r from-indigo-600 to-purple-600 px-8 pt-10 pb-8 text-center">
         <div class="w-16 h-16 bg-white/20 rounded-2xl flex items-center justify-center mx-auto mb-4">
           <svg class="w-8 h-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
         </div>
-        <h2 class="text-2xl font-bold text-white" id="auth-title">Welcome Back</h2>
-        <p class="text-indigo-100 text-sm mt-1" id="auth-subtitle">Sign in to your account</p>
+        <h2 class="text-2xl font-bold text-white">Welcome Back</h2>
+        <p class="text-indigo-100 text-sm mt-1">Sign in to your account</p>
       </div>
-
       <div class="px-8 py-6">
-        <!-- Tab Toggle -->
         <div class="flex bg-slate-100 rounded-xl p-1 mb-6">
           <button id="tab-login" onclick="switchAuthTab('login')" class="flex-1 py-2 rounded-lg text-sm font-semibold bg-white shadow text-indigo-600 transition-all">Sign In</button>
           <button id="tab-signup" onclick="switchAuthTab('signup')" class="flex-1 py-2 rounded-lg text-sm font-semibold text-slate-500 transition-all">Create Account</button>
         </div>
-
-        <!-- Login Form -->
         <div id="login-form">
           <div class="space-y-4">
             <input type="email" placeholder="Email address" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none"/>
-            <div class="relative">
-              <input type="password" placeholder="Password" id="login-pwd" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 outline-none pr-12"/>
-              <button onclick="document.getElementById('login-pwd').type = document.getElementById('login-pwd').type === 'password' ? 'text' : 'password'" class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
-                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
-              </button>
-            </div>
-            <div class="flex items-center justify-between text-xs">
-              <label class="flex items-center gap-2 text-slate-600 cursor-pointer"><input type="checkbox" class="rounded"/> Remember me</label>
-              <a href="#" class="text-indigo-600 hover:underline font-medium">Forgot password?</a>
-            </div>
-            <button onclick="showAuthSuccess()" class="w-full py-3 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-bold rounded-xl transition-all shadow-lg shadow-indigo-500/30 hover:scale-[1.02]">
-              Sign In →
-            </button>
+            <input type="password" placeholder="Password" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 outline-none"/>
+            <button onclick="handleEmailLogin()" class="w-full py-3 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-bold rounded-xl transition-all shadow-lg hover:scale-[1.02]">Sign In →</button>
           </div>
         </div>
-
-        <!-- Signup Form (hidden by default) -->
         <div id="signup-form" class="hidden">
           <div class="space-y-3">
             <div class="grid grid-cols-2 gap-3">
@@ -54,484 +33,403 @@ export const AUTH_TEMPLATE = `
               <input type="text" placeholder="Last name" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 outline-none"/>
             </div>
             <input type="email" placeholder="Email address" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 outline-none"/>
-            <input type="tel" placeholder="Phone number" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 outline-none"/>
             <input type="password" placeholder="Create password" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 outline-none"/>
-            <button onclick="showAuthSuccess()" class="w-full py-3 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-bold rounded-xl transition-all shadow-lg shadow-indigo-500/30 hover:scale-[1.02]">
-              Create Account →
-            </button>
+            <button onclick="handleEmailSignup()" class="w-full py-3 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-bold rounded-xl transition-all shadow-lg hover:scale-[1.02]">Create Account →</button>
           </div>
         </div>
-
-        <!-- Divider -->
-        <div class="flex items-center gap-4 my-5">
-          <div class="flex-1 h-px bg-slate-200"></div>
-          <span class="text-xs text-slate-400 font-medium">or continue with</span>
-          <div class="flex-1 h-px bg-slate-200"></div>
-        </div>
-
-        <!-- Social Login Buttons -->
+        <div class="flex items-center gap-4 my-5"><div class="flex-1 h-px bg-slate-200"></div><span class="text-xs text-slate-400 font-medium">or continue with</span><div class="flex-1 h-px bg-slate-200"></div></div>
         <div class="grid grid-cols-3 gap-3">
-          <button onclick="showSocialAuth('Google')" class="flex items-center justify-center gap-2 py-2.5 border border-slate-200 rounded-xl hover:bg-slate-50 transition-all group">
-            <svg class="w-5 h-5" viewBox="0 0 24 24"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
+          <button onclick="handleSocialAuth('Google')" class="flex items-center justify-center gap-1.5 py-2.5 border border-slate-200 rounded-xl hover:bg-slate-50 transition-all">
+            <svg class="w-4 h-4" viewBox="0 0 24 24"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
             <span class="text-xs font-medium text-slate-600">Google</span>
           </button>
-          <button onclick="showSocialAuth('Facebook')" class="flex items-center justify-center gap-2 py-2.5 border border-slate-200 rounded-xl hover:bg-blue-50 transition-all">
-            <svg class="w-5 h-5" viewBox="0 0 24 24" fill="#1877F2"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
+          <button onclick="handleSocialAuth('Facebook')" class="flex items-center justify-center gap-1.5 py-2.5 border border-slate-200 rounded-xl hover:bg-blue-50 transition-all">
+            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="#1877F2"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
             <span class="text-xs font-medium text-slate-600">Facebook</span>
           </button>
-          <button onclick="showSocialAuth('Instagram')" class="flex items-center justify-center gap-2 py-2.5 border border-slate-200 rounded-xl hover:bg-pink-50 transition-all">
-            <svg class="w-5 h-5" viewBox="0 0 24 24"><defs><radialGradient id="ig1" cx="30%" cy="107%" r="150%"><stop offset="0%" stop-color="#fd5"/><stop offset="10%" stop-color="#fd5"/><stop offset="50%" stop-color="#ff543e"/><stop offset="100%" stop-color="#c837ab"/></radialGradient></defs><rect width="24" height="24" rx="5" fill="url(#ig1)"/><rect x="2" y="2" width="20" height="20" rx="4" fill="none" stroke="white" stroke-width="1.5"/><circle cx="12" cy="12" r="4" fill="none" stroke="white" stroke-width="1.5"/><circle cx="17.5" cy="6.5" r="1.2" fill="white"/></svg>
+          <button onclick="handleSocialAuth('Instagram')" class="flex items-center justify-center gap-1.5 py-2.5 border border-slate-200 rounded-xl hover:bg-pink-50 transition-all">
+            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="url(#ig)"><defs><linearGradient id="ig" x1="0" y1="1" x2="1" y2="0"><stop offset="0%" stop-color="#f09433"/><stop offset="25%" stop-color="#e6683c"/><stop offset="50%" stop-color="#dc2743"/><stop offset="75%" stop-color="#cc2366"/><stop offset="100%" stop-color="#bc1888"/></linearGradient></defs><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/></svg>
             <span class="text-xs font-medium text-slate-600">Instagram</span>
           </button>
         </div>
       </div>
     </div>
   </div>
-  <!-- Auth Success Toast -->
-  <div id="auth-toast" class="fixed top-6 right-6 z-50 bg-green-500 text-white px-6 py-3 rounded-xl shadow-2xl font-semibold text-sm hidden flex items-center gap-2">
-    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
-    <span id="auth-toast-msg">Signed in successfully!</span>
-  </div>
-  <script>
-    function switchAuthTab(tab) {
-      const isLogin = tab === 'login';
-      document.getElementById('login-form').classList.toggle('hidden', !isLogin);
-      document.getElementById('signup-form').classList.toggle('hidden', isLogin);
-      document.getElementById('tab-login').className = 'flex-1 py-2 rounded-lg text-sm font-semibold transition-all ' + (isLogin ? 'bg-white shadow text-indigo-600' : 'text-slate-500');
-      document.getElementById('tab-signup').className = 'flex-1 py-2 rounded-lg text-sm font-semibold transition-all ' + (!isLogin ? 'bg-white shadow text-indigo-600' : 'text-slate-500');
-      document.getElementById('auth-title').textContent = isLogin ? 'Welcome Back' : 'Create Account';
-      document.getElementById('auth-subtitle').textContent = isLogin ? 'Sign in to your account' : 'Join thousands of happy users';
-    }
-    function showAuthSuccess() {
-      const toast = document.getElementById('auth-toast');
-      toast.classList.remove('hidden'); toast.classList.add('flex');
-      setTimeout(() => { toast.classList.add('hidden'); toast.classList.remove('flex'); }, 3000);
-    }
-    function showSocialAuth(provider) {
-      const toast = document.getElementById('auth-toast');
-      document.getElementById('auth-toast-msg').textContent = 'Redirecting to ' + provider + '...';
-      toast.classList.remove('hidden'); toast.classList.add('flex');
-      setTimeout(() => { toast.classList.add('hidden'); toast.classList.remove('flex'); }, 2500);
-    }
-  </script>
 </section>`;
 
-// ── SHOP ──────────────────────────────────────────────────────────────────────
-export const SHOP_TEMPLATE = `
-<section id="shop" class="page-section min-h-screen w-full hidden bg-slate-50">
-  <div class="max-w-7xl mx-auto px-4 py-12">
-    <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 mb-8">
-      <div>
-        <h2 class="text-3xl font-bold text-slate-900">Our Shop</h2>
-        <p class="text-slate-500 mt-1">Discover our curated collection</p>
-      </div>
-      <div class="flex items-center gap-3">
-        <div class="relative">
-          <input type="text" placeholder="Search products..." class="pl-10 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 outline-none w-64"/>
-          <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+// ── CONTACT ─────────────────────────────────────────────────────────────────
+// Single contact form - no duplicate
+export const CONTACT_TEMPLATE = `
+<section id="contact" class="page-section min-h-screen w-full hidden bg-gradient-to-br from-slate-900 via-slate-800 to-indigo-950 px-4 py-16 flex items-center">
+  <div class="max-w-5xl mx-auto w-full">
+    <div class="text-center mb-12">
+      <span class="inline-block px-4 py-1.5 bg-indigo-500/10 border border-indigo-500/20 rounded-full text-indigo-400 text-xs font-semibold uppercase tracking-widest mb-4">Get In Touch</span>
+      <h2 class="text-4xl font-bold text-white mb-3">Contact Us</h2>
+      <p class="text-slate-400 max-w-lg mx-auto">Have a question or want to work together? We'd love to hear from you.</p>
+    </div>
+    <div class="grid md:grid-cols-5 gap-8">
+      <div class="md:col-span-2 space-y-6">
+        <div class="bg-white/5 border border-white/10 rounded-2xl p-5 flex items-start gap-4">
+          <div class="p-2.5 bg-indigo-500/20 rounded-xl flex-shrink-0">
+            <svg class="w-5 h-5 text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+          </div>
+          <div><p class="text-xs text-slate-400 uppercase tracking-wider font-semibold mb-1">Address</p><p class="text-white font-medium text-sm">123 Business Ave, Suite 100<br/>New York, NY 10001</p></div>
         </div>
-        <select class="px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm outline-none"><option>All Categories</option><option>Featured</option><option>New Arrivals</option><option>Best Sellers</option></select>
+        <div class="bg-white/5 border border-white/10 rounded-2xl p-5 flex items-start gap-4">
+          <div class="p-2.5 bg-indigo-500/20 rounded-xl flex-shrink-0">
+            <svg class="w-5 h-5 text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/></svg>
+          </div>
+          <div><p class="text-xs text-slate-400 uppercase tracking-wider font-semibold mb-1">Phone</p><p class="text-white font-medium text-sm">+1 (555) 123-4567</p></div>
+        </div>
+        <div class="bg-white/5 border border-white/10 rounded-2xl p-5 flex items-start gap-4">
+          <div class="p-2.5 bg-indigo-500/20 rounded-xl flex-shrink-0">
+            <svg class="w-5 h-5 text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+          </div>
+          <div><p class="text-xs text-slate-400 uppercase tracking-wider font-semibold mb-1">Email</p><p class="text-white font-medium text-sm">hello@yoursite.com</p></div>
+        </div>
+      </div>
+      <div class="md:col-span-3 bg-white/5 border border-white/10 rounded-2xl p-6">
+        <div class="grid grid-cols-2 gap-4 mb-4">
+          <input type="text" placeholder="Your name" class="px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-slate-500 text-sm focus:ring-2 focus:ring-indigo-500 outline-none transition-all"/>
+          <input type="email" placeholder="Email address" class="px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-slate-500 text-sm focus:ring-2 focus:ring-indigo-500 outline-none transition-all"/>
+        </div>
+        <input type="text" placeholder="Subject" class="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-slate-500 text-sm focus:ring-2 focus:ring-indigo-500 outline-none transition-all mb-4"/>
+        <textarea rows="5" placeholder="Your message..." class="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-slate-500 text-sm focus:ring-2 focus:ring-indigo-500 outline-none transition-all resize-none mb-4"></textarea>
+        <button onclick="handleContactSubmit()" class="w-full py-3.5 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-bold rounded-xl transition-all shadow-lg shadow-indigo-500/25 hover:scale-[1.02] text-sm">
+          Send Message →
+        </button>
       </div>
     </div>
-    <!-- Product Grid -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-      ${Array.from({length: 6}, (_, i) => {
-        const products = [
-          {name:'Premium Wireless Headphones',price:'₹2,999',usd:'$36',img:'headphones',rating:5,badge:'Best Seller'},
-          {name:'Artisan Coffee Blend 250g',price:'₹599',usd:'$7',img:'coffee',rating:4,badge:'New'},
-          {name:'Handcrafted Leather Wallet',price:'₹1,499',usd:'$18',img:'leather',rating:5,badge:''},
-          {name:'Organic Face Serum 30ml',price:'₹899',usd:'$11',img:'serum',rating:4,badge:'Hot'},
-          {name:'Minimal Desk Organizer',price:'₹1,199',usd:'$14',img:'desk',rating:5,badge:''},
-          {name:'Canvas Tote Bag',price:'₹799',usd:'$10',img:'tote',rating:4,badge:'Sale'},
-        ];
-        const p = products[i];
-        return `
+  </div>
+</section>`;
+
+// ── FOOTER — clean, no Visinaro/Groq/AI branding ─────────────────────────────
+export const FOOTER_TEMPLATE = `
+<footer id="site-footer" class="bg-slate-900 text-slate-400 py-10 px-6">
+  <div class="max-w-6xl mx-auto">
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-8 mb-8">
+      <div class="col-span-2 md:col-span-1">
+        <div id="footer-logo-slot" class="mb-3"></div>
+        <p class="text-sm leading-relaxed">Your trusted partner for quality products and outstanding service.</p>
+      </div>
+      <div>
+        <h4 class="text-white font-semibold mb-3 text-sm uppercase tracking-wider">Company</h4>
+        <ul class="space-y-2 text-sm">
+          <li><a href="#home" class="hover:text-white transition-colors">Home</a></li>
+          <li><a href="#about" class="hover:text-white transition-colors">About</a></li>
+          <li><a href="#services" class="hover:text-white transition-colors">Services</a></li>
+          <li><a href="#portfolio" class="hover:text-white transition-colors">Portfolio</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4 class="text-white font-semibold mb-3 text-sm uppercase tracking-wider">Support</h4>
+        <ul class="space-y-2 text-sm">
+          <li><a href="#contact" class="hover:text-white transition-colors">Contact Us</a></li>
+          <li><a href="#" class="hover:text-white transition-colors">FAQ</a></li>
+          <li><a href="#" class="hover:text-white transition-colors">Privacy Policy</a></li>
+          <li><a href="#" class="hover:text-white transition-colors">Terms of Service</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4 class="text-white font-semibold mb-3 text-sm uppercase tracking-wider">Follow Us</h4>
+        <div class="flex gap-3">
+          <a href="#" class="p-2 bg-white/5 hover:bg-white/15 rounded-lg transition-colors"><svg class="w-4 h-4 text-white" viewBox="0 0 24 24" fill="currentColor"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg></a>
+          <a href="#" class="p-2 bg-white/5 hover:bg-white/15 rounded-lg transition-colors"><svg class="w-4 h-4 text-white" viewBox="0 0 24 24" fill="currentColor"><path d="M23.953 4.57a10 10 0 01-2.825.775 4.958 4.958 0 002.163-2.723c-.951.555-2.005.959-3.127 1.184a4.92 4.92 0 00-8.384 4.482C7.69 8.095 4.067 6.13 1.64 3.162a4.822 4.822 0 00-.666 2.475c0 1.71.87 3.213 2.188 4.096a4.904 4.904 0 01-2.228-.616v.06a4.923 4.923 0 003.946 4.827 4.996 4.996 0 01-2.212.085 4.936 4.936 0 004.604 3.417 9.867 9.867 0 01-6.102 2.105c-.39 0-.779-.023-1.17-.067a13.995 13.995 0 007.557 2.209c9.053 0 13.998-7.496 13.998-13.985 0-.21 0-.42-.015-.63A9.935 9.935 0 0024 4.59z"/></svg></a>
+        </div>
+      </div>
+    </div>
+    <div class="border-t border-white/10 pt-6 text-center text-xs text-slate-600">
+      <p id="footer-copyright">© 2026 All rights reserved.</p>
+    </div>
+  </div>
+</footer>
+<script>
+// Copy brand logo into footer
+(function(){
+  var nav = document.getElementById('main-nav');
+  var slot = document.getElementById('footer-logo-slot');
+  if(nav && slot){
+    var brand = nav.querySelector('a[href="#home"] svg, a[href="#home"] img, .brand-logo, #nav-logo');
+    if(brand){ var c = brand.cloneNode(true); c.style.width='32px'; c.style.height='32px'; slot.appendChild(c); }
+  }
+  // Set copyright with site name
+  var title = document.title || 'Your Company';
+  var cp = document.getElementById('footer-copyright');
+  if(cp) cp.textContent = '© ' + new Date().getFullYear() + ' ' + title + '. All rights reserved.';
+})();
+</script>`;
+
+// ── SHOP ─────────────────────────────────────────────────────────────────────
+export const SHOP_TEMPLATE = `
+<section id="shop" class="page-section min-h-screen w-full hidden bg-slate-50 px-4 py-16">
+  <div class="max-w-6xl mx-auto">
+    <div class="text-center mb-12">
+      <span class="inline-block px-4 py-1.5 bg-indigo-100 text-indigo-700 rounded-full text-xs font-semibold uppercase tracking-widest mb-4">Our Store</span>
+      <h2 class="text-4xl font-bold text-slate-900 mb-3">Featured Products</h2>
+      <p class="text-slate-500 max-w-lg mx-auto">Discover our handpicked collection of premium products</p>
+    </div>
+    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5" id="products-grid">
+      ${[
+        {name:'Premium Bundle',price:'₹2,499',img:'product1',tag:'Best Seller'},
+        {name:'Starter Pack',price:'₹1,299',img:'product2',tag:'Popular'},
+        {name:'Pro Edition',price:'₹3,999',img:'product3',tag:'New'},
+        {name:'Classic Set',price:'₹899',img:'product4',tag:'Sale'},
+        {name:'Deluxe Box',price:'₹5,499',img:'product5',tag:''},
+        {name:'Value Pack',price:'₹699',img:'product6',tag:''},
+        {name:'Signature Collection',price:'₹4,299',img:'product7',tag:'Limited'},
+        {name:'Essential Kit',price:'₹1,099',img:'product8',tag:''},
+      ].map(p=>`
       <div class="bg-white rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden group">
         <div class="relative overflow-hidden">
-          <img src="https://picsum.photos/seed/${p.img}${i+1}/600/400" alt="${p.name}" class="w-full h-52 object-cover group-hover:scale-105 transition-transform duration-500"/>
-          ${p.badge ? `<span class="absolute top-3 left-3 bg-indigo-600 text-white text-xs font-bold px-3 py-1 rounded-full">${p.badge}</span>` : ''}
-          <div class="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-all duration-300 flex items-center justify-center opacity-0 group-hover:opacity-100">
-            <button class="bg-white text-slate-900 font-bold text-sm px-5 py-2 rounded-full shadow-lg hover:bg-indigo-600 hover:text-white transition-colors">Quick View</button>
-          </div>
+          <img src="https://picsum.photos/seed/${p.img}/400/300" alt="${p.name}" class="w-full h-44 object-cover group-hover:scale-105 transition-transform duration-500"/>
+          ${p.tag?`<span class="absolute top-3 left-3 px-2.5 py-1 bg-indigo-600 text-white text-xs font-bold rounded-full">${p.tag}</span>`:''}
+          <button onclick="addToWishlist(this)" class="absolute top-3 right-3 p-2 bg-white rounded-full shadow hover:bg-red-50 transition-all opacity-0 group-hover:opacity-100">
+            <svg class="w-4 h-4 text-slate-400 hover:text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg>
+          </button>
         </div>
-        <div class="p-5">
-          <h3 class="font-bold text-slate-900 mb-1">${p.name}</h3>
-          <div class="flex items-center gap-1 mb-3">${'<svg class="w-4 h-4 text-amber-400 fill-amber-400" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>'.repeat(p.rating)}</div>
-          <div class="flex items-center justify-between">
-            <div>
-              <span class="text-xl font-bold text-indigo-600">${p.price}</span>
-              <span class="text-xs text-slate-400 ml-1">${p.usd}</span>
-            </div>
-            <button class="add-to-cart bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-bold px-4 py-2 rounded-xl transition-all hover:scale-105" data-name="${p.name}" data-price="${p.price}">Add to Cart</button>
-          </div>
+        <div class="p-4">
+          <h3 class="font-semibold text-slate-900 text-sm mb-1">${p.name}</h3>
+          <p class="text-indigo-600 font-bold text-base mb-3">${p.price}</p>
+          <button onclick="addToCart(this,'${p.name}','${p.price}')" class="add-to-cart w-full py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-xl text-sm transition-all hover:scale-[1.02] active:scale-95 flex items-center justify-center gap-2">
+            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+            Add to Cart
+          </button>
         </div>
-      </div>`;
-      }).join('')}
+      </div>`).join('')}
     </div>
   </div>
 </section>`;
 
-// ── CART ──────────────────────────────────────────────────────────────────────
+// ── CART ─────────────────────────────────────────────────────────────────────
 export const CART_TEMPLATE = `
-<section id="cart" class="page-section min-h-screen w-full hidden bg-slate-50">
-  <div class="max-w-6xl mx-auto px-4 py-12">
-    <h2 class="text-3xl font-bold text-slate-900 mb-8">🛒 Your Cart <span class="cart-badge-text text-lg font-normal text-slate-500">(2 items)</span></h2>
-    <div class="flex flex-col lg:flex-row gap-8">
-      <!-- Cart Items -->
-      <div class="flex-1 space-y-4" id="cart-items-container">
-        <div class="bg-white rounded-2xl shadow-sm p-6 flex gap-5 items-center">
-          <img src="https://picsum.photos/seed/cartitem1/200/200" class="w-24 h-24 rounded-xl object-cover"/>
-          <div class="flex-1">
-            <h3 class="font-bold text-slate-900">Premium Wireless Headphones</h3>
-            <p class="text-sm text-slate-500 mt-0.5">Color: Midnight Black</p>
-            <p class="text-indigo-600 font-bold mt-1">₹2,999</p>
+<section id="cart" class="page-section min-h-screen w-full hidden bg-slate-50 px-4 py-16">
+  <div class="max-w-4xl mx-auto">
+    <div class="flex items-center gap-3 mb-8">
+      <h2 class="text-3xl font-bold text-slate-900">Your Cart</h2>
+      <span id="cart-item-count" class="px-3 py-1 bg-indigo-100 text-indigo-700 rounded-full text-sm font-semibold">0 items</span>
+    </div>
+    <div class="grid md:grid-cols-3 gap-6">
+      <div class="md:col-span-2">
+        <div id="cart-items-list" class="space-y-4">
+          <div class="bg-white rounded-2xl p-8 text-center text-slate-400 border border-slate-100">
+            <svg class="w-12 h-12 mx-auto mb-3 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+            <p class="font-medium">Your cart is empty</p>
+            <p class="text-sm mt-1">Add some products to get started</p>
+            <button onclick="navigateTo('shop')" class="mt-4 px-6 py-2.5 bg-indigo-600 text-white rounded-xl text-sm font-semibold hover:bg-indigo-700 transition-all">Browse Products</button>
           </div>
-          <div class="flex items-center gap-3">
-            <button onclick="updateQty(this,-1)" class="w-8 h-8 rounded-full border-2 border-slate-200 hover:border-indigo-500 flex items-center justify-center font-bold text-slate-600 transition-colors">−</button>
-            <span class="qty-val font-bold w-6 text-center">1</span>
-            <button onclick="updateQty(this,1)" class="w-8 h-8 rounded-full border-2 border-slate-200 hover:border-indigo-500 flex items-center justify-center font-bold text-slate-600 transition-colors">+</button>
-          </div>
-          <button onclick="this.closest('.bg-white').remove(); recalcCart();" class="text-slate-300 hover:text-red-500 transition-colors">
-            <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
-          </button>
-        </div>
-        <div class="bg-white rounded-2xl shadow-sm p-6 flex gap-5 items-center">
-          <img src="https://picsum.photos/seed/cartitem2/200/200" class="w-24 h-24 rounded-xl object-cover"/>
-          <div class="flex-1">
-            <h3 class="font-bold text-slate-900">Artisan Coffee Blend 250g</h3>
-            <p class="text-sm text-slate-500 mt-0.5">Roast: Medium Dark</p>
-            <p class="text-indigo-600 font-bold mt-1">₹599</p>
-          </div>
-          <div class="flex items-center gap-3">
-            <button onclick="updateQty(this,-1)" class="w-8 h-8 rounded-full border-2 border-slate-200 hover:border-indigo-500 flex items-center justify-center font-bold text-slate-600 transition-colors">−</button>
-            <span class="qty-val font-bold w-6 text-center">2</span>
-            <button onclick="updateQty(this,1)" class="w-8 h-8 rounded-full border-2 border-slate-200 hover:border-indigo-500 flex items-center justify-center font-bold text-slate-600 transition-colors">+</button>
-          </div>
-          <button onclick="this.closest('.bg-white').remove(); recalcCart();" class="text-slate-300 hover:text-red-500 transition-colors">
-            <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
-          </button>
-        </div>
-        <!-- Promo Code -->
-        <div class="bg-white rounded-2xl shadow-sm p-5 flex gap-3">
-          <input type="text" placeholder="Promo code (try: SAVE10)" class="flex-1 px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-indigo-500"/>
-          <button onclick="applyPromo()" class="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl text-sm transition-colors">Apply</button>
         </div>
       </div>
-      <!-- Order Summary -->
-      <div class="lg:w-80">
-        <div class="bg-white rounded-2xl shadow-sm p-6 sticky top-6">
-          <h3 class="font-bold text-slate-900 text-lg mb-4">Order Summary</h3>
-          <div class="space-y-3 text-sm">
-            <div class="flex justify-between"><span class="text-slate-600">Subtotal</span><span class="font-medium" id="cart-subtotal">₹4,197</span></div>
-            <div class="flex justify-between"><span class="text-slate-600">Shipping</span><span class="text-green-600 font-medium">FREE</span></div>
-            <div class="flex justify-between hidden" id="promo-row"><span class="text-green-600">Promo (SAVE10)</span><span class="text-green-600 font-medium">−₹420</span></div>
-            <div class="border-t border-slate-100 pt-3 flex justify-between"><span class="font-bold text-slate-900">Total</span><span class="font-bold text-xl text-indigo-600" id="cart-total">₹4,197</span></div>
+      <div>
+        <div class="bg-white rounded-2xl p-6 border border-slate-100 sticky top-4">
+          <h3 class="font-bold text-slate-900 mb-5 text-lg">Order Summary</h3>
+          <div class="space-y-3 text-sm mb-5">
+            <div class="flex justify-between text-slate-600"><span>Subtotal</span><span id="cart-subtotal">₹0</span></div>
+            <div class="flex justify-between text-slate-600"><span>Shipping</span><span class="text-green-600 font-medium">Free</span></div>
+            <div class="flex justify-between text-slate-600"><span>Tax (18%)</span><span id="cart-tax">₹0</span></div>
+            <div class="border-t pt-3 flex justify-between font-bold text-slate-900 text-base"><span>Total</span><span id="cart-total">₹0</span></div>
           </div>
-          <button onclick="document.querySelectorAll('.page-section').forEach(s=>{s.style.display='none';s.classList.add('hidden')});document.getElementById('checkout').style.display='block';document.getElementById('checkout').classList.remove('hidden');window.scrollTo(0,0);" class="mt-6 w-full py-3.5 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-bold rounded-xl transition-all shadow-lg hover:scale-[1.02]">
+          <button onclick="navigateTo('checkout')" class="w-full py-3.5 bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-bold rounded-xl hover:from-indigo-700 hover:to-purple-700 transition-all shadow-lg shadow-indigo-500/25 hover:scale-[1.02] text-sm">
             Proceed to Checkout →
           </button>
-          <button onclick="document.querySelectorAll('.page-section').forEach(s=>{s.style.display='none';s.classList.add('hidden')});document.getElementById('shop').style.display='block';document.getElementById('shop').classList.remove('hidden');window.scrollTo(0,0);" class="mt-3 w-full py-2.5 border border-slate-200 text-slate-600 hover:bg-slate-50 font-medium rounded-xl text-sm transition-colors">
+          <button onclick="navigateTo('shop')" class="w-full py-2.5 mt-3 text-slate-600 hover:text-slate-900 text-sm font-medium transition-colors">
             ← Continue Shopping
           </button>
         </div>
       </div>
     </div>
   </div>
-  <script>
-    function updateQty(btn, delta) {
-      const span = btn.parentElement.querySelector('.qty-val');
-      let v = parseInt(span.textContent) + delta;
-      if (v < 1) v = 1;
-      span.textContent = v;
-      recalcCart();
-    }
-    function recalcCart() {
-      document.querySelectorAll('.cart-badge').forEach(el => el.textContent = document.querySelectorAll('#cart-items-container .bg-white').length - 1);
-    }
-    function applyPromo() {
-      document.getElementById('promo-row').classList.remove('hidden');
-      document.getElementById('cart-total').textContent = '₹3,777';
-    }
-  </script>
 </section>`;
 
-// ── CHECKOUT ──────────────────────────────────────────────────────────────────
+// ── CHECKOUT ─────────────────────────────────────────────────────────────────
 export const CHECKOUT_TEMPLATE = `
-<section id="checkout" class="page-section min-h-screen w-full hidden bg-slate-50">
-  <div class="max-w-6xl mx-auto px-4 py-12">
-    <!-- Progress Steps -->
-    <div class="flex items-center justify-center gap-4 mb-10">
-      <div class="flex items-center gap-2 text-indigo-600 font-bold text-sm"><div class="w-8 h-8 bg-indigo-600 text-white rounded-full flex items-center justify-center text-xs font-bold">1</div>Cart</div>
-      <div class="flex-1 max-w-16 h-0.5 bg-indigo-300 rounded"></div>
-      <div class="flex items-center gap-2 text-indigo-600 font-bold text-sm"><div class="w-8 h-8 bg-indigo-600 text-white rounded-full flex items-center justify-center text-xs font-bold">2</div>Shipping</div>
-      <div class="flex-1 max-w-16 h-0.5 bg-slate-200 rounded"></div>
-      <div class="flex items-center gap-2 text-slate-400 text-sm"><div class="w-8 h-8 bg-slate-200 text-slate-500 rounded-full flex items-center justify-center text-xs font-bold">3</div>Payment</div>
-    </div>
-
-    <div class="flex flex-col lg:flex-row gap-8">
-      <!-- Forms -->
-      <div class="flex-1 space-y-6">
-        <!-- Shipping -->
-        <div class="bg-white rounded-2xl shadow-sm p-6">
-          <h3 class="font-bold text-slate-900 text-lg mb-4 flex items-center gap-2">
-            <svg class="w-5 h-5 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/></svg>
-            Shipping Address
-          </h3>
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <input type="text" placeholder="Full Name" class="px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-indigo-500"/>
-            <input type="tel" placeholder="Phone Number" class="px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-indigo-500"/>
-            <input type="text" placeholder="Address Line 1" class="sm:col-span-2 px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-indigo-500"/>
-            <input type="text" placeholder="City" class="px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-indigo-500"/>
-            <input type="text" placeholder="State" class="px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-indigo-500"/>
-            <input type="text" placeholder="Pincode" class="px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-indigo-500"/>
-            <select class="px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-indigo-500 text-slate-600"><option>India</option><option>USA</option><option>UK</option><option>UAE</option><option>Singapore</option></select>
-          </div>
-        </div>
-
-        <!-- Payment Methods -->
-        <div class="bg-white rounded-2xl shadow-sm p-6">
-          <h3 class="font-bold text-slate-900 text-lg mb-5 flex items-center gap-2">
-            <svg class="w-5 h-5 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/></svg>
-            Payment Method
-          </h3>
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <!-- Razorpay -->
-            <button onclick="showPaymentModal('Razorpay','🇮🇳 India\'s most trusted payment gateway')" class="payment-btn group flex items-center gap-4 p-4 border-2 border-orange-200 hover:border-orange-500 bg-orange-50 hover:bg-orange-100 rounded-2xl transition-all text-left">
-              <div class="w-12 h-12 bg-white rounded-xl flex items-center justify-center shadow-sm shrink-0">
-                <svg viewBox="0 0 24 24" class="w-8 h-8"><text y="18" font-size="14" font-weight="900" fill="#2563EB">R</text></svg>
-                <span class="font-black text-blue-600 text-lg leading-none">R</span>
-              </div>
-              <div>
-                <p class="font-bold text-slate-900 text-sm">Razorpay</p>
-                <p class="text-xs text-slate-500">Cards, UPI, NetBanking, EMI</p>
-                <span class="text-xs bg-orange-500 text-white px-2 py-0.5 rounded-full font-bold">🇮🇳 India</span>
-              </div>
-            </button>
-            <!-- Stripe -->
-            <button onclick="showPaymentModal('Stripe','🌍 International card payments in 135+ currencies')" class="payment-btn group flex items-center gap-4 p-4 border-2 border-indigo-200 hover:border-indigo-500 bg-indigo-50 hover:bg-indigo-100 rounded-2xl transition-all text-left">
-              <div class="w-12 h-12 bg-indigo-600 rounded-xl flex items-center justify-center shadow-sm shrink-0">
-                <span class="font-black text-white text-lg">S</span>
-              </div>
-              <div>
-                <p class="font-bold text-slate-900 text-sm">Stripe</p>
-                <p class="text-xs text-slate-500">Visa, Mastercard, AMEX</p>
-                <span class="text-xs bg-indigo-600 text-white px-2 py-0.5 rounded-full font-bold">🌍 Global</span>
-              </div>
-            </button>
-            <!-- PayPal -->
-            <button onclick="showPaymentModal('PayPal','🌐 200+ countries, buyer protection')" class="payment-btn group flex items-center gap-4 p-4 border-2 border-yellow-200 hover:border-yellow-400 bg-yellow-50 hover:bg-yellow-100 rounded-2xl transition-all text-left">
-              <div class="w-12 h-12 bg-white rounded-xl flex items-center justify-center shadow-sm shrink-0 border border-yellow-200">
-                <span class="font-black text-blue-800 text-lg">P</span><span class="font-black text-blue-400 text-lg">P</span>
-              </div>
-              <div>
-                <p class="font-bold text-slate-900 text-sm">PayPal</p>
-                <p class="text-xs text-slate-500">Fast, secure, worldwide</p>
-                <span class="text-xs bg-yellow-500 text-white px-2 py-0.5 rounded-full font-bold">🌐 200+ Countries</span>
-              </div>
-            </button>
-            <!-- COD -->
-            <button onclick="showPaymentModal('Cash on Delivery','📦 Pay when your order arrives')" class="payment-btn group flex items-center gap-4 p-4 border-2 border-green-200 hover:border-green-500 bg-green-50 hover:bg-green-100 rounded-2xl transition-all text-left">
-              <div class="w-12 h-12 bg-green-600 rounded-xl flex items-center justify-center shadow-sm shrink-0">
-                <svg class="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
-              </div>
-              <div>
-                <p class="font-bold text-slate-900 text-sm">Cash on Delivery</p>
-                <p class="text-xs text-slate-500">Pay when it arrives</p>
-                <span class="text-xs bg-green-600 text-white px-2 py-0.5 rounded-full font-bold">✅ No card needed</span>
-              </div>
-            </button>
-          </div>
-        </div>
-      </div>
-
-      <!-- Order Summary Sidebar -->
-      <div class="lg:w-80">
-        <div class="bg-white rounded-2xl shadow-sm p-6 sticky top-6">
-          <h3 class="font-bold text-slate-900 text-lg mb-4">Order Summary</h3>
-          <div class="space-y-3 mb-4">
-            <div class="flex gap-3 items-center py-2 border-b border-slate-50">
-              <img src="https://picsum.photos/seed/orderprod1/100/100" class="w-12 h-12 rounded-lg object-cover"/>
-              <div class="flex-1 text-sm"><p class="font-medium text-slate-900">Wireless Headphones</p><p class="text-slate-500">Qty: 1</p></div>
-              <span class="font-bold text-slate-900 text-sm">₹2,999</span>
-            </div>
-            <div class="flex gap-3 items-center py-2 border-b border-slate-50">
-              <img src="https://picsum.photos/seed/orderprod2/100/100" class="w-12 h-12 rounded-lg object-cover"/>
-              <div class="flex-1 text-sm"><p class="font-medium text-slate-900">Artisan Coffee Blend</p><p class="text-slate-500">Qty: 2</p></div>
-              <span class="font-bold text-slate-900 text-sm">₹1,198</span>
-            </div>
-          </div>
-          <div class="space-y-2 text-sm border-t border-slate-100 pt-3">
-            <div class="flex justify-between"><span class="text-slate-600">Subtotal</span><span>₹4,197</span></div>
-            <div class="flex justify-between"><span class="text-slate-600">Shipping</span><span class="text-green-600 font-medium">FREE</span></div>
-            <div class="flex justify-between"><span class="text-slate-600">Tax (18% GST)</span><span>₹755</span></div>
-            <div class="border-t border-slate-100 pt-2 flex justify-between font-bold"><span>Total</span><span class="text-indigo-600 text-lg">₹4,952</span></div>
-          </div>
-          <div class="mt-3 p-3 bg-green-50 rounded-xl text-xs text-green-700 flex items-center gap-2">
-            <svg class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
-            256-bit SSL encryption · 100% secure checkout
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Payment Modal -->
-  <div id="payment-modal" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm hidden items-center justify-center p-4">
-    <div class="bg-white rounded-3xl shadow-2xl p-8 max-w-sm w-full text-center">
-      <div class="w-16 h-16 bg-indigo-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
-        <svg class="w-8 h-8 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-      </div>
-      <h3 id="modal-provider-title" class="text-xl font-bold text-slate-900 mb-2">Redirecting to Razorpay...</h3>
-      <p id="modal-provider-desc" class="text-slate-500 text-sm mb-6"></p>
-      <div class="w-full bg-slate-100 rounded-full h-2 mb-6"><div class="bg-indigo-600 h-2 rounded-full animate-pulse w-3/4"></div></div>
-      <p class="text-xs text-slate-400 mb-4">🔒 You will be redirected to a secure payment page</p>
-      <button onclick="placeOrder()" class="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl transition-colors">Confirm & Pay ₹4,952</button>
-      <button onclick="document.getElementById('payment-modal').style.display='none'" class="mt-3 w-full py-2 text-slate-500 hover:text-slate-700 text-sm">← Go Back</button>
-    </div>
-  </div>
-
-  <!-- Order Success Modal -->
-  <div id="order-success-modal" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm hidden items-center justify-center p-4">
-    <div class="bg-white rounded-3xl shadow-2xl p-8 max-w-sm w-full text-center">
-      <div class="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-5">
-        <svg class="w-10 h-10 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
-      </div>
-      <h3 class="text-2xl font-bold text-slate-900 mb-2">Order Placed! 🎉</h3>
-      <p class="text-slate-500 text-sm mb-2">Your order #VIS-<span id="order-id">28491</span> has been confirmed.</p>
-      <p class="text-slate-400 text-xs mb-6">Estimated delivery: 3–5 business days</p>
-      <button onclick="document.getElementById('order-success-modal').style.display='none'; document.querySelectorAll('.page-section').forEach(s=>{s.style.display='none';s.classList.add('hidden')}); document.getElementById('home').style.display='block'; document.getElementById('home').classList.remove('hidden');" class="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl transition-colors">Continue Shopping</button>
-    </div>
-  </div>
-
-  <script>
-    function showPaymentModal(provider, desc) {
-      document.getElementById('modal-provider-title').textContent = 'Redirecting to ' + provider + '...';
-      document.getElementById('modal-provider-desc').textContent = desc;
-      const modal = document.getElementById('payment-modal');
-      modal.style.display = 'flex';
-      modal.classList.remove('hidden');
-    }
-    function placeOrder() {
-      document.getElementById('payment-modal').style.display = 'none';
-      document.getElementById('order-id').textContent = Math.floor(10000 + Math.random() * 90000);
-      const m = document.getElementById('order-success-modal');
-      m.style.display = 'flex';
-      m.classList.remove('hidden');
-    }
-  </script>
-</section>`;
-
-// ── CONTACT ───────────────────────────────────────────────────────────────────
-export const CONTACT_TEMPLATE = `
-<section id="contact" class="page-section min-h-screen w-full hidden flex flex-col relative bg-slate-50 overflow-hidden">
-  <div class="absolute top-0 left-0 w-full h-80 bg-indigo-600 rounded-b-[4rem] z-0"></div>
-  <div class="relative z-10 container mx-auto px-6 py-24 flex-1 flex flex-col justify-center">
-    <div class="text-center mb-14">
-      <h2 class="text-4xl font-serif font-bold text-white mb-3">Get in Touch</h2>
-      <p class="text-indigo-100 max-w-xl mx-auto">We'd love to hear from you. Send us a message and we'll respond as soon as possible.</p>
-    </div>
-    <div class="max-w-4xl mx-auto w-full bg-white rounded-3xl shadow-2xl overflow-hidden flex flex-col md:flex-row">
-      <div class="bg-slate-900 p-10 md:w-2/5 text-white flex flex-col justify-between">
-        <div>
-          <h3 class="text-2xl font-bold mb-6">Contact Info</h3>
-          <div class="space-y-5">
-            <div class="flex items-start gap-4"><div class="p-2 bg-white/10 rounded-lg"><svg class="w-5 h-5 text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/></svg></div><div><p class="text-xs text-slate-400 uppercase tracking-wider font-semibold">Phone</p><p class="font-medium">+91 98765 43210</p></div></div>
-            <div class="flex items-start gap-4"><div class="p-2 bg-white/10 rounded-lg"><svg class="w-5 h-5 text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg></div><div><p class="text-xs text-slate-400 uppercase tracking-wider font-semibold">Email</p><p class="font-medium">hello@visinaro.com</p></div></div>
-            <div class="flex items-start gap-4"><div class="p-2 bg-white/10 rounded-lg"><svg class="w-5 h-5 text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/></svg></div><div><p class="text-xs text-slate-400 uppercase tracking-wider font-semibold">Address</p><p class="font-medium">Bangalore, Karnataka 560001</p></div></div>
-          </div>
-        </div>
-        <div class="flex gap-3 mt-8">
-          <a href="#" class="p-2.5 bg-white/10 hover:bg-white/20 rounded-lg transition-colors"><svg class="w-5 h-5 text-white" viewBox="0 0 24 24" fill="currentColor"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg></a>
-          <a href="#" class="p-2.5 bg-white/10 hover:bg-white/20 rounded-lg transition-colors"><svg class="w-5 h-5 text-white" viewBox="0 0 24 24" fill="currentColor"><path d="M23.953 4.57a10 10 0 01-2.825.775 4.958 4.958 0 002.163-2.723c-.951.555-2.005.959-3.127 1.184a4.92 4.92 0 00-8.384 4.482C7.69 8.095 4.067 6.13 1.64 3.162a4.822 4.822 0 00-.666 2.475c0 1.71.87 3.213 2.188 4.096a4.904 4.904 0 01-2.228-.616v.06a4.923 4.923 0 003.946 4.827 4.996 4.996 0 01-2.212.085 4.936 4.936 0 004.604 3.417 9.867 9.867 0 01-6.102 2.105c-.39 0-.779-.023-1.17-.067a13.995 13.995 0 007.557 2.209c9.053 0 13.998-7.496 13.998-13.985 0-.21 0-.42-.015-.63A9.935 9.935 0 0024 4.59z"/></svg></a>
-          <a href="#" class="p-2.5 bg-white/10 hover:bg-white/20 rounded-lg transition-colors"><svg class="w-5 h-5 text-white" viewBox="0 0 24 24" fill="currentColor"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg></a>
-        </div>
-      </div>
-      <div class="p-10 flex-1">
-        <h3 class="text-xl font-bold text-slate-900 mb-6">Send a Message</h3>
-        <form onsubmit="submitContact(event)" class="space-y-4">
+<section id="checkout" class="page-section min-h-screen w-full hidden bg-slate-50 px-4 py-16">
+  <div class="max-w-5xl mx-auto">
+    <h2 class="text-3xl font-bold text-slate-900 mb-8">Checkout</h2>
+    <div class="grid md:grid-cols-5 gap-8">
+      <div class="md:col-span-3 space-y-6">
+        <!-- Delivery Info -->
+        <div class="bg-white rounded-2xl p-6 border border-slate-100">
+          <h3 class="font-bold text-slate-900 mb-4 flex items-center gap-2"><span class="w-6 h-6 bg-indigo-600 text-white rounded-full flex items-center justify-center text-xs font-bold">1</span> Delivery Information</h3>
           <div class="grid grid-cols-2 gap-4">
-            <input type="text" placeholder="Your Name" required class="px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-indigo-500"/>
-            <input type="email" placeholder="Email" required class="px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-indigo-500"/>
+            <input type="text" placeholder="First name" class="px-4 py-3 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 outline-none"/>
+            <input type="text" placeholder="Last name" class="px-4 py-3 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 outline-none"/>
+            <input type="email" placeholder="Email" class="col-span-2 px-4 py-3 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 outline-none"/>
+            <input type="tel" placeholder="Phone" class="col-span-2 px-4 py-3 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 outline-none"/>
+            <input type="text" placeholder="Address line 1" class="col-span-2 px-4 py-3 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 outline-none"/>
+            <input type="text" placeholder="City" class="px-4 py-3 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 outline-none"/>
+            <input type="text" placeholder="PIN Code" class="px-4 py-3 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 outline-none"/>
           </div>
-          <input type="text" placeholder="Subject" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-indigo-500"/>
-          <textarea placeholder="Your message..." rows="4" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-indigo-500 resize-none"></textarea>
-          <button type="submit" class="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl transition-all hover:scale-[1.02] shadow-lg shadow-indigo-500/30">
-            Send Message →
+        </div>
+        <!-- Payment Method -->
+        <div class="bg-white rounded-2xl p-6 border border-slate-100">
+          <h3 class="font-bold text-slate-900 mb-4 flex items-center gap-2"><span class="w-6 h-6 bg-indigo-600 text-white rounded-full flex items-center justify-center text-xs font-bold">2</span> Payment Method</h3>
+          <div class="space-y-3" id="payment-options">
+            <label class="flex items-center gap-3 p-4 border-2 border-indigo-500 bg-indigo-50 rounded-xl cursor-pointer" onclick="selectPayment(this,'stripe')">
+              <input type="radio" name="payment" checked class="text-indigo-600"/>
+              <div class="flex items-center gap-2 flex-1">
+                <svg class="w-8 h-5" viewBox="0 0 60 25" fill="none"><path d="M59.64 14.28h-8.06v-2.34h8.06v2.34zm-18.95-8.41c-2.34 0-3.84 1.17-3.84 2.94 0 1.56.9 2.46 3.06 3.06 1.56.45 1.98.75 1.98 1.5 0 .69-.63 1.08-1.71 1.08-1.44 0-2.82-.6-3.84-1.5l-1.44 2.16c1.26 1.02 3.06 1.68 5.22 1.68 2.64 0 4.38-1.2 4.38-3.12 0-1.68-1.02-2.58-3.18-3.18-1.56-.45-1.92-.72-1.92-1.38 0-.57.54-.93 1.5-.93 1.14 0 2.22.45 3.12 1.2l1.44-2.1c-1.14-.93-2.7-1.41-4.77-1.41z" fill="#6772E5"/><path d="M25.35 5.87c-2.82 0-5.1 2.16-5.1 5.22 0 3.3 2.34 5.22 5.7 5.22 1.62 0 3.06-.48 4.14-1.44l-1.68-1.92c-.72.6-1.56.9-2.4.9-1.44 0-2.52-.78-2.82-2.1h7.56c.06-.33.09-.66.09-1.02 0-2.82-1.8-4.86-5.49-4.86zm-2.22 4.14c.27-1.32 1.11-2.04 2.22-2.04 1.2 0 1.95.78 2.07 2.04h-4.29z" fill="#6772E5"/></svg>
+                <div><p class="font-semibold text-sm text-slate-900">Stripe</p><p class="text-xs text-slate-500">Credit / Debit Card</p></div>
+              </div>
+            </label>
+            <label class="flex items-center gap-3 p-4 border-2 border-slate-200 rounded-xl cursor-pointer hover:border-blue-400 transition-all" onclick="selectPayment(this,'paypal')">
+              <input type="radio" name="payment" class="text-blue-600"/>
+              <div class="flex items-center gap-2 flex-1">
+                <svg class="w-16 h-5" viewBox="0 0 80 21" fill="none"><path d="M9.93 2.32H4.35C3.97 2.32 3.65 2.59 3.6 2.97L1.34 16.58c-.04.28.17.54.45.54h2.77c.38 0 .7-.27.76-.64l.58-3.71c.05-.37.38-.64.76-.64h1.77c3.68 0 5.8-1.78 6.36-5.31.25-1.54.01-2.75-.71-3.6-.8-.94-2.21-1.4-4.15-1.4z" fill="#003087"/><path d="M29.68 2.32h-5.58c-.38 0-.7.27-.76.64L21.08 16.58c-.04.28.17.54.45.54h2.64c.27 0 .49-.19.53-.46l.61-3.89c.05-.37.38-.64.76-.64h1.77c3.68 0 5.8-1.78 6.36-5.31.25-1.54.01-2.75-.71-3.6-.8-.94-2.21-1.4-4.81-1.4z" fill="#009CDE"/></svg>
+                <div><p class="font-semibold text-sm text-slate-900">PayPal</p><p class="text-xs text-slate-500">Pay with PayPal balance</p></div>
+              </div>
+            </label>
+            <label class="flex items-center gap-3 p-4 border-2 border-slate-200 rounded-xl cursor-pointer hover:border-green-400 transition-all" onclick="selectPayment(this,'cod')">
+              <input type="radio" name="payment" class="text-green-600"/>
+              <div class="flex items-center gap-2 flex-1">
+                <svg class="w-5 h-5 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+                <div><p class="font-semibold text-sm text-slate-900">Cash on Delivery</p><p class="text-xs text-slate-500">Pay when you receive</p></div>
+              </div>
+            </label>
+            <!-- Stripe card inputs (shown when stripe selected) -->
+            <div id="stripe-fields" class="space-y-3 mt-1 p-4 bg-slate-50 rounded-xl border border-slate-200">
+              <input type="text" placeholder="Card number (e.g. 4242 4242 4242 4242)" maxlength="19" oninput="formatCard(this)" class="w-full px-4 py-3 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 outline-none"/>
+              <div class="grid grid-cols-2 gap-3">
+                <input type="text" placeholder="MM / YY" maxlength="7" class="px-4 py-3 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 outline-none"/>
+                <input type="text" placeholder="CVV" maxlength="4" class="px-4 py-3 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 outline-none"/>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- Order Summary -->
+      <div class="md:col-span-2">
+        <div class="bg-white rounded-2xl p-6 border border-slate-100 sticky top-4">
+          <h3 class="font-bold text-slate-900 mb-4 text-lg">Order Summary</h3>
+          <div id="checkout-items" class="space-y-3 mb-5 text-sm text-slate-600"></div>
+          <div class="border-t pt-4 space-y-2 text-sm">
+            <div class="flex justify-between text-slate-600"><span>Subtotal</span><span id="checkout-subtotal">₹0</span></div>
+            <div class="flex justify-between text-green-600 font-medium"><span>Shipping</span><span>FREE</span></div>
+            <div class="flex justify-between text-slate-600"><span>Tax (18%)</span><span id="checkout-tax">₹0</span></div>
+            <div class="border-t pt-3 flex justify-between font-bold text-slate-900 text-base"><span>Total</span><span id="checkout-total">₹0</span></div>
+          </div>
+          <button onclick="placeOrder()" class="mt-5 w-full py-4 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-bold rounded-xl transition-all shadow-lg shadow-indigo-500/25 hover:scale-[1.02] text-sm">
+            Place Order →
           </button>
-        </form>
-        <div id="contact-success" class="hidden mt-4 p-4 bg-green-50 border border-green-200 rounded-xl text-green-700 text-sm font-medium flex items-center gap-2">
-          <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
-          Message sent! We'll get back to you within 24 hours.
+          <div class="flex items-center justify-center gap-2 mt-4 text-xs text-slate-400">
+            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+            Secured by SSL encryption
+          </div>
         </div>
       </div>
     </div>
   </div>
-  <script>
-    function submitContact(e) {
-      e.preventDefault();
-      const s = document.getElementById('contact-success');
-      s.classList.remove('hidden'); s.classList.add('flex');
-      e.target.reset();
-    }
-  </script>
 </section>`;
 
-// ── FOOTER ─────────────────────────────────────────────────────────────────────
-export const FOOTER_TEMPLATE = `
-<footer class="bg-slate-900 text-slate-400 py-12 px-6">
-  <div class="max-w-6xl mx-auto">
-    <div class="grid grid-cols-2 md:grid-cols-4 gap-8 mb-8">
-      <div class="col-span-2 md:col-span-1">
-        <div class="flex items-center gap-2 mb-4">
-          <svg viewBox="0 0 32 32" fill="none" class="w-8 h-8"><path d="M8 6V26" stroke="#F97316" stroke-width="4" stroke-linecap="round"/><path d="M24 6V26" stroke="#10B981" stroke-width="4" stroke-linecap="round"/><path d="M8 26L24 6" stroke="#EF4444" stroke-width="4" stroke-linecap="round"/></svg>
-          <span class="text-white font-bold text-lg">Visinaro</span>
-        </div>
-        <p class="text-sm leading-relaxed mb-4">Built with AI-powered web generation. Create stunning websites in seconds.</p>
-      </div>
-      <div><h4 class="text-white font-semibold mb-3 text-sm uppercase tracking-wider">Company</h4><ul class="space-y-2 text-sm"><li><a href="#home" class="hover:text-white transition-colors">Home</a></li><li><a href="#about" class="hover:text-white transition-colors">About</a></li><li><a href="#services" class="hover:text-white transition-colors">Services</a></li><li><a href="#portfolio" class="hover:text-white transition-colors">Portfolio</a></li></ul></div>
-      <div><h4 class="text-white font-semibold mb-3 text-sm uppercase tracking-wider">Support</h4><ul class="space-y-2 text-sm"><li><a href="#contact" class="hover:text-white transition-colors">Contact Us</a></li><li><a href="#" class="hover:text-white transition-colors">FAQ</a></li><li><a href="#" class="hover:text-white transition-colors">Privacy Policy</a></li><li><a href="#" class="hover:text-white transition-colors">Terms of Service</a></li></ul></div>
-      <div><h4 class="text-white font-semibold mb-3 text-sm uppercase tracking-wider">Follow Us</h4><div class="flex gap-3"><a href="#" class="p-2 bg-white/5 hover:bg-white/15 rounded-lg transition-colors"><svg class="w-4 h-4 text-white" viewBox="0 0 24 24" fill="currentColor"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg></a><a href="#" class="p-2 bg-white/5 hover:bg-white/15 rounded-lg transition-colors"><svg class="w-4 h-4 text-white" viewBox="0 0 24 24" fill="currentColor"><path d="M23.953 4.57a10 10 0 01-2.825.775 4.958 4.958 0 002.163-2.723c-.951.555-2.005.959-3.127 1.184a4.92 4.92 0 00-8.384 4.482C7.69 8.095 4.067 6.13 1.64 3.162a4.822 4.822 0 00-.666 2.475c0 1.71.87 3.213 2.188 4.096a4.904 4.904 0 01-2.228-.616v.06a4.923 4.923 0 003.946 4.827 4.996 4.996 0 01-2.212.085 4.936 4.936 0 004.604 3.417 9.867 9.867 0 01-6.102 2.105c-.39 0-.779-.023-1.17-.067a13.995 13.995 0 007.557 2.209c9.053 0 13.998-7.496 13.998-13.985 0-.21 0-.42-.015-.63A9.935 9.935 0 0024 4.59z"/></svg></a></div></div>
-    </div>
-    <div class="border-t border-white/10 pt-8 flex flex-col md:flex-row items-center justify-between gap-4 text-xs">
-      <p>© ${new Date().getFullYear()} Visinaro. Generated with AI. All rights reserved.</p>
-      <p>Made with ❤️ · Powered by Groq + OpenRouter</p>
-    </div>
-  </div>
-</footer>`;
-
-// ─── AUTH_SCRIPTS — JavaScript for login/signup tab switching ────────────────
+// ── AUTH_SCRIPTS ────────────────────────────────────────────────────────────
 export const AUTH_SCRIPTS = `
-<script data-visinaro-injected="true">
-  function switchTab(tab) {
-    const loginForm  = document.getElementById('form-login');
-    const signupForm = document.getElementById('form-signup');
-    const loginTab   = document.getElementById('tab-login');
-    const signupTab  = document.getElementById('tab-signup');
-    if (!loginForm || !signupForm) return;
-    if (tab === 'login') {
-      loginForm.classList.remove('hidden');
-      signupForm.classList.add('hidden');
-      if (loginTab)  { loginTab.className  = 'flex-1 py-2.5 rounded-xl text-sm font-bold transition-all bg-white text-slate-900 shadow-lg'; }
-      if (signupTab) { signupTab.className = 'flex-1 py-2.5 rounded-xl text-sm font-bold transition-all text-slate-400 hover:text-white'; }
+<script data-vi="1">
+// Cart state
+var cartItems = [];
+function getCartTotal(){ return cartItems.reduce(function(s,i){ return s + (parseFloat(i.price.replace(/[^0-9.]/g,'')) * i.qty); }, 0); }
+function updateCartUI(){
+  var count = cartItems.reduce(function(s,i){return s+i.qty;},0);
+  document.querySelectorAll('.cart-badge,.cart-count').forEach(function(el){el.textContent=count;el.style.display=count>0?'':'none';});
+  document.getElementById('cart-item-count') && (document.getElementById('cart-item-count').textContent = count + ' item' + (count!==1?'s':''));
+  // Cart list
+  var list = document.getElementById('cart-items-list');
+  if(list){
+    if(cartItems.length===0){
+      list.innerHTML = '<div class="bg-white rounded-2xl p-8 text-center text-slate-400 border border-slate-100"><p class="font-medium">Your cart is empty</p><button onclick="navigateTo(\'shop\')" class="mt-4 px-6 py-2.5 bg-indigo-600 text-white rounded-xl text-sm font-semibold hover:bg-indigo-700 transition-all">Browse Products</button></div>';
     } else {
-      signupForm.classList.remove('hidden');
-      loginForm.classList.add('hidden');
-      if (signupTab) { signupTab.className  = 'flex-1 py-2.5 rounded-xl text-sm font-bold transition-all bg-white text-slate-900 shadow-lg'; }
-      if (loginTab)  { loginTab.className   = 'flex-1 py-2.5 rounded-xl text-sm font-bold transition-all text-slate-400 hover:text-white'; }
+      list.innerHTML = cartItems.map(function(item,idx){
+        return '<div class="bg-white rounded-2xl p-4 border border-slate-100 flex items-center gap-4"><img src="https://picsum.photos/seed/'+item.img+'/80/80" class="w-16 h-16 rounded-xl object-cover flex-shrink-0"/><div class="flex-1"><p class="font-semibold text-slate-900 text-sm">'+item.name+'</p><p class="text-indigo-600 font-bold">'+item.price+'</p></div><div class="flex items-center gap-2"><button onclick="changeQty('+idx+',-1)" class="w-8 h-8 bg-slate-100 hover:bg-slate-200 rounded-lg text-slate-600 font-bold transition-all">−</button><span class="w-8 text-center font-semibold">'+item.qty+'</span><button onclick="changeQty('+idx+',1)" class="w-8 h-8 bg-slate-100 hover:bg-slate-200 rounded-lg text-slate-600 font-bold transition-all">+</button></div><button onclick="removeFromCart('+idx+')" class="p-2 hover:bg-red-50 rounded-lg text-slate-400 hover:text-red-500 transition-all"><svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg></button></div>';
+      }).join('');
     }
   }
-  function handleSocialAuth(provider) {
-    const overlay = document.createElement('div');
-    overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:99999;display:flex;align-items:center;justify-content:center;';
-    overlay.innerHTML = '<div style="background:#1e293b;border:1px solid rgba(255,255,255,0.1);padding:32px;border-radius:24px;text-align:center;max-width:320px;">'
-      + '<div style="font-size:40px;margin-bottom:12px">🔐</div>'
-      + '<p style="color:white;font-weight:bold;font-size:16px;margin-bottom:6px">Connect ' + provider + '</p>'
-      + '<p style="color:#94a3b8;font-size:13px;margin-bottom:20px">In production, integrate the ' + provider + ' OAuth SDK here.</p>'
-      + '<button onclick="this.closest(\'div\').parentElement.remove()" style="padding:10px 28px;background:#4f46e5;color:white;border:none;border-radius:12px;cursor:pointer;font-weight:600;font-size:14px">Got it</button>'
-      + '</div>';
-    document.body.appendChild(overlay);
-  }
-  function handleEmailLogin()  { alert('✅ Sign in successful!\n\nConnect your backend auth (Firebase / Supabase / custom) here.'); }
-  function handleEmailSignup() { alert('🎉 Account created!\n\nConnect your backend auth (Firebase / Supabase / custom) here.'); }
-</script>
-`;
+  // Totals
+  var sub = getCartTotal(); var tax = sub * 0.18; var tot = sub + tax;
+  ['cart','checkout'].forEach(function(pfx){
+    var s=document.getElementById(pfx+'-subtotal'); var t=document.getElementById(pfx+'-tax'); var tt=document.getElementById(pfx+'-total');
+    if(s) s.textContent = '₹' + sub.toFixed(0);
+    if(t) t.textContent = '₹' + tax.toFixed(0);
+    if(tt) tt.textContent = '₹' + tot.toFixed(0);
+  });
+  // Checkout items list
+  var ci = document.getElementById('checkout-items');
+  if(ci) ci.innerHTML = cartItems.map(function(i){return '<div class="flex justify-between"><span>'+i.name+' × '+i.qty+'</span><span class="font-medium">'+i.price+'</span></div>';}).join('');
+}
+function addToCart(btn, name, price){
+  var img = btn.closest('.group') ? (btn.closest('.group').querySelector('img')?.getAttribute('src')?.split('/seed/')[1]?.split('/')[0] || 'product') : 'product';
+  var existing = cartItems.find(function(i){return i.name===name;});
+  if(existing){ existing.qty++; } else { cartItems.push({name:name,price:price,img:img,qty:1}); }
+  updateCartUI();
+  var orig = btn.innerHTML;
+  btn.innerHTML = '<svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg> Added!';
+  btn.style.background = '#16a34a';
+  setTimeout(function(){ btn.innerHTML = orig; btn.style.background = ''; }, 1500);
+}
+function changeQty(idx, delta){
+  cartItems[idx].qty += delta;
+  if(cartItems[idx].qty <= 0) cartItems.splice(idx,1);
+  updateCartUI();
+}
+function removeFromCart(idx){ cartItems.splice(idx,1); updateCartUI(); }
+function addToWishlist(btn){ btn.querySelector('svg').style.color='#ef4444'; btn.querySelector('svg').setAttribute('fill','currentColor'); }
+function selectPayment(label, method){
+  document.querySelectorAll('#payment-options label').forEach(function(l){l.style.borderColor='';l.style.borderWidth='2px';});
+  label.style.borderColor = method==='cod'?'#22c55e':method==='paypal'?'#2563eb':'#4f46e5';
+  document.getElementById('stripe-fields') && (document.getElementById('stripe-fields').style.display = method==='stripe'?'block':'none');
+}
+function formatCard(input){ input.value = input.value.replace(/\D/g,'').replace(/(\d{4})/g,'$1 ').trim(); }
+function placeOrder(){
+  var method = document.querySelector('#payment-options input:checked');
+  var methodName = method ? method.closest('label').querySelector('p').textContent : 'Card';
+  var total = document.getElementById('checkout-total')?.textContent || '₹0';
+  var overlay = document.createElement('div');
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:9999;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px);';
+  overlay.innerHTML = '<div style="background:white;border-radius:24px;padding:40px;max-width:380px;width:90%;text-align:center;box-shadow:0 25px 50px rgba(0,0,0,0.3);">'
+    + '<div style="width:64px;height:64px;background:#d1fae5;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;">'
+    + '<svg style="width:32px;height:32px;color:#16a34a" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg></div>'
+    + '<h3 style="font-size:20px;font-weight:800;color:#111827;margin:0 0 8px">Order Placed! 🎉</h3>'
+    + '<p style="color:#6b7280;font-size:14px;margin:0 0 6px">Your order of <strong>' + total + '</strong> has been placed.</p>'
+    + '<p style="color:#6b7280;font-size:13px;margin:0 0 24px">Payment via ' + methodName + ' · Confirmation sent to your email.</p>'
+    + '<button onclick="this.closest(\'div\').parentElement.remove();cartItems=[];updateCartUI();navigateTo(\'shop\');" style="padding:12px 28px;background:linear-gradient(135deg,#6366f1,#8b5cf6);color:white;border:none;border-radius:12px;cursor:pointer;font-weight:700;font-size:14px;">Continue Shopping</button></div>';
+  document.body.appendChild(overlay);
+}
+// Auth
+function switchAuthTab(tab){
+  var lf=document.getElementById('login-form'), sf=document.getElementById('signup-form');
+  var lt=document.getElementById('tab-login'), st=document.getElementById('tab-signup');
+  if(!lf||!sf)return;
+  if(tab==='login'){ lf.classList.remove('hidden'); sf.classList.add('hidden'); if(lt){lt.className='flex-1 py-2 rounded-lg text-sm font-semibold bg-white shadow text-indigo-600 transition-all';} if(st){st.className='flex-1 py-2 rounded-lg text-sm font-semibold text-slate-500 transition-all';} }
+  else { sf.classList.remove('hidden'); lf.classList.add('hidden'); if(st){st.className='flex-1 py-2 rounded-lg text-sm font-semibold bg-white shadow text-indigo-600 transition-all';} if(lt){lt.className='flex-1 py-2 rounded-lg text-sm font-semibold text-slate-500 transition-all';} }
+}
+function handleSocialAuth(provider){
+  var o=document.createElement('div');
+  o.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,0.8);z-index:9999;display:flex;align-items:center;justify-content:center;';
+  o.innerHTML='<div style="background:#1e293b;border:1px solid rgba(255,255,255,0.1);padding:32px;border-radius:20px;text-align:center;max-width:300px;">'
+    +'<div style="font-size:36px;margin-bottom:12px">🔐</div>'
+    +'<p style="color:white;font-weight:700;font-size:16px;margin:0 0 8px">'+provider+' Login</p>'
+    +'<p style="color:#94a3b8;font-size:13px;margin:0 0 20px">Integrate '+provider+' OAuth SDK in production.</p>'
+    +'<button onclick="this.closest(\'div\').parentElement.remove()" style="padding:10px 24px;background:#6366f1;color:white;border:none;border-radius:10px;cursor:pointer;font-weight:600;">Got it</button></div>';
+  document.body.appendChild(o);
+}
+function handleEmailLogin(){
+  var o=document.createElement('div');
+  o.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,0.8);z-index:9999;display:flex;align-items:center;justify-content:center;';
+  o.innerHTML='<div style="background:white;border-radius:20px;padding:32px;text-align:center;max-width:300px;box-shadow:0 25px 50px rgba(0,0,0,0.3);">'
+    +'<div style="font-size:36px;margin-bottom:12px">✅</div>'
+    +'<p style="font-weight:700;font-size:18px;margin:0 0 8px;color:#111827">Signed In!</p>'
+    +'<p style="color:#6b7280;font-size:13px;margin:0 0 20px">Connect Firebase/Supabase for real auth.</p>'
+    +'<button onclick="this.closest(\'div\').parentElement.remove()" style="padding:10px 24px;background:#6366f1;color:white;border:none;border-radius:10px;cursor:pointer;font-weight:600;">Continue</button></div>';
+  document.body.appendChild(o);
+}
+function handleEmailSignup(){ handleEmailLogin(); }
+function handleContactSubmit(){
+  var o=document.createElement('div');
+  o.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,0.8);z-index:9999;display:flex;align-items:center;justify-content:center;';
+  o.innerHTML='<div style="background:white;border-radius:20px;padding:32px;text-align:center;max-width:300px;box-shadow:0 25px 50px rgba(0,0,0,0.3);">'
+    +'<div style="font-size:36px;margin-bottom:12px">📬</div>'
+    +'<p style="font-weight:700;font-size:18px;margin:0 0 8px;color:#111827">Message Sent!</p>'
+    +'<p style="color:#6b7280;font-size:13px;margin:0 0 20px">We\'ll get back to you within 24 hours.</p>'
+    +'<button onclick="this.closest(\'div\').parentElement.remove()" style="padding:10px 24px;background:#6366f1;color:white;border:none;border-radius:10px;cursor:pointer;font-weight:600;">Close</button></div>';
+  document.body.appendChild(o);
+}
+// Init cart badge display
+updateCartUI();
+</script>`;

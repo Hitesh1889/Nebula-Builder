@@ -1,205 +1,145 @@
-
 export const APP_NAME = "Visinaro";
-
 export const AVAILABLE_MODELS = [
-  { id: 'groq-fast',    name: '⚡ Groq Fast',    description: 'Groq LPU (~3-5s)',      estimatedTime: 4  },
-  { id: 'groq-quality', name: '🦙 Groq Quality',  description: 'Groq LPU (~5-8s)',      estimatedTime: 6  },
-  { id: 'openrouter',   name: '🔀 OpenRouter',    description: 'DeepSeek/Llama (~15s)', estimatedTime: 15 },
+  { id:'groq-fast',    name:'⚡ Groq Fast',    description:'Groq LPU (~3-5s)',      estimatedTime:4  },
+  { id:'groq-quality', name:'🦙 Groq Quality',  description:'Groq LPU (~5-8s)',      estimatedTime:6  },
+  { id:'openrouter',   name:'🔀 OpenRouter',    description:'DeepSeek/Llama (~15s)', estimatedTime:15 },
 ];
-
 export const DEFAULT_MODEL = 'groq-fast';
-
-export const EXAMPLE_PROMPTS = [
-  "Create a modern e-commerce store for handmade jewelry. Include a product grid with cart, checkout with Razorpay & Stripe, and a login/signup page with Google & Facebook auth.",
-  "Design a coffee shop website called 'Brew & Bean' with warm amber colors. Hero with real coffee images, menu grid with prices, team section, and contact form.",
-  "Build a SaaS landing page for a project management tool. Dark theme, pricing table with 3 tiers, feature comparison, testimonials, and a login portal.",
-  "Create a photography portfolio with a masonry gallery, lightbox viewer, package pricing, about section, and a booking contact form.",
-  "Build a fitness gym website with hero video background, class schedule, trainer profiles, membership plans with signup, and a BMI calculator.",
-  "Design a restaurant website with mouth-watering food photos, interactive menu with categories, reservation system, chef profiles, and Google Maps location.",
-  "Create a real estate listing site with property cards, search filters, map view, agent profiles, mortgage calculator, and inquiry form.",
-  "Build a personal blog with featured posts, category filter, newsletter signup, about me page, and social media links.",
-  "Design an online course platform with course cards, curriculum accordion, instructor profile, student testimonials, and enrollment with payment options.",
-  "Create a tech startup landing page with animated hero, product screenshots, investor logos, team section, and a demo request form.",
-];
-
-export const INITIAL_PROMPT = EXAMPLE_PROMPTS[Math.floor(Math.random() * EXAMPLE_PROMPTS.length)];
-
-// ─────────────────────────────────────────────────────────────────────────────
-// PROMPT ANALYSIS — detect intent to add special pages
-// ─────────────────────────────────────────────────────────────────────────────
 
 export const analyzePrompt = (prompt: string): { isEcommerce: boolean; needsAuth: boolean } => {
   const p = prompt.toLowerCase();
-  const isEcommerce = /shop|store|ecommerce|e-commerce|product|buy|cart|checkout|sell|marketplace|catalog|inventory/.test(p);
-  const needsAuth   = /login|signup|sign up|sign-up|register|auth|account|member|user|portal|dashboard/.test(p) || isEcommerce;
+  const isEcommerce = /shop|store|ecommerce|e-commerce|product|buy|cart|checkout|sell|marketplace|catalog/.test(p);
+  const needsAuth   = /login|signup|sign up|register|auth|account|member|portal|dashboard/.test(p) || isEcommerce;
   return { isEcommerce, needsAuth };
 };
 
-// ─────────────────────────────────────────────────────────────────────────────
-// BASE SYSTEM PROMPT (always injected)
-// ─────────────────────────────────────────────────────────────────────────────
-
 export const SYSTEM_INSTRUCTION_BASE = `
-ACT AS A WORLD-CLASS WEB DEVELOPER AND DESIGNER.
-GOAL: GENERATE A STUNNING, CONTENT-RICH MULTI-PAGE SPA WEBSITE.
+You are a world-class senior frontend developer. Generate a visually stunning, production-quality multi-page SPA website.
 
 ═══════════════════════════════════════════════════════
-PART 1 — MANDATORY STRUCTURE
+SECTION STRUCTURE (use EXACTLY these IDs and classes)
 ═══════════════════════════════════════════════════════
 
-Use EXACTLY these section IDs. Never rename them.
+Output HTML with this structure in <body>:
 
 <nav id="main-nav"> ... </nav>
-<section id="home"      class="page-section min-h-screen w-full"> ... </section>
-<section id="about"     class="page-section min-h-screen w-full hidden"> ... </section>
-<section id="services"  class="page-section min-h-screen w-full hidden"> ... </section>
-<section id="portfolio" class="page-section min-h-screen w-full hidden"> ... </section>
+<section id="home"      class="page-section w-full"> ... </section>
+<section id="about"     class="page-section w-full hidden"> ... </section>
+<section id="services"  class="page-section w-full hidden"> ... </section>
+<section id="portfolio" class="page-section w-full hidden"> ... </section>
 <!--__TEMPLATE_AUTH__-->
 <!--__TEMPLATE_CONTACT__-->
 <!--__TEMPLATE_FOOTER__-->
 
-CRITICAL RULES:
-- ALL sections except #home MUST have class="hidden" AND class="page-section"
-- #home MUST have class="page-section" but NOT "hidden"
-- EVERY nav link href MUST exactly match a section id: href="#home" href="#about" etc.
-- DO NOT nest sections inside divs — they must be direct children of <body>
-- ALWAYS include these two nav links in desktop + mobile menu:
-  * Login/Sign In → href="#auth"
-  * Contact → href="#contact"
-- The <!--__TEMPLATE_AUTH__--> comment is MANDATORY — do NOT remove it
+RULES:
+- ALL sections except #home MUST have class="hidden page-section"
+- #home: class="page-section w-full" (NO hidden)
+- Every nav link href MUST exactly match section id: href="#about", href="#services" etc.
+- LOGO in navbar: inline SVG, clicking it goes to home: <a href="#home" id="nav-logo">SVG</a>
+- Include nav links: Home, About, Services, Portfolio, Contact, Sign In
+- Do NOT nest sections inside wrapper divs — direct children of body
+- Do NOT include a contact form yourself — the template injects it via <!--__TEMPLATE_CONTACT__-->
 
 ═══════════════════════════════════════════════════════
-PART 2 — IMAGES (Use Picsum — always works, no 404s)
+IMAGES — Use Picsum (never broken)
 ═══════════════════════════════════════════════════════
-
-Use Picsum Photos for ALL images — these never fail:
-  Hero:     https://picsum.photos/seed/KEYWORD/1400/700
-  Cards:    https://picsum.photos/seed/KEYWORD/600/400
-  Portrait: https://picsum.photos/seed/KEYWORD/400/400
-
-Replace KEYWORD with a relevant word (e.g. "coffee", "team", "product1", "product2").
-Use a DIFFERENT seed word for each image to get different photos.
-NEVER use the same seed twice — each image must be unique.
-
-Example for coffee shop:
-  Hero:      https://picsum.photos/seed/coffeehero/1400/700
-  About:     https://picsum.photos/seed/cafeinterior/600/400
-  Service 1: https://picsum.photos/seed/espresso/600/400
-  Service 2: https://picsum.photos/seed/latte/600/400
-  Team 1:    https://picsum.photos/seed/barista1/400/400
+Hero:     https://picsum.photos/seed/WORD/1400/700
+Card:     https://picsum.photos/seed/WORD/600/400
+Portrait: https://picsum.photos/seed/WORD/400/500
+Use a unique seed word per image (never repeat seeds).
 
 ═══════════════════════════════════════════════════════
-PART 3 — LOGO (Inline SVG — never use img tag for logo)
+LOGO — Inline SVG in navbar
 ═══════════════════════════════════════════════════════
-
-Generate a unique inline SVG logo in the navbar:
-- Coffee: cup with steam paths
-- Tech: geometric/circuit shapes  
-- Store: shopping bag silhouette
-- Health: heartbeat line or leaf
-Keep it under 5 SVG paths, 40x40 viewBox, use brand colors.
-
-═══════════════════════════════════════════════════════
-PART 4 — CONTENT (Rich, specific, never placeholder)
-═══════════════════════════════════════════════════════
-
-HOME:
-- Full-width hero with overlay: <div class="relative min-h-screen"><img src="picsum-url" class="absolute inset-0 w-full h-full object-cover"><div class="absolute inset-0 bg-black/50"></div><div class="relative z-10 flex items-center justify-center min-h-screen text-white text-center px-6">...content...</div></div>
-- Specific headline (2 lines), subtitle (2-3 sentences), 2 CTAs
-- Stats bar: 3 impressive numbers (500+ Clients, 10 Years, 4.9★)
-- Feature highlights: 3 icon+text cards below hero
-
-ABOUT:
-- Brand story in 2 paragraphs (be specific to their industry)
-- 2-column: story left + hero image right
-- Mission statement in a styled blockquote
-- Team grid: 4 cards, each with photo, name, role, 1-line bio
-
-SERVICES:
-- 3-4 cards, each with:
-  * Top image (picsum, unique seed)
-  * Icon (SVG or emoji) + title + price/timeframe
-  * 4 bullet point features
-  * Styled CTA button
-
-PORTFOLIO:
-- 6-image masonry/grid
-- Each: picsum image, project title, category badge, hover overlay with "View Project"
-- Include client name and year
+Create a unique SVG logo relevant to the business:
+- Coffee: coffee cup with steam
+- Tech: circuit/hexagon
+- Fashion: hanger or diamond
+- Food: fork/leaf
+Keep it under 5 paths, 40x40 viewBox, use brand colors.
+Wrap it: <a href="#home" id="nav-logo" class="flex items-center gap-2">SVG <span>Brand Name</span></a>
 
 ═══════════════════════════════════════════════════════
-PART 5 — DESIGN
+DESIGN SYSTEM
 ═══════════════════════════════════════════════════════
-
-- Tailwind CSS ONLY — all utilities from CDN
-- Choose brand-appropriate palette (warm for food, dark for tech, etc.)
-- Smooth transitions: hover:scale-105, hover:shadow-xl, transition-all duration-300
-- Gradient accents on buttons and headings
-- font-serif for h1/h2 headings, font-sans for body
-- Fully responsive: mobile-first
-
-═══════════════════════════════════════════════════════
-PART 6 — JAVASCRIPT (EXACT — do not modify)
-═══════════════════════════════════════════════════════
-
-// Mobile menu toggle ONLY — do not add any navigation logic
-const mobileBtn = document.getElementById('mobile-menu-btn');
-const mobileMenu = document.getElementById('mobile-menu');
-if (mobileBtn && mobileMenu) {
-  mobileBtn.addEventListener('click', () => mobileMenu.classList.toggle('hidden'));
-}
-
-THE FRAMEWORK INJECTS ITS OWN SPA ROUTER. Do NOT add any other click/nav handlers.
+- Tailwind CSS only (CDN loaded by framework)
+- Choose a cohesive palette matching the brand mood
+- Every section must be min-h-screen with full visual content
+- Hero: full-bleed background image with gradient overlay + headline + 2 CTA buttons
+- CTAs must be visually distinct and styled with gradients/shadows:
+  Primary: bg-gradient-to-r from-[COLOR]-600 to-[COLOR]-700 text-white px-8 py-4 rounded-2xl font-bold text-lg shadow-xl hover:scale-105 transition-all
+  Secondary: border-2 border-white text-white px-8 py-4 rounded-2xl font-bold text-lg hover:bg-white/10 transition-all
+- Services: 3-4 premium cards with image, icon, title, bullet features, price, styled button
+- Portfolio: 6-image masonry grid with hover overlays
+- About: two-column story + team grid (4 members with photos)
 
 ═══════════════════════════════════════════════════════
-OUTPUT FORMAT
+NAVBAR REQUIREMENTS
+═══════════════════════════════════════════════════════
+- Fixed/sticky at top
+- Desktop: horizontal links
+- Mobile hamburger menu (id="mobile-menu-btn" opens id="mobile-menu")
+- Transparent on scroll start, solid background after scrolling
+- Logo on left, links on right, Sign In button at end
+
+═══════════════════════════════════════════════════════
+JAVASCRIPT — Mobile menu toggle ONLY
+═══════════════════════════════════════════════════════
+The framework handles ALL page navigation. Do NOT add any nav click handlers.
+Only provide mobile menu toggle:
+
+const btn = document.getElementById('mobile-menu-btn');
+const menu = document.getElementById('mobile-menu');
+if(btn && menu) btn.addEventListener('click', () => menu.classList.toggle('hidden'));
+
+// Navbar scroll effect
+window.addEventListener('scroll', function(){
+  const nav = document.getElementById('main-nav');
+  if(nav) nav.classList.toggle('bg-black/80', window.scrollY > 50);
+});
+
+═══════════════════════════════════════════════════════
+OUTPUT FORMAT — USE DELIMITERS, NOT JSON
 ═══════════════════════════════════════════════════════
 
-Return ONLY valid JSON, no markdown fences:
-{ "html": "...", "css": "", "javascript": "// mobile menu toggle only" }
+===HTML_START===
+[complete HTML body content here — no <html><head><body> tags needed]
+===HTML_END===
+
+===CSS_START===
+[custom CSS only if needed — mostly empty since Tailwind handles everything]
+===CSS_END===
+
+===JS_START===
+[mobile menu toggle + scroll effect only]
+===JS_END===
 `;
-
-// ─────────────────────────────────────────────────────────────────────────────
-// E-COMMERCE ADDON — appended to base when ecommerce detected
-// ─────────────────────────────────────────────────────────────────────────────
 
 export const ECOMMERCE_ADDON = `
 
 ═══════════════════════════════════════════════════════
-E-COMMERCE REQUIREMENTS (add these sections)
+E-COMMERCE SECTIONS (after #portfolio)
 ═══════════════════════════════════════════════════════
 
-AFTER #portfolio, add EXACTLY these 3 comment placeholders (they will be replaced with full templates):
+After #portfolio section, add these placeholder comments (templates injected by framework):
 <!--__TEMPLATE_SHOP__-->
 <!--__TEMPLATE_CART__-->
 <!--__TEMPLATE_CHECKOUT__-->
 
-Add these nav links to navbar (desktop and mobile):
-  * Shop → href="#shop"  
-  * Cart → href="#cart" with a <span class="cart-badge"> badge
-  * Checkout → href="#checkout"
+Add to navbar (desktop AND mobile menu):
+- Shop → href="#shop"
+- Cart → href="#cart" with badge: <span class="cart-badge bg-red-500 text-white text-xs rounded-full px-1.5 py-0.5 ml-1">0</span>
 
-JAVASCRIPT for cart (add to the javascript field):
-let cartCount = 2;
-function updateCartBadge() {
-  document.querySelectorAll('.cart-badge').forEach(el => el.textContent = cartCount);
-}
-document.querySelectorAll('.add-to-cart').forEach(btn => {
-  btn.addEventListener('click', () => {
-    cartCount++;
-    updateCartBadge();
-    const orig = btn.textContent;
-    btn.textContent = '✓ Added!';
-    btn.classList.add('bg-green-600');
-    setTimeout(() => { btn.textContent = orig; btn.classList.remove('bg-green-600'); }, 1500);
-  });
-});
-updateCartBadge();
+On the HOME section hero, add prominent CTA buttons:
+- "Shop Now" → onclick navigates to shop: onclick="window.navigateTo && navigateTo('shop')"  
+- "View Cart" → onclick="window.navigateTo && navigateTo('cart')"
+
+Product buttons on home section use:
+onclick="addToCart(this, 'Product Name', '₹999')"
+
+CART JAVASCRIPT (add to JS section):
+// Cart is handled by injected template scripts
 `;
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Build final system instruction based on prompt analysis
-// ─────────────────────────────────────────────────────────────────────────────
 
 export const buildSystemInstruction = (prompt: string): string => {
   const { isEcommerce } = analyzePrompt(prompt);
@@ -208,5 +148,6 @@ export const buildSystemInstruction = (prompt: string): string => {
   return instruction;
 };
 
-// Keep backward compat export
 export const SYSTEM_INSTRUCTION = SYSTEM_INSTRUCTION_BASE;
+export const EXAMPLE_PROMPTS: string[] = [];
+export const INITIAL_PROMPT = '';
