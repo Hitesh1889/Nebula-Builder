@@ -7,13 +7,18 @@ export default defineConfig({
   plugins: [react()],
   resolve: { alias: { '@': path.resolve(__dirname, '.') } },
   build: {
-    target: 'es2020',
-    minify: 'esbuild',
+    target:    'es2020',
+    minify:    'esbuild',
+    // Inline ALL assets into JS — eliminates the CSS MIME type problem entirely
+    // by removing external .css files that Render serves with wrong Content-Type
+    assetsInlineLimit: 100 * 1024, // inline everything under 100KB
+    cssCodeSplit: false,            // single CSS chunk, then inlined
     rollupOptions: {
-      output: { manualChunks: { 'vendor': ['react','react-dom','lucide-react','jszip'] } }
+      output: {
+        // Single bundle — no separate CSS file to serve with wrong MIME type
+        manualChunks: undefined,
+      }
     },
     sourcemap: false,
-    assetsInlineLimit: 0,
-    cssCodeSplit: true,
   }
 });
