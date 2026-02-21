@@ -1,27 +1,18 @@
 /**
- * VISINARO AI SERVICE v6 — ROOT CAUSE FIXED
- *
- * ROOT CAUSE of "all models fail":
- * The AI returns HTML containing double quotes (class="hidden", href="...")
- * inside a JSON string. JSON.parse throws SyntaxError on this.
- * The catch block doesn't recognise it as a known error so blocks every
- * model for 30 s — all 8 models blocked → "all providers failed".
- *
- * FIX:
- * 1. Use non-streaming (stream: false) — simpler, no SSE parser bugs
- * 2. Parse with a custom extractor that handles unescaped quotes in HTML
- * 3. Change system prompt to use HTML-safe delimiters instead of JSON strings
+ * VISINARO AI SERVICE — Complete rewrite
+ * 
+ * New approach: Ask the AI to generate ONE complete self-contained HTML file.
+ * No SPA router injection. No template system. No delimiter parsing complexity.
+ * The AI generates a full working website in a single <html> document.
+ * Navigation works via plain JS show/hide — written BY the AI, not injected by us.
  */
-import { buildSystemInstruction } from '../constants';
-import { GeneratedContent } from '../types';
-import { CONTACT_TEMPLATE, FOOTER_TEMPLATE, AUTH_TEMPLATE, AUTH_SCRIPTS, SHOP_TEMPLATE, CART_TEMPLATE, CHECKOUT_TEMPLATE } from '../templates';
 
-// ─── Safe storage ──────────────────────────────────────────────────────────────
 const SS = {
   get:(k:string)=>{ try{return localStorage.getItem(k)||'';}catch{try{return sessionStorage.getItem(k)||'';}catch{return '';}} },
   set:(k:string,v:string)=>{ try{localStorage.setItem(k,v);}catch{} try{sessionStorage.setItem(k,v);}catch{} },
   del:(k:string)=>{ try{localStorage.removeItem(k);}catch{} try{sessionStorage.removeItem(k);}catch{} },
 };
+
 const K_GROQ='visinaro_groq_key', K_OR='visinaro_or_key';
 const envGet=(k:string)=>{ try{return (import.meta as any).env?.[k]||'';}catch{return '';} };
 
@@ -39,7 +30,6 @@ export const saveApiKey  =saveGroqKey;
 export const clearApiKey =()=>{clearGroqKey();clearOpenRouterKey();};
 export const hasApiKey   =hasAnyKey;
 
-// ─── Model cascade ────────────────────────────────────────────────────────────
 interface M{provider:'groq'|'openrouter';id:string;name:string;}
 const CASCADE:M[]=[
   {provider:'groq',       id:'llama-3.3-70b-versatile',              name:'Llama 3.3 70B'},
@@ -52,56 +42,129 @@ const CASCADE:M[]=[
   {provider:'openrouter', id:'google/gemma-2-9b-it:free',            name:'Gemma 2 9B'},
 ];
 
-// ─── Quota tracker ────────────────────────────────────────────────────────────
 const blocked:Record<string,number>={};
 const block   =(id:string,ms:number)=>{blocked[id]=Date.now()+ms;};
 const isBlocked=(id:string)=>(blocked[id]||0)>Date.now();
 export const getQuotaWaitSeconds=(id:string)=>Math.max(0,Math.ceil(((blocked[id]||0)-Date.now())/1000));
 
-// ─── System prompt — uses safe delimiters instead of JSON strings ─────────────
-// CRITICAL DESIGN: We ask the AI to wrap HTML/CSS/JS in XML-like delimiters
-// This completely avoids the double-quote-in-JSON problem that was breaking everything.
-function buildPrompt(userPrompt: string): string {
-  // The system instruction from constants already contains the output format
-  return buildSystemInstruction(userPrompt);
+// ── SYSTEM PROMPT ─────────────────────────────────────────────────────────────
+// Generate a COMPLETE self-contained HTML file — no injection, no templates.
+// The AI writes everything including navigation JS.
+const SYSTEM = `You are an expert web developer. Generate a complete, beautiful, multi-page website as a single self-contained HTML file.
+
+CRITICAL: Output ONLY raw HTML starting with <!DOCTYPE html>. No markdown. No code blocks. No explanation.
+
+## NAVIGATION SYSTEM — copy this EXACTLY:
+
+The site uses sections shown/hidden by JavaScript. Here is the EXACT pattern you MUST use:
+
+<script>
+function goTo(id) {
+  document.querySelectorAll('.pg').forEach(function(s) { s.style.display='none'; });
+  var el = document.getElementById(id);
+  if (el) { el.style.display='block'; window.scrollTo(0,0); }
+  document.querySelectorAll('nav a[data-page]').forEach(function(a) {
+    a.style.fontWeight = a.dataset.page===id ? '800' : '';
+    a.style.opacity = a.dataset.page===id ? '1' : '0.75';
+  });
 }
+document.addEventListener('DOMContentLoaded', function() {
+  document.querySelectorAll('nav a[data-page]').forEach(function(a) {
+    a.addEventListener('click', function(e) { e.preventDefault(); goTo(a.dataset.page); });
+  });
+  goTo('home');
+});
+</script>
 
-// ─── Parse delimited response ─────────────────────────────────────────────────
-function parseDelimited(raw: string): GeneratedContent {
-  const extract = (startTag: string, endTag: string): string => {
-    const s = raw.indexOf(startTag);
-    const e = raw.indexOf(endTag);
-    if (s < 0 || e < 0) return '';
-    return raw.slice(s + startTag.length, e).trim();
-  };
+## RULES:
+1. Every section must have class="pg" and a unique id (home, about, services, portfolio, contact)
+2. ALL sections EXCEPT #home must have style="display:none" in the HTML
+3. Nav links use data-page="sectionid" NOT href="#sectionid"
+4. Write the full goTo script exactly as shown above — DO NOT modify it
+5. Use Tailwind CSS from CDN: <script src="https://cdn.tailwindcss.com"></script>
+6. For images use: https://loremflickr.com/800/500/KEYWORD?lock=NUMBER (use topic-relevant keywords like coffee, gym, restaurant, etc.)
+7. Use a different lock number for every image (1, 2, 3, ...)
+8. Include a full footer with brand name, links, copyright
+9. Include a working contact form (just shows an alert on submit)
+10. The cart icon should show a count badge that increments on "Add to Cart" click
 
-  const html = extract('===HTML_START===', '===HTML_END===');
-  const css  = extract('===CSS_START===',  '===CSS_END===');
-  const js   = extract('===JS_START===',   '===JS_END===');
+## HTML STRUCTURE:
 
-  if (html.length > 200) {
-    return { html, css: css || '', javascript: js || '' };
-  }
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>[SITE NAME]</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; font-family: 'Inter', system-ui, sans-serif; }
+    .pg { min-height: 100vh; width: 100%; }
+  </style>
+</head>
+<body>
 
-  // Fallback: try JSON parse (in case model ignored the format instruction)
-  try {
-    const p = JSON.parse(raw);
-    if (p?.html && p.html.length > 200) return p;
-  } catch {}
+<!-- NAVBAR - fixed, always visible -->
+<nav style="position:fixed;top:0;left:0;right:0;z-index:1000;background:rgba(10,10,20,0.95);backdrop-filter:blur(12px);padding:0 2rem;height:64px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid rgba(255,255,255,0.08)">
+  <a href="#" onclick="goTo('home');return false;" style="color:white;font-weight:800;font-size:1.25rem;text-decoration:none;display:flex;align-items:center;gap:0.5rem">
+    [SVG LOGO ICON] [BRAND NAME]
+  </a>
+  <div style="display:flex;align-items:center;gap:1.5rem">
+    <a data-page="home" href="#" style="color:white;text-decoration:none;font-size:0.9rem;transition:opacity 0.2s">Home</a>
+    <a data-page="about" href="#" style="color:white;text-decoration:none;font-size:0.9rem;opacity:0.75;transition:opacity 0.2s">About</a>
+    <a data-page="services" href="#" style="color:white;text-decoration:none;font-size:0.9rem;opacity:0.75;transition:opacity 0.2s">Services</a>
+    <a data-page="portfolio" href="#" style="color:white;text-decoration:none;font-size:0.9rem;opacity:0.75;transition:opacity 0.2s">Portfolio</a>
+    <a data-page="contact" href="#" style="color:white;text-decoration:none;font-size:0.9rem;opacity:0.75;transition:opacity 0.2s">Contact</a>
+  </div>
+</nav>
 
-  // Fallback 2: find largest HTML block in raw text
-  const htmlMatch = raw.match(/<!DOCTYPE[\s\S]*<\/html>/i) ||
-                    raw.match(/<html[\s\S]*<\/html>/i) ||
-                    raw.match(/<body[\s\S]*<\/body>/i) ||
-                    raw.match(/<(?:nav|section|div|header)[\s\S]{500,}/i);
-  if (htmlMatch && htmlMatch[0].length > 200) {
-    return { html: htmlMatch[0], css: '', javascript: '' };
-  }
+<!-- SECTIONS - each with class="pg", only home visible initially -->
 
-  throw new Error(`AI response could not be parsed. Raw length: ${raw.length}. First 100: ${raw.slice(0,100)}`);
-}
+<section id="home" class="pg" style="padding-top:64px">
+  [FULL HERO + CONTENT]
+</section>
 
-// ─── Non-streaming API call ────────────────────────────────────────────────────
+<section id="about" class="pg" style="display:none;padding-top:64px">
+  [FULL ABOUT CONTENT]
+</section>
+
+<section id="services" class="pg" style="display:none;padding-top:64px">
+  [FULL SERVICES CONTENT]
+</section>
+
+<section id="portfolio" class="pg" style="display:none;padding-top:64px">
+  [FULL PORTFOLIO CONTENT]
+</section>
+
+<section id="contact" class="pg" style="display:none;padding-top:64px">
+  [FULL CONTACT FORM]
+</section>
+
+<!-- FOOTER inside #home OR after all sections but before </body> -->
+<footer style="background:#0f172a;color:#94a3b8;padding:3rem 2rem;text-align:center">
+  [footer content]
+</footer>
+
+[NAVIGATION SCRIPT exactly as shown above]
+
+</body>
+</html>
+
+## CONTENT REQUIREMENTS:
+- Hero: full-viewport background image with overlay, large headline, subtitle, 2 CTA buttons
+- About: 2-column layout with image, text, team grid
+- Services: card grid with images, prices, features
+- Portfolio: masonry/grid of images with hover effects
+- Contact: clean form with name, email, message fields, submit button
+- All sections must have RICH content — at least 500 words of actual content total
+- Use beautiful gradients, shadows, hover effects with inline styles + Tailwind classes
+- Make it look PROFESSIONAL and COMPLETE — not a skeleton`;
+
+// ── IMPORT GeneratedContent type ──────────────────────────────────────────────
+import { GeneratedContent } from '../types';
+
+// ── API CALL ──────────────────────────────────────────────────────────────────
 async function callModel(m: M, system: string, user: string): Promise<string> {
   const key = m.provider==='groq' ? getGroqKey() : getOpenRouterKey();
   if (!key || key.length < 10) throw new Error(`NO_KEY:${m.provider}`);
@@ -124,11 +187,10 @@ async function callModel(m: M, system: string, user: string): Promise<string> {
     headers,
     body: JSON.stringify({
       model:       m.id,
-      messages:    [{ role:'system', content:system }, { role:'user', content:user }],
-      temperature: 0.2,
-      max_tokens:  6000,
-      stream:      false,   // NON-STREAMING — simpler and avoids SSE parsing bugs
-      // NO response_format — we use delimiter-based parsing instead
+      messages:    [{ role:'system', content:system }, { role:'user', content:`Create a website for: ${user}` }],
+      temperature: 0.3,
+      max_tokens:  8000,
+      stream:      false,
     }),
   });
 
@@ -139,11 +201,86 @@ async function callModel(m: M, system: string, user: string): Promise<string> {
 
   const data = await res.json();
   const content = data?.choices?.[0]?.message?.content;
-  if (!content) throw new Error(`Empty response from ${m.id}. Full response: ${JSON.stringify(data).slice(0,200)}`);
+  if (!content) throw new Error(`Empty response from ${m.id}`);
   return content;
 }
 
-// ─── Main generation ──────────────────────────────────────────────────────────
+// ── PARSE HTML FROM AI RESPONSE ───────────────────────────────────────────────
+function extractHtml(raw: string): string {
+  // Strip markdown code fences if present
+  let html = raw
+    .replace(/^```html\s*/im, '')
+    .replace(/^```\s*/im, '')
+    .replace(/\s*```\s*$/im, '')
+    .trim();
+
+  // If it starts with <!DOCTYPE or <html, we're good
+  if (/^<!DOCTYPE/i.test(html) || /^<html/i.test(html)) {
+    return html;
+  }
+
+  // Try to find a full HTML document in the response
+  const docMatch = raw.match(/<!DOCTYPE[\s\S]*<\/html>/i) || raw.match(/<html[\s\S]*<\/html>/i);
+  if (docMatch) return docMatch[0];
+
+  // If we got just body content, wrap it
+  if (html.length > 200) {
+    return `<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<script src="https://cdn.tailwindcss.com"></script>
+<style>*{box-sizing:border-box}html,body{margin:0;padding:0}.pg{min-height:100vh;width:100%}</style>
+</head>
+<body>
+${html}
+</body>
+</html>`;
+  }
+
+  throw new Error(`Could not extract HTML. Response length: ${raw.length}`);
+}
+
+// ── ENSURE NAVIGATION WORKS ───────────────────────────────────────────────────
+// After AI generates the HTML, ensure the goTo script is present and correct.
+// This is our safety net — if the AI forgot the script, we inject it.
+function ensureNavigation(html: string): string {
+  // If goTo function is already present, leave it alone
+  if (html.includes('function goTo(')) return html;
+
+  // Inject the navigation script before </body>
+  const navScript = `
+<script>
+function goTo(id) {
+  document.querySelectorAll('.pg').forEach(function(s) { s.style.display='none'; });
+  var el = document.getElementById(id);
+  if (el) { el.style.display='block'; window.scrollTo(0,0); }
+  document.querySelectorAll('nav a[data-page]').forEach(function(a) {
+    a.style.fontWeight = a.dataset.page===id ? '800' : '';
+    a.style.opacity = a.dataset.page===id ? '1' : '0.75';
+  });
+}
+document.addEventListener('DOMContentLoaded', function() {
+  document.querySelectorAll('nav a[data-page]').forEach(function(a) {
+    a.addEventListener('click', function(e) { e.preventDefault(); goTo(a.dataset.page); });
+  });
+  // Also handle href="#sectionid" style links as fallback
+  document.querySelectorAll('a[href^="#"]').forEach(function(a) {
+    var id = a.getAttribute('href').slice(1);
+    if (id && document.getElementById(id)) {
+      a.addEventListener('click', function(e) { e.preventDefault(); goTo(id); });
+    }
+  });
+  var sections = document.querySelectorAll('.pg');
+  if (sections.length > 0) goTo(sections[0].id || 'home');
+});
+</script>`;
+
+  return html.replace('</body>', navScript + '\n</body>');
+}
+
+// ── MAIN EXPORT ───────────────────────────────────────────────────────────────
 export interface GenerateResult { content: GeneratedContent; usedModel: string; usedProvider: string; }
 
 export const generateWebsite = async (
@@ -153,8 +290,6 @@ export const generateWebsite = async (
 ): Promise<GenerateResult> => {
   if (!hasAnyKey()) throw new Error('API_KEY_MISSING');
 
-  const system  = buildPrompt(prompt);
-  let lastErr: unknown;
   let lastErrMsg = '';
 
   for (const m of CASCADE) {
@@ -164,61 +299,54 @@ export const generateWebsite = async (
 
     try {
       onProgress?.('', m.name);
-      const raw = await callModel(m, system, prompt);
-      const parsed = parseDelimited(raw);
-      // Success!
-      return { content: inject(parsed), usedModel: m.name, usedProvider: m.provider };
+      const raw = await callModel(m, SYSTEM, prompt);
+      const html = extractHtml(raw);
+      const finalHtml = ensureNavigation(html);
+
+      // Return as a GeneratedContent with html = the full document
+      // css and javascript are empty since everything is inline in the HTML
+      const content: GeneratedContent = {
+        html: finalHtml,
+        css: '',
+        javascript: '',
+      };
+
+      return { content, usedModel: m.name, usedProvider: m.provider };
 
     } catch (err: any) {
-      lastErr = err;
       lastErrMsg = String(err?.message || err);
       const msg = lastErrMsg.toLowerCase();
-
-      console.warn(`[Visinaro] Model ${m.id} failed: ${lastErrMsg.slice(0,100)}`);
+      console.warn(`[Visinaro] ${m.id} failed: ${lastErrMsg.slice(0,100)}`);
 
       if (msg.includes('no_key:')) continue;
-
-      if (msg.includes('401') || msg.includes('403') || msg.includes('invalid api key') || msg.includes('authentication')) {
-        // Bad key — block all models for this provider
+      if (msg.includes('401') || msg.includes('403') || msg.includes('authentication')) {
         CASCADE.filter(x => x.provider===m.provider).forEach(x => block(x.id, 600_000));
         continue;
       }
-      if (msg.includes('429') || msg.includes('rate limit') || msg.includes('quota') || msg.includes('too many')) {
+      if (msg.includes('429') || msg.includes('rate limit') || msg.includes('quota')) {
         block(m.id, 90_000); continue;
       }
-      if (msg.includes('404') || msg.includes('not found') || msg.includes('no endpoints')) {
+      if (msg.includes('404') || msg.includes('no endpoints')) {
         block(m.id, 24*3600_000); continue;
       }
-      if (msg.includes('503') || msg.includes('502') || msg.includes('overloaded') || msg.includes('upstream')) {
-        block(m.id, 60_000); continue;
-      }
-      // Parse error or short HTML — DON'T block the model long, just try the next one
-      // This was the bug: blocking for 30s meant all 8 models got blocked quickly
-      block(m.id, 5_000); // only 5 seconds, then it can retry
+      block(m.id, 5_000);
     }
   }
 
-  // All failed
-  const msg = lastErrMsg.toLowerCase();
-  if (!hasAnyKey()) throw new Error('API_KEY_MISSING');
-  if (msg.includes('429') || msg.includes('rate') || msg.includes('quota'))
-    throw new Error('All AI models are rate-limited. Please wait 30 seconds and try again.');
-  if (msg.includes('401') || msg.includes('403'))
-    throw new Error('API key rejected. Please tap Home and re-enter your key.');
-  throw new Error('Generation failed. Please click "Try Again" — it usually works on the second attempt.');
+  throw new Error('Generation failed. Please try again.');
 };
 
-// ─── SEO + prompt enhancer ─────────────────────────────────────────────────────
+// ── SEO OPTIMIZER ─────────────────────────────────────────────────────────────
 export const optimizeSEO = async (html: string, prompt: string): Promise<{improvedHtml:string; seoReport:string}> => {
   const m = CASCADE.find(x => !isBlocked(x.id) && ((x.provider==='groq'&&hasGroqKey())||(x.provider==='openrouter'&&hasOpenRouterKey())));
   if (!m) return { improvedHtml: html, seoReport: 'No model available.' };
   try {
     const raw = await callModel(m,
-      'You are an SEO expert. Improve the HTML meta tags, schema.org JSON-LD, headings, and alt texts. Return ONLY the improved HTML, nothing else.',
-      `Original prompt: ${prompt}\n\nHTML to improve:\n${html.slice(0,5000)}`
+      'You are an SEO expert. Add/improve meta tags, title, description, schema.org JSON-LD, heading hierarchy, and alt texts. Return ONLY the improved complete HTML.',
+      `Prompt: ${prompt}\n\nHTML:\n${html.slice(0,6000)}`
     );
-    const improved = raw.trim().replace(/^```html\n?/i,'').replace(/\n?```$/,'');
-    return { improvedHtml: improved.length > 200 ? improved : html, seoReport: 'SEO tags, schema, and alt texts updated.' };
+    const improved = extractHtml(raw);
+    return { improvedHtml: improved.length > 200 ? improved : html, seoReport: 'SEO meta tags, schema markup, and alt texts updated.' };
   } catch { return { improvedHtml: html, seoReport: 'SEO optimization unavailable.' }; }
 };
 
@@ -226,53 +354,7 @@ export const enhancePrompt = async (idea: string): Promise<string> => {
   const m = CASCADE.find(x => !isBlocked(x.id) && ((x.provider==='groq'&&hasGroqKey())||(x.provider==='openrouter'&&hasOpenRouterKey())));
   if (!m) return idea;
   try {
-    const raw = await callModel(m, 'Expand this into a detailed website prompt. Output ONLY the expanded prompt, no preamble.', `Expand: ${idea}`);
+    const raw = await callModel(m, 'Expand this into a detailed website brief. Output ONLY the expanded prompt, nothing else.', `Expand: ${idea}`);
     return raw.trim() || idea;
   } catch { return idea; }
 };
-
-// ─── Template injection ───────────────────────────────────────────────────────
-function inject(c: GeneratedContent): GeneratedContent {
-  if (!c.html) return c;
-
-  // STEP 1: Replace all template placeholder comments
-  c.html = c.html
-    .replace(/<!--__TEMPLATE_AUTH__-->/g,     AUTH_TEMPLATE + AUTH_SCRIPTS)
-    .replace(/<!--__TEMPLATE_CONTACT__-->/g,  CONTACT_TEMPLATE)
-    .replace(/<!--__TEMPLATE_SHOP__-->/g,     SHOP_TEMPLATE)
-    .replace(/<!--__TEMPLATE_CART__-->/g,     CART_TEMPLATE)
-    .replace(/<!--__TEMPLATE_CHECKOUT__-->/g, CHECKOUT_TEMPLATE)
-    .replace(/<!--__TEMPLATE_FOOTER__-->/g,   ''); // footer handled last, always at end
-
-  // STEP 2: Remove any AI-generated footer (it will be replaced at the very end)
-  c.html = c.html.replace(/<footer[\s\S]*?<\/footer>/gi, '');
-
-  // STEP 3: Remove duplicate/AI-generated contact section, keep only our template
-  if (c.html.includes('id="contact"')) {
-    // Replace AI contact section with our clean template
-    c.html = c.html.replace(/<section[^>]*id="contact"[^>]*>[\s\S]*?<\/section>/i, CONTACT_TEMPLATE);
-  } else {
-    c.html = c.html.replace('</body>', CONTACT_TEMPLATE + '\n</body>');
-  }
-
-  // STEP 4: Ensure auth section + scripts
-  if (!c.html.includes('id="auth"')) {
-    c.html = c.html.replace('</body>', AUTH_TEMPLATE + AUTH_SCRIPTS + '\n</body>');
-  } else if (!c.html.includes('window.addToCart')) {
-    c.html = c.html.replace('</body>', AUTH_SCRIPTS + '\n</body>');
-  }
-
-  // STEP 5: Ensure shop/cart/checkout for ecommerce sites
-  const needsShop = c.html.includes('id="shop"') || c.html.includes('href="#shop"');
-  if (needsShop) {
-    if (!c.html.includes('id="shop"'))     c.html = c.html.replace('</body>', SHOP_TEMPLATE + '\n</body>');
-    if (!c.html.includes('id="cart"'))     c.html = c.html.replace('</body>', CART_TEMPLATE + '\n</body>');
-    if (!c.html.includes('id="checkout"')) c.html = c.html.replace('</body>', CHECKOUT_TEMPLATE + '\n</body>');
-  }
-
-  // STEP 6: FOOTER ALWAYS LAST — after all sections
-  c.html = c.html.replace('</body>', FOOTER_TEMPLATE + '\n</body>');
-
-  return c;
-}
-

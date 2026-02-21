@@ -10,7 +10,7 @@ import CodeEditor from './components/CodeEditor';
 import HistorySidebar from './components/HistorySidebar';
 import SEOAgent from './components/SEOAgent';
 import { generateWebsite, hasAnyKey, clearApiKey, saveGroqKey, saveOpenRouterKey } from './services/aiService';
-import { AUTH_SCRIPTS } from './templates';
+// templates import removed - AI generates self-contained HTML
 import { GenerationStatus, ViewMode, WebsiteHistoryItem, GeneratedContent } from './types';
 import { useUndoRedoState } from './hooks/useAppHistory';
 
@@ -137,115 +137,14 @@ export default function App(){
   };
 
   const getStandaloneHtml=()=>{
-    if(!content)return'';
-    const spa=`<script>
-(function(){
-  var IDS=["home","about","services","portfolio","contact","auth","shop","cart","checkout","gallery","blog","pricing","team","menu","faq","solutions","features"];
-  function getSections(){
-    var t=Array.from(document.querySelectorAll(".page-section[id]"));
-    if(t.length>=2)return t;
-    var b=IDS.map(function(id){return document.getElementById(id);}).filter(Boolean);
-    if(b.length>=2)return b;
-    return Array.from(document.querySelectorAll("body > section[id]"));
-  }
-  function showSection(tid){
-    var sections=getSections();
-    if(!sections.length){setTimeout(function(){showSection(tid);},100);return;}
-    var found=false;
-    sections.forEach(function(s){
-      if(s.id===tid){
-        s.classList.remove("hidden");
-        s.style.removeProperty("display");
-        s.style.setProperty("display","block","important");
-        s.style.setProperty("visibility","visible","important");
-        found=true;
-      } else {
-        s.classList.add("hidden");
-        s.style.setProperty("display","none","important");
-      }
-    });
-    if(!found&&sections.length){showSection(sections[0].id);return;}
-    window.scrollTo(0,0);
-    document.querySelectorAll("nav a[href]").forEach(function(a){
-      var h=(a.getAttribute("href")||"").replace(/^#/,"").replace(/\\.html$/,"").trim();
-      if(h===tid||(tid==="home"&&(!h||h==="index"))){a.style.color="#6366f1";a.style.fontWeight="700";}
-      else{a.style.color="";a.style.fontWeight="";}
-    });
-    var mm=document.getElementById("mobile-menu");if(mm)mm.style.display="none";
-  }
-  window.navigateTo=showSection;
-  document.addEventListener("click",function(e){
-    var link=e.target.closest("a[href]");if(!link)return;
-    var href=(link.getAttribute("href")||"").trim();
-    if(!href||href==="#"){e.preventDefault();return;}
-    if(href.startsWith("http")||href.startsWith("//")||href.startsWith("mailto:")||href.startsWith("tel:")){e.preventDefault();window.open(href,"_blank");return;}
-    e.preventDefault();e.stopPropagation();
-    var tid=href.replace(/^#/,"").replace(/\\.html$/,"").replace(/^\\//,"").trim();
-    if(!tid||tid==="index")tid="home";
-    showSection(tid);
-    try{history.pushState(null,"","#"+tid);}catch(err){}
-  },true);
-  window.addEventListener("hashchange",function(){
-    var hash=location.hash.replace(/^#/,"").trim();
-    if(hash)showSection(hash);
-  });
-  function init(){
-    var s=getSections();
-    if(!s.length){setTimeout(init,200);return;}
-    var initHash=location.hash.replace(/^#/,"").trim();
-    var initId=(initHash&&document.getElementById(initHash))?initHash:(s[0]?s[0].id:"home");
-    s.forEach(function(x){
-      if(x.id===initId){
-        x.classList.remove("hidden");
-        x.style.removeProperty("display");
-        x.style.setProperty("display","block","important");
-      } else {
-        x.classList.add("hidden");
-        x.style.setProperty("display","none","important");
-      }
-    });
-  }
-  window.addEventListener("load",function(){setTimeout(init,100);});
-  if(document.readyState!=="loading")setTimeout(init,100);
-  window.addEventListener("error",function(e){
-    if(e.target&&e.target.tagName==="IMG"){
-      var img=e.target;if(img.dataset.vf)return;img.dataset.vf="1";
-      var seed=(img.alt||"photo").replace(/[^a-zA-Z0-9]/g,"").toLowerCase().slice(0,20)||"photo";
-      img.src="https://picsum.photos/seed/"+seed+"/800/500";img.style.objectFit="cover";
-    }
-  },true);
-})();
-<\/script>`;
-
-    const parts=[
-      '<!DOCTYPE html><html lang="en"><head>',
-      '<meta charset="UTF-8">',
-      '<meta name="viewport" content="width=device-width,initial-scale=1">',
-      '<title>' + (content.html?.match(/<title[^>]*>([^<]+)<\/title>/i)?.[1] || (content.html?.match(/<h1[^>]*>([^<]+)<\/h1>/i)?.[1]?.slice(0,60)) || 'Website') + '</title>',
-      '<script src="https://cdn.tailwindcss.com"><\/script>',
-      '<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">',
-      '<style>',
-      '*{box-sizing:border-box;}',
-      'html,body{margin:0;padding:0;width:100%;overflow-x:hidden;}',
-      '/* SPA sections - hidden by default until router initializes */',
-      '.page-section{width:100%!important;max-width:100%!important;}',
-      '.page-section.hidden, .page-section[style*="display:none"]{display:none!important;}',
-      '.hidden{display:none!important;}',
-      '.active-nav{color:#6366f1!important;font-weight:700!important;}',
-      '::-webkit-scrollbar{width:4px;}::-webkit-scrollbar-thumb{background:rgba(0,0,0,0.2);border-radius:4px;}',
-      (content.css||''),
-      '</style></head><body>',
-      (content.html||''),
-      AUTH_SCRIPTS,
-      spa,
-      '<script>',
-      (content.javascript||''),
-      '<\/script></body></html>'
-    ];
-    return parts.join('');
+    if(!content?.html)return'';
+    // AI generates a complete self-contained HTML document - just return it
+    const h=content.html;
+    if(/<html/i.test(h))return h;
+    return `<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><script src="https://cdn.tailwindcss.com"><\/script><style>*{box-sizing:border-box}html,body{margin:0;padding:0}.pg{min-height:100vh;width:100%}<\/style></head><body>${h}</body></html>`;
   };
 
-  const handleDownload=async()=>{
+    const handleDownload=async()=>{
     if(!content)return;
     const zip=new JSZip();
     zip.file('index.html',getStandaloneHtml());
