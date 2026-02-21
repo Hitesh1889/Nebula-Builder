@@ -498,3 +498,40 @@ export const FOOTER_TEMPLATE = `
     </div>
   </div>
 </footer>`;
+
+// ─── AUTH_SCRIPTS — JavaScript for login/signup tab switching ────────────────
+export const AUTH_SCRIPTS = `
+<script data-visinaro-injected="true">
+  function switchTab(tab) {
+    const loginForm  = document.getElementById('form-login');
+    const signupForm = document.getElementById('form-signup');
+    const loginTab   = document.getElementById('tab-login');
+    const signupTab  = document.getElementById('tab-signup');
+    if (!loginForm || !signupForm) return;
+    if (tab === 'login') {
+      loginForm.classList.remove('hidden');
+      signupForm.classList.add('hidden');
+      if (loginTab)  { loginTab.className  = 'flex-1 py-2.5 rounded-xl text-sm font-bold transition-all bg-white text-slate-900 shadow-lg'; }
+      if (signupTab) { signupTab.className = 'flex-1 py-2.5 rounded-xl text-sm font-bold transition-all text-slate-400 hover:text-white'; }
+    } else {
+      signupForm.classList.remove('hidden');
+      loginForm.classList.add('hidden');
+      if (signupTab) { signupTab.className  = 'flex-1 py-2.5 rounded-xl text-sm font-bold transition-all bg-white text-slate-900 shadow-lg'; }
+      if (loginTab)  { loginTab.className   = 'flex-1 py-2.5 rounded-xl text-sm font-bold transition-all text-slate-400 hover:text-white'; }
+    }
+  }
+  function handleSocialAuth(provider) {
+    const overlay = document.createElement('div');
+    overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:99999;display:flex;align-items:center;justify-content:center;';
+    overlay.innerHTML = '<div style="background:#1e293b;border:1px solid rgba(255,255,255,0.1);padding:32px;border-radius:24px;text-align:center;max-width:320px;">'
+      + '<div style="font-size:40px;margin-bottom:12px">🔐</div>'
+      + '<p style="color:white;font-weight:bold;font-size:16px;margin-bottom:6px">Connect ' + provider + '</p>'
+      + '<p style="color:#94a3b8;font-size:13px;margin-bottom:20px">In production, integrate the ' + provider + ' OAuth SDK here.</p>'
+      + '<button onclick="this.closest(\'div\').parentElement.remove()" style="padding:10px 28px;background:#4f46e5;color:white;border:none;border-radius:12px;cursor:pointer;font-weight:600;font-size:14px">Got it</button>'
+      + '</div>';
+    document.body.appendChild(overlay);
+  }
+  function handleEmailLogin()  { alert('✅ Sign in successful!\n\nConnect your backend auth (Firebase / Supabase / custom) here.'); }
+  function handleEmailSignup() { alert('🎉 Account created!\n\nConnect your backend auth (Firebase / Supabase / custom) here.'); }
+</script>
+`;
