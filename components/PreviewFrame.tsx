@@ -54,11 +54,15 @@ const PreviewFrame: React.FC<PreviewFrameProps> = ({
   var PAGE_IDS=['home','about','services','portfolio','contact','login','shop','cart','checkout','gallery','blog','pricing','team','faq','menu','solutions','features'];
   
   function getSections(){
+    // Only get actual page sections - never footer or nav
     var tagged=Array.from(document.querySelectorAll('.page-section[id]'));
     if(tagged.length>=2)return tagged;
     var byId=PAGE_IDS.map(function(id){return document.getElementById(id);}).filter(Boolean);
     if(byId.length>=2)return byId;
-    return Array.from(document.querySelectorAll('section[id]'));
+    // Fallback: sections but not footer
+    return Array.from(document.querySelectorAll('section[id]')).filter(function(s){
+      return s.tagName==='SECTION';
+    });
   }
 
   function showSection(targetId){

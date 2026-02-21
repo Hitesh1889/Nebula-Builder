@@ -235,38 +235,44 @@ export const enhancePrompt = async (idea: string): Promise<string> => {
 function inject(c: GeneratedContent): GeneratedContent {
   if (!c.html) return c;
 
-  // Replace placeholder comments first
+  // STEP 1: Replace all template placeholder comments
   c.html = c.html
     .replace(/<!--__TEMPLATE_AUTH__-->/g,     AUTH_TEMPLATE + AUTH_SCRIPTS)
     .replace(/<!--__TEMPLATE_CONTACT__-->/g,  CONTACT_TEMPLATE)
-    .replace(/<!--__TEMPLATE_FOOTER__-->/g,   FOOTER_TEMPLATE)
     .replace(/<!--__TEMPLATE_SHOP__-->/g,     SHOP_TEMPLATE)
     .replace(/<!--__TEMPLATE_CART__-->/g,     CART_TEMPLATE)
-    .replace(/<!--__TEMPLATE_CHECKOUT__-->/g, CHECKOUT_TEMPLATE);
+    .replace(/<!--__TEMPLATE_CHECKOUT__-->/g, CHECKOUT_TEMPLATE)
+    .replace(/<!--__TEMPLATE_FOOTER__-->/g,   ''); // footer handled last, always at end
 
-  // Ensure auth section exists (only if not already present)
-  if (!c.html.includes('id="auth"')) {
-    c.html = c.html.replace('</body>', AUTH_TEMPLATE + AUTH_SCRIPTS + '</body>');
-  } else if (!c.html.includes('function switchAuthTab')) {
-    // Auth section exists but scripts missing
-    c.html = c.html.replace('</body>', AUTH_SCRIPTS + '</body>');
-  }
+  // STEP 2: Remove any AI-generated footer (it will be replaced at the very end)
+  c.html = c.html.replace(/<footer[\s\S]*?<\/footer>/gi, '');
 
-  // Ensure contact section exists — but ONLY once
-  // The AI sometimes generates its own contact section. Remove it and use our template.
+  // STEP 3: Remove duplicate/AI-generated contact section, keep only our template
   if (c.html.includes('id="contact"')) {
-    // AI generated its own — strip it and replace with our cleaner template
+    // Replace AI contact section with our clean template
     c.html = c.html.replace(/<section[^>]*id="contact"[^>]*>[\s\S]*?<\/section>/i, CONTACT_TEMPLATE);
   } else {
-    c.html = c.html.replace('</body>', CONTACT_TEMPLATE + '</body>');
+    c.html = c.html.replace('</body>', CONTACT_TEMPLATE + '\n</body>');
   }
 
-  // Footer: remove any AI-generated footer and use our clean one
-  if (c.html.includes('<footer')) {
-    c.html = c.html.replace(/<footer[\s\S]*?<\/footer>/i, FOOTER_TEMPLATE);
-  } else {
-    c.html = c.html.replace('</body>', FOOTER_TEMPLATE + '</body>');
+  // STEP 4: Ensure auth section + scripts
+  if (!c.html.includes('id="auth"')) {
+    c.html = c.html.replace('</body>', AUTH_TEMPLATE + AUTH_SCRIPTS + '\n</body>');
+  } else if (!c.html.includes('window.addToCart')) {
+    c.html = c.html.replace('</body>', AUTH_SCRIPTS + '\n</body>');
   }
+
+  // STEP 5: Ensure shop/cart/checkout for ecommerce sites
+  const needsShop = c.html.includes('id="shop"') || c.html.includes('href="#shop"');
+  if (needsShop) {
+    if (!c.html.includes('id="shop"'))     c.html = c.html.replace('</body>', SHOP_TEMPLATE + '\n</body>');
+    if (!c.html.includes('id="cart"'))     c.html = c.html.replace('</body>', CART_TEMPLATE + '\n</body>');
+    if (!c.html.includes('id="checkout"')) c.html = c.html.replace('</body>', CHECKOUT_TEMPLATE + '\n</body>');
+  }
+
+  // STEP 6: FOOTER ALWAYS LAST — after all sections
+  c.html = c.html.replace('</body>', FOOTER_TEMPLATE + '\n</body>');
 
   return c;
 }
+

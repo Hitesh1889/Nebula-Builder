@@ -10,6 +10,7 @@ import CodeEditor from './components/CodeEditor';
 import HistorySidebar from './components/HistorySidebar';
 import SEOAgent from './components/SEOAgent';
 import { generateWebsite, hasAnyKey, clearApiKey, saveGroqKey, saveOpenRouterKey } from './services/aiService';
+import { AUTH_SCRIPTS } from './templates';
 import { GenerationStatus, ViewMode, WebsiteHistoryItem, GeneratedContent } from './types';
 import { useUndoRedoState } from './hooks/useAppHistory';
 
@@ -172,13 +173,14 @@ export default function App(){
       '<!DOCTYPE html><html lang="en"><head>',
       '<meta charset="UTF-8">',
       '<meta name="viewport" content="width=device-width,initial-scale=1">',
-      '<title>Website</title>',
+      '<title>' + (content.html?.match(/<title[^>]*>([^<]+)<\/title>/i)?.[1] || (content.html?.match(/<h1[^>]*>([^<]+)<\/h1>/i)?.[1]?.slice(0,60)) || 'Website') + '</title>',
       '<script src="https://cdn.tailwindcss.com"><\/script>',
       '<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">',
       '<style>html,body{margin:0;padding:0;width:100%;}.active-nav{color:#6366f1!important;font-weight:700!important;}.page-section{width:100%;}.hidden{display:none;}',
       (content.css||''),
       '</style></head><body>',
       (content.html||''),
+      AUTH_SCRIPTS,
       spa,
       '<script>',
       (content.javascript||''),
@@ -422,9 +424,15 @@ export default function App(){
               color:isEditable?'#a5b4fc':'#4b5563',flexShrink:0}}>
             <Pencil style={{width:13,height:13}}/>
           </button>
-          <button onClick={handleNewTab} title="Open in new tab"
-            style={{padding:'5px 7px',borderRadius:6,cursor:'pointer',border:'none',background:'rgba(255,255,255,0.04)',color:'#4b5563',flexShrink:0}}>
+          <button onClick={handleNewTab} title="Open in new tab — all pages work"
+            style={{padding:'5px 10px',borderRadius:6,cursor:'pointer',border:'none',flexShrink:0,
+              display:'flex',alignItems:'center',gap:5,fontSize:12,fontWeight:600,fontFamily:'inherit',
+              background:isGenerated?'rgba(34,197,94,0.15)':'rgba(255,255,255,0.04)',
+              color:isGenerated?'#4ade80':'#4b5563',
+              boxShadow:isGenerated?'0 0 0 1px rgba(34,197,94,0.3)':'none',
+              transition:'all 0.3s'}}>
             <ExternalLink style={{width:13,height:13}}/>
+            {isGenerated&&<span>Open</span>}
           </button>
           <button onClick={handleDownload} disabled={!content}
             style={{display:'flex',alignItems:'center',gap:4,padding:'5px 11px',
