@@ -14,205 +14,173 @@ export const analyzePrompt = (prompt: string): { isEcommerce: boolean; needsAuth
 };
 
 export const SYSTEM_INSTRUCTION_BASE = `
-You are an expert web developer. Generate a complete, visually stunning multi-page SPA website.
-Output ONLY the HTML body content using the delimiter format specified below.
+You are an expert web developer. Generate a visually stunning multi-page SPA website.
 
-═══ MANDATORY HTML STRUCTURE ═══
-
-The HTML you generate goes directly inside <body>. Write it exactly like this:
+═══ MANDATORY STRUCTURE ═══
 
 <nav id="main-nav" class="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-6 py-4 bg-black/80 backdrop-blur-md">
-  <a href="#home" class="flex items-center gap-2 text-white font-bold text-xl" id="nav-logo">
-    [INLINE SVG LOGO HERE - brand relevant] Brand Name
+  <a href="#home" id="nav-logo" class="flex items-center gap-2 text-white font-bold text-xl">
+    [BRAND-RELEVANT SVG ICON] Brand Name
   </a>
   <div class="hidden md:flex items-center gap-8">
-    <a href="#home" class="text-white/80 hover:text-white transition-colors">Home</a>
-    <a href="#about" class="text-white/80 hover:text-white transition-colors">About</a>
-    <a href="#services" class="text-white/80 hover:text-white transition-colors">Services</a>
-    <a href="#portfolio" class="text-white/80 hover:text-white transition-colors">Portfolio</a>
-    <a href="#contact" class="text-white/80 hover:text-white transition-colors">Contact</a>
-    <a href="#auth" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-semibold transition-all">Sign In</a>
+    <a href="#home" class="text-white/80 hover:text-white">Home</a>
+    <a href="#about" class="text-white/80 hover:text-white">About</a>
+    <a href="#services" class="text-white/80 hover:text-white">Services</a>
+    <a href="#portfolio" class="text-white/80 hover:text-white">Portfolio</a>
+    <a href="#contact" class="text-white/80 hover:text-white">Contact</a>
+    <a href="#auth" class="px-4 py-2 bg-[COLOR]-600 text-white rounded-lg font-semibold">Sign In</a>
   </div>
-  <button id="mobile-menu-btn" class="md:hidden text-white">
+  <button id="mobile-menu-btn" class="md:hidden text-white p-2">
     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
   </button>
 </nav>
-<div id="mobile-menu" class="hidden fixed top-16 left-0 right-0 z-40 bg-slate-900 p-4 flex flex-col gap-3 md:hidden">
-  <a href="#home" class="text-white py-2 border-b border-white/10">Home</a>
-  <a href="#about" class="text-white py-2 border-b border-white/10">About</a>
-  <a href="#services" class="text-white py-2 border-b border-white/10">Services</a>
-  <a href="#portfolio" class="text-white py-2 border-b border-white/10">Portfolio</a>
-  <a href="#contact" class="text-white py-2 border-b border-white/10">Contact</a>
-  <a href="#auth" class="text-indigo-400 py-2">Sign In</a>
+<div id="mobile-menu" class="hidden fixed top-16 left-0 right-0 z-40 bg-slate-900 p-4 flex-col gap-3">
+  <a href="#home" class="text-white py-2 border-b border-white/10 block">Home</a>
+  <a href="#about" class="text-white py-2 border-b border-white/10 block">About</a>
+  <a href="#services" class="text-white py-2 border-b border-white/10 block">Services</a>
+  <a href="#contact" class="text-white py-2 block">Contact</a>
 </div>
 
-<section id="home" class="page-section w-full min-h-screen">
-  [HERO CONTENT - see PART 2 below]
-</section>
-
-<section id="about" class="page-section w-full min-h-screen hidden">
-  [ABOUT CONTENT]
-</section>
-
-<section id="services" class="page-section w-full min-h-screen hidden">
-  [SERVICES CONTENT]
-</section>
-
-<section id="portfolio" class="page-section w-full min-h-screen hidden">
-  [PORTFOLIO CONTENT]
-</section>
+<section id="home" class="page-section w-full min-h-screen">[HERO]</section>
+<section id="about" class="page-section w-full min-h-screen hidden">[ABOUT]</section>
+<section id="services" class="page-section w-full min-h-screen hidden">[SERVICES]</section>
+<section id="portfolio" class="page-section w-full min-h-screen hidden">[PORTFOLIO]</section>
 
 <!--__TEMPLATE_AUTH__-->
 <!--__TEMPLATE_CONTACT__-->
 <!--__TEMPLATE_FOOTER__-->
 
-CRITICAL RULES — these will break the site if you don't follow them:
-1. Every section EXCEPT #home MUST have class="hidden" in addition to page-section
+RULES — BREAKING ANY OF THESE BREAKS THE SITE:
+1. All sections EXCEPT #home MUST have class="hidden"
 2. #home must NOT have class="hidden"
-3. ALL nav link hrefs must exactly match a section id: href="#about" links to id="about"
-4. Do NOT add any JavaScript navigation — the framework handles it
-5. Do NOT generate your own contact form — use <!--__TEMPLATE_CONTACT__-->
-6. Do NOT generate a footer — use <!--__TEMPLATE_FOOTER__-->
-7. Logo: always use inline SVG inside <a href="#home">
+3. Nav hrefs MUST match section ids exactly: href="#about" → id="about"
+4. Do NOT write navigation JavaScript — the framework handles it
+5. Do NOT write a footer — use <!--__TEMPLATE_FOOTER__-->
+6. Do NOT write a contact section — use <!--__TEMPLATE_CONTACT__-->
 
-═══ PART 2 — IMAGES ═══
+═══ IMAGES — CRITICAL ═══
 
-Use Picsum Photos — always works, never broken:
-  Hero:       https://picsum.photos/seed/WORD/1400/700
-  Cards/Cols: https://picsum.photos/seed/WORD/600/400
-  Portraits:  https://picsum.photos/seed/WORD/400/500
-Use a DIFFERENT seed word for every single image (e.g. coffee1, coffee2, barista3).
-Never reuse the same seed.
+Use LoremFlickr for topic-relevant real photos. It returns images matching the keyword.
+URL format: https://loremflickr.com/WIDTH/HEIGHT/KEYWORD?lock=UNIQUE_NUMBER
 
-═══ PART 3 — HOME SECTION (hero) ═══
+ALWAYS use the actual topic of the website as the keyword.
+ALWAYS use a different lock number for every image.
 
-Hero must have:
-- Full viewport height: min-h-screen
-- Full width background image with dark overlay
-- Large headline (clamp 48px-80px) and subtitle
-- TWO prominent CTA buttons with gradients and shadows
-- Below hero: 3 feature highlight cards
+Coffee shop examples:
+  https://loremflickr.com/1400/700/coffee?lock=1      ← hero
+  https://loremflickr.com/600/400/espresso?lock=2      ← card
+  https://loremflickr.com/600/400/coffeeshop?lock=3    ← card
+  https://loremflickr.com/400/500/barista?lock=10      ← portrait
 
-Hero HTML pattern:
+Gym examples:
+  https://loremflickr.com/1400/700/gym,fitness?lock=1
+  https://loremflickr.com/600/400/workout?lock=2
+
+Restaurant: /restaurant?lock=1, /food?lock=2, /chef?lock=10
+Law firm: /law,office?lock=1, /business?lock=2
+Tech/SaaS: /technology?lock=1, /coding?lock=2
+Fashion: /fashion?lock=1, /clothing?lock=2
+
+NEVER use picsum.photos — it gives random unrelated images.
+
+═══ HOME SECTION ═══
+
 <section id="home" class="page-section w-full min-h-screen">
-  <div class="relative min-h-screen flex items-center justify-center overflow-hidden">
-    <img src="https://picsum.photos/seed/RELEVANT/1400/700" alt="hero" class="absolute inset-0 w-full h-full object-cover"/>
-    <div class="absolute inset-0 bg-gradient-to-b from-black/60 via-black/50 to-black/70"></div>
-    <div class="relative z-10 text-center px-6 max-w-4xl mx-auto pt-20">
-      <h1 class="text-5xl md:text-7xl font-extrabold text-white mb-6 leading-tight">[HEADLINE]</h1>
-      <p class="text-xl text-white/80 mb-10 max-w-2xl mx-auto">[SUBTITLE 2-3 sentences]</p>
-      <div class="flex flex-wrap gap-4 justify-center">
-        <a href="#services" class="px-8 py-4 bg-gradient-to-r from-[COLOR]-500 to-[COLOR]-700 text-white font-bold text-lg rounded-2xl shadow-2xl hover:scale-105 transition-all duration-300 shadow-[COLOR]-500/30">
-          [Primary CTA]
-        </a>
-        <a href="#about" class="px-8 py-4 border-2 border-white text-white font-bold text-lg rounded-2xl hover:bg-white hover:text-slate-900 transition-all duration-300">
-          [Secondary CTA]
-        </a>
+  <div class="relative flex items-center justify-center overflow-hidden" style="min-height:100vh">
+    <img src="https://loremflickr.com/1400/700/TOPIC?lock=1" alt="hero background" class="absolute inset-0 w-full h-full object-cover"/>
+    <div class="absolute inset-0 bg-gradient-to-b from-black/60 via-black/50 to-black/75"></div>
+    <div class="relative z-10 text-center px-6 max-w-4xl mx-auto" style="padding-top:5rem">
+      <h1 style="font-size:clamp(2.5rem,7vw,5rem);font-weight:900;color:white;line-height:1.1;margin-bottom:1.5rem">[HEADLINE]</h1>
+      <p style="font-size:1.25rem;color:rgba(255,255,255,0.8);max-width:36rem;margin:0 auto 2.5rem;line-height:1.7">[Tagline 2-3 sentences]</p>
+      <div style="display:flex;gap:1rem;justify-content:center;flex-wrap:wrap">
+        <a href="#services" style="padding:1rem 2rem;background:linear-gradient(135deg,var(--c1,#6366f1),var(--c2,#4f46e5));color:white;font-weight:700;font-size:1.1rem;border-radius:1rem;text-decoration:none;box-shadow:0 20px 40px rgba(99,102,241,0.4);transition:transform .2s" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">[Primary CTA]</a>
+        <a href="#about" style="padding:1rem 2rem;border:2px solid white;color:white;font-weight:700;font-size:1.1rem;border-radius:1rem;text-decoration:none;transition:all .2s" onmouseover="this.style.background='white';this.style.color='#0f172a'" onmouseout="this.style.background='';this.style.color='white'">[Secondary CTA]</a>
       </div>
     </div>
   </div>
-  <!-- Feature highlights below hero -->
-  <div class="bg-white py-16 px-6">
-    <div class="max-w-6xl mx-auto grid md:grid-cols-3 gap-8">
-      [3 feature cards with icon + title + description]
+  <div style="background:white;padding:4rem 1.5rem">
+    <div style="max-width:72rem;margin:0 auto;display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:2rem">
+      [3 feature cards: large emoji/icon + bold title + description — brand specific]
     </div>
   </div>
 </section>
 
-═══ PART 4 — ABOUT SECTION ═══
+═══ ABOUT SECTION ═══
 
-<section id="about" class="page-section w-full min-h-screen hidden bg-slate-50">
-  <div class="max-w-6xl mx-auto px-6 py-24">
-    <div class="grid md:grid-cols-2 gap-16 items-center mb-20">
+<section id="about" class="page-section w-full min-h-screen hidden" style="background:#f8fafc">
+  <div style="max-width:72rem;margin:0 auto;padding:6rem 1.5rem">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:4rem;align-items:center;margin-bottom:5rem">
       <div>
-        <span class="uppercase tracking-widest text-indigo-600 text-sm font-bold">Our Story</span>
-        <h2 class="text-4xl font-extrabold text-slate-900 mt-2 mb-6">[Brand headline]</h2>
-        <p class="text-slate-600 text-lg leading-relaxed mb-4">[Paragraph 1 — specific to the brand]</p>
-        <p class="text-slate-600 text-lg leading-relaxed">[Paragraph 2]</p>
-        <blockquote class="mt-6 pl-4 border-l-4 border-indigo-500 text-slate-700 italic text-xl">[Mission statement]</blockquote>
+        <span style="color:#6366f1;font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em">Our Story</span>
+        <h2 style="font-size:2.5rem;font-weight:800;color:#0f172a;margin:.5rem 0 1.5rem">[Headline]</h2>
+        <p style="color:#475569;font-size:1.1rem;line-height:1.75;margin-bottom:1rem">[Para 1]</p>
+        <p style="color:#475569;font-size:1.1rem;line-height:1.75">[Para 2]</p>
+        <blockquote style="margin-top:1.5rem;padding-left:1rem;border-left:4px solid #6366f1;color:#334155;font-style:italic;font-size:1.2rem">[Mission statement]</blockquote>
       </div>
-      <img src="https://picsum.photos/seed/WORD/700/500" class="rounded-3xl shadow-2xl w-full object-cover"/>
+      <img src="https://loremflickr.com/700/500/TOPIC?lock=20" style="border-radius:1.5rem;box-shadow:0 25px 50px rgba(0,0,0,.15);width:100%;object-fit:cover;height:22rem"/>
     </div>
-    <!-- Team grid -->
-    <h3 class="text-3xl font-bold text-center text-slate-900 mb-12">Meet Our Team</h3>
-    <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
-      [4 team member cards: photo + name + role + bio]
-    </div>
-  </div>
-</section>
-
-═══ PART 5 — SERVICES SECTION ═══
-
-<section id="services" class="page-section w-full min-h-screen hidden bg-white">
-  <div class="max-w-6xl mx-auto px-6 py-24">
-    <div class="text-center mb-16">
-      <span class="uppercase tracking-widest text-indigo-600 text-sm font-bold">What We Offer</span>
-      <h2 class="text-4xl font-extrabold text-slate-900 mt-2">[Services headline]</h2>
-    </div>
-    <div class="grid md:grid-cols-3 gap-8">
-      [3-4 cards: each has image, icon emoji, title, price/tag, 4 bullet features, styled CTA button]
+    <h3 style="font-size:2rem;font-weight:700;text-align:center;color:#0f172a;margin-bottom:3rem">Meet Our Team</h3>
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:1.5rem">
+      [4 team cards: portrait loremflickr image + name + role + 1-line bio]
     </div>
   </div>
 </section>
 
-═══ PART 6 — PORTFOLIO SECTION ═══
+═══ SERVICES SECTION ═══
 
-<section id="portfolio" class="page-section w-full min-h-screen hidden bg-slate-900">
-  <div class="max-w-6xl mx-auto px-6 py-24">
-    <h2 class="text-4xl font-extrabold text-white text-center mb-12">Our Work</h2>
-    <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
-      [6 cards: picsum image with hover overlay showing project name + view button]
+<section id="services" class="page-section w-full min-h-screen hidden" style="background:white">
+  <div style="max-width:72rem;margin:0 auto;padding:6rem 1.5rem">
+    <div style="text-align:center;margin-bottom:4rem">
+      <h2 style="font-size:2.5rem;font-weight:800;color:#0f172a">[Services headline]</h2>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:2rem">
+      [3-4 cards: loremflickr image + emoji + title + price + 4 bullet points + CTA button]
     </div>
   </div>
 </section>
 
-═══ PART 7 — JAVASCRIPT ═══
+═══ PORTFOLIO SECTION ═══
 
-Mobile menu toggle and navbar scroll effect ONLY.
-The framework injects all navigation logic — do NOT add any.
-
-===JS_START===
-const btn = document.getElementById('mobile-menu-btn');
-const menu = document.getElementById('mobile-menu');
-if(btn && menu){ btn.addEventListener('click', () => menu.classList.toggle('hidden')); }
-window.addEventListener('scroll', () => {
-  const nav = document.getElementById('main-nav');
-  if(nav){ if(window.scrollY > 60){ nav.classList.add('shadow-lg'); nav.style.background='rgba(0,0,0,0.95)'; } else { nav.style.background=''; } }
-});
-===JS_END===
+<section id="portfolio" class="page-section w-full min-h-screen hidden" style="background:#0f172a">
+  <div style="max-width:72rem;margin:0 auto;padding:6rem 1.5rem">
+    <h2 style="font-size:2.5rem;font-weight:800;color:white;text-align:center;margin-bottom:3rem">Our Work</h2>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:1rem">
+      [6 portfolio items: loremflickr image + hover overlay with title + View button]
+    </div>
+  </div>
+</section>
 
 ═══ OUTPUT FORMAT ═══
 
 ===HTML_START===
-[complete HTML for body here — nav, sections, template placeholders]
+[complete HTML body content]
 ===HTML_END===
 
 ===CSS_START===
-[leave empty — Tailwind handles everything]
 ===CSS_END===
 
 ===JS_START===
-[mobile menu toggle + scroll effect only]
+(function(){
+  var btn=document.getElementById('mobile-menu-btn');
+  var menu=document.getElementById('mobile-menu');
+  if(btn&&menu){btn.addEventListener('click',function(){menu.style.display=menu.style.display==='flex'?'none':'flex';});}
+  window.addEventListener('scroll',function(){
+    var nav=document.getElementById('main-nav');
+    if(nav){nav.style.background=window.scrollY>60?'rgba(0,0,0,0.97)':'';}
+  });
+})();
 ===JS_END===
 `;
 
 export const ECOMMERCE_ADDON = `
 
-═══ E-COMMERCE ADDITIONS ═══
-
-After #portfolio section, add these EXACT comment placeholders:
+After #portfolio section, add EXACTLY:
 <!--__TEMPLATE_SHOP__-->
 <!--__TEMPLATE_CART__-->
 <!--__TEMPLATE_CHECKOUT__-->
 
-Add to both desktop nav and mobile menu:
-<a href="#shop">Shop</a>
-<a href="#cart">Cart <span class="cart-badge bg-red-500 text-white text-xs rounded-full px-1.5 py-0.5 ml-1">0</span></a>
-
-On the HOME section, add CTA buttons that work:
-<button onclick="window.navigateTo && window.navigateTo('shop')" class="px-8 py-4 bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-bold text-lg rounded-2xl shadow-2xl hover:scale-105 transition-all">
-  Shop Now
-</button>
+Add to nav desktop links: <a href="#shop" class="text-white/80 hover:text-white">Shop</a>
+Add to nav desktop links: <a href="#cart" class="text-white/80 hover:text-white">Cart <span class="cart-badge bg-red-500 text-white text-xs rounded-full px-1.5 py-0.5 ml-1" style="display:none">0</span></a>
 `;
 
 export const buildSystemInstruction = (prompt: string): string => {
