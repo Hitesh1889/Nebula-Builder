@@ -48,118 +48,135 @@ const isBlocked=(id:string)=>(blocked[id]||0)>Date.now();
 export const getQuotaWaitSeconds=(id:string)=>Math.max(0,Math.ceil(((blocked[id]||0)-Date.now())/1000));
 
 // ── SYSTEM PROMPT ─────────────────────────────────────────────────────────────
-// Generate a COMPLETE self-contained HTML file — no injection, no templates.
-// The AI writes everything including navigation JS.
-const SYSTEM = `You are an expert web developer. Generate a complete, beautiful, multi-page website as a single self-contained HTML file.
+// CRITICAL DESIGN RULES for reliable navigation:
+// 1. Nav uses inline style="display:flex" - NOT Tailwind class="hidden md:flex" which breaks
+// 2. All nav links use onclick="goTo('id');return false;" - NOT href="#id"  
+// 3. goTo() is a plain function that shows/hides .pg divs - simple and bulletproof
+const SYSTEM = `You are a web developer. Generate a complete, beautiful website as a SINGLE self-contained HTML file.
 
-CRITICAL: Output ONLY raw HTML starting with <!DOCTYPE html>. No markdown. No code blocks. No explanation.
+OUTPUT RULES — CRITICAL:
+- Start with <!DOCTYPE html> — nothing before it
+- No markdown, no code fences, no explanation, just raw HTML
+- Include ALL content: hero, about, services, portfolio, contact, footer
 
-## NAVIGATION SYSTEM — copy this EXACTLY:
+════════════════════════════════════════════
+NAVIGATION — COPY THIS EXACT PATTERN
+════════════════════════════════════════════
 
-The site uses sections shown/hidden by JavaScript. Here is the EXACT pattern you MUST use:
+Use this navigation system. DO NOT deviate from it:
 
-<script>
-function goTo(id) {
-  document.querySelectorAll('.pg').forEach(function(s) { s.style.display='none'; });
-  var el = document.getElementById(id);
-  if (el) { el.style.display='block'; window.scrollTo(0,0); }
-  document.querySelectorAll('nav a[data-page]').forEach(function(a) {
-    a.style.fontWeight = a.dataset.page===id ? '800' : '';
-    a.style.opacity = a.dataset.page===id ? '1' : '0.75';
-  });
-}
-document.addEventListener('DOMContentLoaded', function() {
-  document.querySelectorAll('nav a[data-page]').forEach(function(a) {
-    a.addEventListener('click', function(e) { e.preventDefault(); goTo(a.dataset.page); });
-  });
-  goTo('home');
-});
-</script>
-
-## RULES:
-1. Every section must have class="pg" and a unique id (home, about, services, portfolio, contact)
-2. ALL sections EXCEPT #home must have style="display:none" in the HTML
-3. Nav links use data-page="sectionid" NOT href="#sectionid"
-4. Write the full goTo script exactly as shown above — DO NOT modify it
-5. Use Tailwind CSS from CDN: <script src="https://cdn.tailwindcss.com"></script>
-6. For images use: https://loremflickr.com/800/500/KEYWORD?lock=NUMBER (use topic-relevant keywords like coffee, gym, restaurant, etc.)
-7. Use a different lock number for every image (1, 2, 3, ...)
-8. Include a full footer with brand name, links, copyright
-9. Include a working contact form (just shows an alert on submit)
-10. The cart icon should show a count badge that increments on "Add to Cart" click
-
-## HTML STRUCTURE:
-
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>[SITE NAME]</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <style>
-    * { box-sizing: border-box; }
-    html, body { margin: 0; padding: 0; font-family: 'Inter', system-ui, sans-serif; }
-    .pg { min-height: 100vh; width: 100%; }
-  </style>
-</head>
-<body>
-
-<!-- NAVBAR - fixed, always visible -->
-<nav style="position:fixed;top:0;left:0;right:0;z-index:1000;background:rgba(10,10,20,0.95);backdrop-filter:blur(12px);padding:0 2rem;height:64px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid rgba(255,255,255,0.08)">
-  <a href="#" onclick="goTo('home');return false;" style="color:white;font-weight:800;font-size:1.25rem;text-decoration:none;display:flex;align-items:center;gap:0.5rem">
-    [SVG LOGO ICON] [BRAND NAME]
-  </a>
-  <div style="display:flex;align-items:center;gap:1.5rem">
-    <a data-page="home" href="#" style="color:white;text-decoration:none;font-size:0.9rem;transition:opacity 0.2s">Home</a>
-    <a data-page="about" href="#" style="color:white;text-decoration:none;font-size:0.9rem;opacity:0.75;transition:opacity 0.2s">About</a>
-    <a data-page="services" href="#" style="color:white;text-decoration:none;font-size:0.9rem;opacity:0.75;transition:opacity 0.2s">Services</a>
-    <a data-page="portfolio" href="#" style="color:white;text-decoration:none;font-size:0.9rem;opacity:0.75;transition:opacity 0.2s">Portfolio</a>
-    <a data-page="contact" href="#" style="color:white;text-decoration:none;font-size:0.9rem;opacity:0.75;transition:opacity 0.2s">Contact</a>
+NAVBAR (use inline styles, NOT Tailwind responsive classes for the links div):
+<nav style="position:fixed;top:0;left:0;right:0;z-index:9999;background:rgba(0,0,0,0.92);backdrop-filter:blur(10px);height:64px;display:flex;align-items:center;justify-content:space-between;padding:0 2rem;box-shadow:0 1px 0 rgba(255,255,255,0.08)">
+  <span onclick="goTo('home')" style="color:white;font-weight:800;font-size:1.2rem;cursor:pointer;display:flex;align-items:center;gap:0.5rem">
+    [BRAND SVG ICON] [BRAND NAME]
+  </span>
+  <!-- IMPORTANT: use inline style="display:flex" NOT class="hidden md:flex" -->
+  <div style="display:flex;align-items:center;gap:2rem" id="nav-links">
+    <span onclick="goTo('home')" class="nav-link" style="color:white;cursor:pointer;font-size:0.9rem;font-weight:600;padding:0.25rem 0;border-bottom:2px solid white;transition:opacity 0.2s">Home</span>
+    <span onclick="goTo('about')" class="nav-link" style="color:rgba(255,255,255,0.7);cursor:pointer;font-size:0.9rem;font-weight:500;padding:0.25rem 0;border-bottom:2px solid transparent;transition:opacity 0.2s">About</span>
+    <span onclick="goTo('services')" class="nav-link" style="color:rgba(255,255,255,0.7);cursor:pointer;font-size:0.9rem;font-weight:500;padding:0.25rem 0;border-bottom:2px solid transparent;transition:opacity 0.2s">Services</span>
+    <span onclick="goTo('portfolio')" class="nav-link" style="color:rgba(255,255,255,0.7);cursor:pointer;font-size:0.9rem;font-weight:500;padding:0.25rem 0;border-bottom:2px solid transparent;transition:opacity 0.2s">Portfolio</span>
+    <span onclick="goTo('contact')" class="nav-link" style="color:rgba(255,255,255,0.7);cursor:pointer;font-size:0.9rem;font-weight:500;padding:0.25rem 0;border-bottom:2px solid transparent;transition:opacity 0.2s">Contact</span>
   </div>
 </nav>
 
-<!-- SECTIONS - each with class="pg", only home visible initially -->
+SECTIONS (only home visible at start — use display:block/none with inline style):
+<div id="home" class="pg" style="display:block;padding-top:64px">[HOME CONTENT]</div>
+<div id="about" class="pg" style="display:none;padding-top:64px">[ABOUT CONTENT]</div>
+<div id="services" class="pg" style="display:none;padding-top:64px">[SERVICES CONTENT]</div>
+<div id="portfolio" class="pg" style="display:none;padding-top:64px">[PORTFOLIO CONTENT]</div>
+<div id="contact" class="pg" style="display:none;padding-top:64px">[CONTACT CONTENT]</div>
 
-<section id="home" class="pg" style="padding-top:64px">
-  [FULL HERO + CONTENT]
-</section>
+NAVIGATION SCRIPT (place at end of body, before </body>):
+<script>
+var _currentPage = 'home';
+function goTo(id) {
+  document.querySelectorAll('.pg').forEach(function(el) {
+    el.style.display = 'none';
+  });
+  var target = document.getElementById(id);
+  if (target) {
+    target.style.display = 'block';
+    _currentPage = id;
+    window.scrollTo(0, 0);
+  }
+  document.querySelectorAll('.nav-link').forEach(function(a) {
+    var isActive = a.getAttribute('onclick') && a.getAttribute('onclick').indexOf("'"+id+"'") >= 0;
+    a.style.color = isActive ? 'white' : 'rgba(255,255,255,0.7)';
+    a.style.borderBottom = isActive ? '2px solid white' : '2px solid transparent';
+    a.style.fontWeight = isActive ? '600' : '500';
+  });
+}
+// Intercept ALL link clicks to prevent page navigation
+document.addEventListener('click', function(e) {
+  var link = e.target.closest('a[href]');
+  if (!link) return;
+  var href = link.getAttribute('href') || '';
+  // If it's a hash link to a known section, use goTo
+  if (href.startsWith('#')) {
+    var id = href.slice(1);
+    if (document.getElementById(id)) {
+      e.preventDefault();
+      goTo(id);
+      return;
+    }
+    e.preventDefault();
+    return;
+  }
+  // External links open in new tab
+  if (href.startsWith('http') || href.startsWith('//')) {
+    e.preventDefault();
+    window.open(href, '_blank');
+    return;
+  }
+  // Prevent all other navigation
+  if (href !== 'javascript:void(0)' && href !== '' && href !== '#') {
+    e.preventDefault();
+  }
+}, true);
+</script>
 
-<section id="about" class="pg" style="display:none;padding-top:64px">
-  [FULL ABOUT CONTENT]
-</section>
+════════════════════════════════════════════
+IMAGES
+════════════════════════════════════════════
 
-<section id="services" class="pg" style="display:none;padding-top:64px">
-  [FULL SERVICES CONTENT]
-</section>
+Use LoremFlickr with the topic keyword. NEVER use picsum.photos (gives random unrelated images).
+Format: https://loremflickr.com/WIDTH/HEIGHT/KEYWORD?lock=UNIQUE_NUMBER
 
-<section id="portfolio" class="pg" style="display:none;padding-top:64px">
-  [FULL PORTFOLIO CONTENT]
-</section>
+Use the actual topic as keyword:
+- Coffee shop: https://loremflickr.com/1400/700/coffee?lock=1
+- Gym: https://loremflickr.com/1400/700/gym?lock=1  
+- Restaurant: https://loremflickr.com/1400/700/restaurant?lock=1
+- Law firm: https://loremflickr.com/1400/700/law?lock=1
+- Use a DIFFERENT lock number for every single image (1, 2, 3, 4...)
 
-<section id="contact" class="pg" style="display:none;padding-top:64px">
-  [FULL CONTACT FORM]
-</section>
+════════════════════════════════════════════
+REQUIRED SECTIONS
+════════════════════════════════════════════
 
-<!-- FOOTER inside #home OR after all sections but before </body> -->
-<footer style="background:#0f172a;color:#94a3b8;padding:3rem 2rem;text-align:center">
-  [footer content]
-</footer>
+HOME: Full-screen hero with loremflickr background image + dark overlay, large headline, subtitle, 2 CTA buttons. Below hero: 3 feature cards.
 
-[NAVIGATION SCRIPT exactly as shown above]
+ABOUT: 2-column layout (text + image), company story, team grid with 4 member cards.
 
-</body>
-</html>
+SERVICES: Card grid with 3-4 service cards, each with image, icon, title, price, features list, CTA button.
 
-## CONTENT REQUIREMENTS:
-- Hero: full-viewport background image with overlay, large headline, subtitle, 2 CTA buttons
-- About: 2-column layout with image, text, team grid
-- Services: card grid with images, prices, features
-- Portfolio: masonry/grid of images with hover effects
-- Contact: clean form with name, email, message fields, submit button
-- All sections must have RICH content — at least 500 words of actual content total
-- Use beautiful gradients, shadows, hover effects with inline styles + Tailwind classes
-- Make it look PROFESSIONAL and COMPLETE — not a skeleton`;
+PORTFOLIO: Image grid with 6 items, hover overlay effect.
+
+CONTACT: Split layout — contact info cards on left, form on right. Form has name, email, message, submit button that shows alert("Message sent! We'll be in touch.").
+
+FOOTER: Dark background, 4 columns (brand info, nav links, support links, social icons), copyright line. Footer goes inside the #home section at the bottom OR as a standalone element after all .pg divs.
+
+════════════════════════════════════════════
+IMPORTANT RULES
+════════════════════════════════════════════
+
+1. Use <span onclick="goTo('id')"> for nav — NOT <a href="#id">
+2. Use inline styles for layout-critical things — NOT Tailwind responsive classes
+3. Tailwind classes are fine for colors, spacing, shadows, typography
+4. All CTA buttons: onclick="goTo('services')" or onclick="goTo('contact')" — not href
+5. Make each section visually distinct and complete — not placeholder text
+6. Use beautiful design: gradients, shadows, hover effects, smooth transitions
+`;
 
 // ── IMPORT GeneratedContent type ──────────────────────────────────────────────
 import { GeneratedContent } from '../types';
@@ -243,41 +260,81 @@ ${html}
 }
 
 // ── ENSURE NAVIGATION WORKS ───────────────────────────────────────────────────
-// After AI generates the HTML, ensure the goTo script is present and correct.
-// This is our safety net — if the AI forgot the script, we inject it.
+// Always inject a safety-net script that:
+// 1. Defines goTo() if not present
+// 2. Intercepts ALL anchor clicks to prevent navigation away from the page
+// 3. Handles both data-page and href="#id" style links
 function ensureNavigation(html: string): string {
-  // If goTo function is already present, leave it alone
-  if (html.includes('function goTo(')) return html;
-
-  // Inject the navigation script before </body>
-  const navScript = `
+  // ALWAYS inject our safety-net script, regardless of what the AI generated
+  // It wraps the existing goTo or defines its own
+  const safetyScript = `
 <script>
-function goTo(id) {
-  document.querySelectorAll('.pg').forEach(function(s) { s.style.display='none'; });
-  var el = document.getElementById(id);
-  if (el) { el.style.display='block'; window.scrollTo(0,0); }
-  document.querySelectorAll('nav a[data-page]').forEach(function(a) {
-    a.style.fontWeight = a.dataset.page===id ? '800' : '';
-    a.style.opacity = a.dataset.page===id ? '1' : '0.75';
-  });
-}
-document.addEventListener('DOMContentLoaded', function() {
-  document.querySelectorAll('nav a[data-page]').forEach(function(a) {
-    a.addEventListener('click', function(e) { e.preventDefault(); goTo(a.dataset.page); });
-  });
-  // Also handle href="#sectionid" style links as fallback
-  document.querySelectorAll('a[href^="#"]').forEach(function(a) {
-    var id = a.getAttribute('href').slice(1);
-    if (id && document.getElementById(id)) {
-      a.addEventListener('click', function(e) { e.preventDefault(); goTo(id); });
+(function() {
+  // Define goTo if the AI didn't
+  if (typeof goTo !== 'function') {
+    window.goTo = function(id) {
+      document.querySelectorAll('.pg, section[id], div[id]').forEach(function(el) {
+        if (el.classList.contains('pg') || ['home','about','services','portfolio','contact','shop','cart','checkout','team','blog','pricing','gallery','menu','faq'].indexOf(el.id) >= 0) {
+          el.style.display = 'none';
+        }
+      });
+      var target = document.getElementById(id);
+      if (target) { target.style.display = 'block'; window.scrollTo(0, 0); }
+      document.querySelectorAll('.nav-link, nav a, nav span[onclick]').forEach(function(el) {
+        var onclick = el.getAttribute('onclick') || '';
+        var isActive = onclick.indexOf("'"+id+"'") >= 0 || onclick.indexOf('"'+id+'"') >= 0;
+        el.style.opacity = isActive ? '1' : '0.7';
+        el.style.fontWeight = isActive ? '700' : '500';
+      });
+    };
+  } else {
+    window.goTo = goTo;
+  }
+
+  // INTERCEPT ALL ANCHOR CLICKS — prevents any navigation away from the page
+  document.addEventListener('click', function(e) {
+    var link = e.target.closest('a');
+    if (!link) return;
+    var href = (link.getAttribute('href') || '').trim();
+    // Hash links: use goTo if it's a known section
+    if (href.startsWith('#') && href.length > 1) {
+      var id = href.slice(1);
+      e.preventDefault();
+      if (document.getElementById(id)) { window.goTo(id); }
+      return;
+    }
+    // External links: open in new tab
+    if (href.startsWith('http') || href.startsWith('//')) {
+      e.preventDefault();
+      try { window.open(href, '_blank', 'noopener'); } catch(ex) {}
+      return;
+    }
+    // Everything else: block navigation
+    if (href && href !== '#' && href !== 'javascript:void(0)' && href !== 'javascript:;') {
+      e.preventDefault();
+    }
+  }, true); // capture phase — runs before any other handler
+
+  // Initialize: show first .pg section, hide the rest
+  document.addEventListener('DOMContentLoaded', function() {
+    var pages = Array.from(document.querySelectorAll('.pg'));
+    if (pages.length === 0) {
+      // Fallback: find sections by known IDs
+      var ids = ['home','about','services','portfolio','contact'];
+      pages = ids.map(function(id) { return document.getElementById(id); }).filter(Boolean);
+    }
+    if (pages.length > 0) {
+      pages.forEach(function(p, i) { p.style.display = i === 0 ? 'block' : 'none'; });
     }
   });
-  var sections = document.querySelectorAll('.pg');
-  if (sections.length > 0) goTo(sections[0].id || 'home');
-});
+})();
 </script>`;
 
-  return html.replace('</body>', navScript + '\n</body>');
+  // Insert before </body>
+  if (html.includes('</body>')) {
+    return html.replace('</body>', safetyScript + '\n</body>');
+  }
+  return html + safetyScript;
 }
 
 // ── MAIN EXPORT ───────────────────────────────────────────────────────────────

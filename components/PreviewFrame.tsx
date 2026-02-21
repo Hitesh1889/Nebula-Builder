@@ -100,7 +100,7 @@ ${content.javascript || ''}
           transform: scale < 1 ? `scale(${scale})` : 'none',
           background: 'white',
         }}
-        sandbox="allow-scripts allow-same-origin allow-forms allow-popups"
+        sandbox="allow-scripts allow-forms allow-popups"
         title="Preview"
       />
     </div>
