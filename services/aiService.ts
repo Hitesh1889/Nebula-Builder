@@ -62,35 +62,8 @@ export const getQuotaWaitSeconds=(id:string)=>Math.max(0,Math.ceil(((blocked[id]
 // CRITICAL DESIGN: We ask the AI to wrap HTML/CSS/JS in XML-like delimiters
 // This completely avoids the double-quote-in-JSON problem that was breaking everything.
 function buildPrompt(userPrompt: string): string {
-  const base = buildSystemInstruction(userPrompt);
-  // Replace the output format section with a delimiter-based one
-  const safeOutputInstruction = `
-═══════════════════════════════════════════════════════
-OUTPUT FORMAT — CRITICAL — READ CAREFULLY
-═══════════════════════════════════════════════════════
-
-Wrap your output in these EXACT delimiters. Do NOT use JSON. Do NOT use markdown.
-
-===HTML_START===
-[your complete HTML here — all quotes, special characters are fine]
-===HTML_END===
-
-===CSS_START===
-[any custom CSS keyframes only, or leave empty]
-===CSS_END===
-
-===JS_START===
-[mobile menu toggle only — framework handles navigation]
-===JS_END===
-
-Nothing before ===HTML_START=== and nothing after ===JS_END===.
-`;
-  // Replace the old OUTPUT FORMAT section
-  const outputIdx = base.lastIndexOf('OUTPUT FORMAT');
-  if (outputIdx >= 0) {
-    return base.slice(0, outputIdx) + safeOutputInstruction;
-  }
-  return base + safeOutputInstruction;
+  // The system instruction from constants already contains the output format
+  return buildSystemInstruction(userPrompt);
 }
 
 // ─── Parse delimited response ─────────────────────────────────────────────────

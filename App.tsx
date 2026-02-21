@@ -137,47 +137,55 @@ export default function App(){
 
   const getStandaloneHtml=()=>{
     if(!content)return'';
-    const spaRouter=`<script>
-(function(){
-  var PAGE_IDS=['home','about','services','portfolio','contact','auth','shop','cart','checkout','gallery','blog','pricing','team','menu'];
-  function getSections(){
-    var t=Array.from(document.querySelectorAll('.page-section[id]'));
-    if(t.length>=2)return t;
-    var b=PAGE_IDS.map(function(id){return document.getElementById(id);}).filter(Boolean);
-    if(b.length>=2)return b;
-    return Array.from(document.querySelectorAll('section[id]'));
-  }
-  window.navigateTo=function(tid){
-    getSections().forEach(function(s){
-      if(s.id===tid){s.style.display='';s.classList.remove('hidden');if(window.getComputedStyle(s).display==='none')s.style.display='block';window.scrollTo(0,0);}
-      else{s.style.display='none';}
-    });
-    document.querySelectorAll('nav a[href]').forEach(function(a){
-      var h=(a.getAttribute('href')||'').replace(/^#/,'').replace(/\.html$/,'').trim();
-      a.classList.toggle('active-nav',h===tid||(tid==='home'&&(!h||h==='index')));
-    });
-    var mm=document.getElementById('mobile-menu');if(mm)mm.classList.add('hidden');
+    const spa=[
+      '<script>(function(){',
+      'var IDS=["home","about","services","portfolio","contact","auth","shop","cart","checkout","gallery","blog","pricing","team","menu","faq"];',
+      'function secs(){var t=Array.from(document.querySelectorAll(".page-section[id]"));if(t.length>=2)return t;',
+      'var b=IDS.map(function(id){return document.getElementById(id);}).filter(Boolean);if(b.length>=2)return b;',
+      'return Array.from(document.querySelectorAll("section[id]"));}',
+      'window.navigateTo=function(tid){',
+      'secs().forEach(function(s){if(s.id===tid){s.style.display="";s.classList.remove("hidden");',
+      'if(window.getComputedStyle(s).display==="none")s.style.display="block";window.scrollTo(0,0);}',
+      'else{s.style.display="none";}});',
+      'document.querySelectorAll("nav a[href]").forEach(function(a){',
+      'var h=(a.getAttribute("href")||"").replace(/^#/,"").replace(/\.html$/,"").trim();',
+      'a.classList.toggle("active-nav",h===tid||(tid==="home"&&(!h||h==="index")));});',
+      'var mm=document.getElementById("mobile-menu");if(mm)mm.classList.add("hidden");};',
+      'document.addEventListener("click",function(e){',
+      'var link=e.target.closest("a[href]");if(!link)return;',
+      'var href=link.getAttribute("href")||"";',
+      'if(href.startsWith("http")||href.startsWith("//")||href.startsWith("mailto:")||href.startsWith("tel:")){e.preventDefault();window.open(href,"_blank");return;}',
+      'if(href==="#"){e.preventDefault();return;}',
+      'e.preventDefault();',
+      'var tid=href.replace(/^#/,"").replace(/\.html$/,"").replace(/^\//,"").trim();',
+      'if(!tid||tid==="index")tid="home";window.navigateTo(tid);},true);',
+      'function init(){var s=secs();if(!s.length){setTimeout(init,200);return;}',
+      's.forEach(function(x){if(x.id==="home"||x===s[0]){x.style.display="";x.classList.remove("hidden");}else{x.style.display="none";}});}',
+      'document.readyState==="loading"?document.addEventListener("DOMContentLoaded",function(){setTimeout(init,150);}):setTimeout(init,150);',
+      'window.addEventListener("error",function(e){if(e.target&&e.target.tagName==="IMG"){',
+      'var img=e.target;if(img.dataset.vf)return;img.dataset.vf="1";',
+      'var seed=(img.alt||"photo").replace(/[^a-zA-Z0-9]/g,"").toLowerCase().slice(0,20)||"photo";',
+      'img.src="https://picsum.photos/seed/"+seed+"/800/500";img.style.objectFit="cover";}},true);',
+      '})();<\/script>'
+    ].join('');
+    const parts=[
+      '<!DOCTYPE html><html lang="en"><head>',
+      '<meta charset="UTF-8">',
+      '<meta name="viewport" content="width=device-width,initial-scale=1">',
+      '<title>Website</title>',
+      '<script src="https://cdn.tailwindcss.com"><\/script>',
+      '<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">',
+      '<style>html,body{margin:0;padding:0;width:100%;}.active-nav{color:#6366f1!important;font-weight:700!important;}.page-section{width:100%;}.hidden{display:none;}',
+      (content.css||''),
+      '</style></head><body>',
+      (content.html||''),
+      spa,
+      '<script>',
+      (content.javascript||''),
+      '<\/script></body></html>'
+    ];
+    return parts.join('');
   };
-  document.addEventListener('click',function(e){
-    var link=e.target.closest('a[href]');if(!link)return;
-    var href=link.getAttribute('href')||'';
-    if(href.startsWith('http')||href.startsWith('//')||href.startsWith('mailto:')||href.startsWith('tel:')){e.preventDefault();window.open(href,'_blank');return;}
-    if(href==='#'){e.preventDefault();return;}
-    e.preventDefault();
-    var tid=href.replace(/^#/,'').replace(/\.html$/,'').replace(/^\//,'').trim();
-    if(!tid||tid==='index')tid='home';
-    window.navigateTo(tid);
-  },true);
-  function init(){
-    var s=getSections();if(!s.length){setTimeout(init,200);return;}
-    s.forEach(function(x){if(x.id==='home'||x===s[0]){x.style.display='';x.classList.remove('hidden');}else{x.style.display='none';}});
-  }
-  document.readyState==='loading'?document.addEventListener('DOMContentLoaded',function(){setTimeout(init,100);}):setTimeout(init,100);
-  window.addEventListener('error',function(e){if(e.target&&e.target.tagName==='IMG'){var img=e.target;if(img.dataset.vf)return;img.dataset.vf='1';var seed=(img.alt||'photo').replace(/[^a-zA-Z0-9]/g,'').toLowerCase().slice(0,20)||'photo';img.src='https://picsum.photos/seed/'+seed+'/800/500';img.style.objectFit='cover';}},true);
-})();
-<\/script>`;
-    return"<!DOCTYPE html><html lang=\"en\"><head><meta charset=\"UTF-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"><title>Website</title><script src=\"https://cdn.tailwindcss.com\"><\/script><link href=\"https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap\" rel=\"stylesheet\"><style>.active-nav{color:#6366f1!important;font-weight:700!important;}"+( content.css||'')+"</style></head><body>"+(content.html||'')+spaRouter+"<script>"+(content.javascript||'')+"<\/script></body></html>";
-  };;
 
   const handleDownload=async()=>{
     if(!content)return;

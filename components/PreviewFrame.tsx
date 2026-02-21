@@ -128,13 +128,27 @@ const PreviewFrame: React.FC<PreviewFrameProps> = ({
     showSection(targetId);
   },true);
 
-  // Wait for everything to load before init
-  // Tailwind CDN is async — we need to wait after it parses classes
-  if(document.readyState==='loading'){
-    document.addEventListener('DOMContentLoaded',function(){setTimeout(initRouter,100);});
-  } else {
-    setTimeout(initRouter,100);
+  // Wait for Tailwind CDN to fully load before initializing router
+  // Tailwind CDN is async and can take 300-500ms to process classes
+  // We wait for window.load event which fires AFTER all scripts (including Tailwind) are done
+  function waitAndInit(){
+    if(window.tailwind && typeof window.tailwind.config !== 'undefined'){
+      // Tailwind is loaded
+      setTimeout(initRouter, 50);
+    } else if(document.readyState === 'complete'){
+      // Page fully loaded — use CSS !important override so Tailwind timing doesn't matter
+      setTimeout(initRouter, 200);
+    } else {
+      setTimeout(waitAndInit, 100);
+    }
   }
+  if(document.readyState==='loading'){
+    document.addEventListener('DOMContentLoaded', function(){ setTimeout(waitAndInit, 50); });
+  } else {
+    setTimeout(waitAndInit, 50);
+  }
+  // Also fire on window load as safety net
+  window.addEventListener('load', function(){ setTimeout(initRouter, 100); });
 })();
 <\/script>`;
 
@@ -164,7 +178,13 @@ const PreviewFrame: React.FC<PreviewFrameProps> = ({
 <\/script>`;
 
     const styleTag = `<style data-vi="1">
-html,body{margin:0;padding:0;width:100%;}
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;width:100%;overflow-x:hidden;}
+/* CRITICAL: sections must fill full viewport width regardless of Tailwind load timing */
+section[id],div[id="home"],div[id="about"],div[id="services"],div[id="portfolio"]{
+  width:100%!important;max-width:100%!important;
+}
+.page-section{width:100%!important;max-width:100%!important;}
 ::-webkit-scrollbar{width:4px;}
 ::-webkit-scrollbar-track{background:transparent;}
 ::-webkit-scrollbar-thumb{background:rgba(0,0,0,0.2);border-radius:4px;}
