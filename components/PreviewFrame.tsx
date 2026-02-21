@@ -51,110 +51,91 @@ const PreviewFrame: React.FC<PreviewFrameProps> = ({
     // 3. No MutationObserver triggering parent updates during normal navigation
     const spaScript = `<script data-vi="1">
 (function(){
-  var PAGE_IDS=['home','about','services','portfolio','contact','login','shop','cart','checkout','gallery','blog','pricing','team','faq','menu','solutions','features'];
-  
+  var IDS=["home","about","services","portfolio","contact","auth","shop","cart","checkout","gallery","blog","pricing","team","menu","faq","solutions","features"];
+
   function getSections(){
-    // Only get actual page sections - never footer or nav
-    var tagged=Array.from(document.querySelectorAll('.page-section[id]'));
-    if(tagged.length>=2)return tagged;
-    var byId=PAGE_IDS.map(function(id){return document.getElementById(id);}).filter(Boolean);
-    if(byId.length>=2)return byId;
-    // Fallback: sections but not footer
-    return Array.from(document.querySelectorAll('section[id]')).filter(function(s){
-      return s.tagName==='SECTION';
-    });
+    var t=Array.from(document.querySelectorAll(".page-section[id]"));
+    if(t.length>=2) return t;
+    var b=IDS.map(function(id){return document.getElementById(id);}).filter(Boolean);
+    if(b.length>=2) return b;
+    return Array.from(document.querySelectorAll("body > section[id]"));
   }
 
-  function showSection(targetId){
+  function showSection(tid){
     var sections=getSections();
+    if(!sections.length){ setTimeout(function(){showSection(tid);},100); return; }
     var found=false;
     sections.forEach(function(s){
-      if(s.id===targetId){
-        // Remove ALL hiding — both class and inline style
-        s.style.display='';
-        s.style.visibility='';
-        s.style.opacity='';
-        s.classList.remove('hidden');
-        // Force visible if Tailwind still hides it
-        if(window.getComputedStyle(s).display==='none') s.style.display='block';
+      if(s.id===tid){
+        s.classList.remove('hidden'); s.style.removeProperty('display'); s.style.setProperty('display','block','important');
+        s.classList.remove("hidden");
         found=true;
-        window.scrollTo(0,0);
       } else {
-        s.style.display='none';
+        s.classList.add('hidden'); s.style.setProperty('display','none','important');
       }
     });
-    // Nav active state
-    document.querySelectorAll('nav a[href]').forEach(function(a){
-      var href=(a.getAttribute('href')||'').replace(/^#/,'').replace(/\\.html$/,'').trim();
-      if(href===targetId||(targetId==='home'&&(!href||href==='index'))){
-        a.classList.add('active-nav');
+    if(!found && sections.length){ showSection(sections[0].id); return; }
+    window.scrollTo(0,0);
+    document.querySelectorAll("nav a[href]").forEach(function(a){
+      var h=(a.getAttribute("href")||"").replace(/^#/,"").replace(/\.html$/,"").trim();
+      if(h===tid||(tid==="home"&&(!h||h==="index"))){
+        a.style.color="#6366f1"; a.style.fontWeight="700";
       } else {
-        a.classList.remove('active-nav');
+        a.style.color=""; a.style.fontWeight="";
       }
     });
-    // Close mobile menu
-    var mm=document.getElementById('mobile-menu');
-    if(mm) mm.classList.add('hidden');
+    var mm=document.getElementById("mobile-menu"); if(mm) mm.style.display="none";
   }
 
-  function initRouter(){
-    var sections=getSections();
-    if(!sections.length){
-      // retry — Tailwind might still be loading
-      setTimeout(initRouter,300);
-      return;
-    }
-    // Show home, hide all others with inline style (beats Tailwind)
-    sections.forEach(function(s){
-      if(s.id==='home'||s.id===sections[0].id){
-        s.style.display='';
-        s.classList.remove('hidden');
-      } else {
-        s.style.display='none';
-      }
-    });
-  }
+  window.navigateTo=showSection;
 
-  // Click handler — capture phase so it fires before any inline onclick
-  document.addEventListener('click',function(e){
-    var link=e.target.closest('a[href]');
-    if(!link)return;
-    var href=link.getAttribute('href')||'';
-    if(href.startsWith('http')||href.startsWith('//')||href.startsWith('mailto:')||href.startsWith('tel:')){
-      e.preventDefault();
-      window.open(href,'_blank');
-      return;
+  document.addEventListener("click",function(e){
+    var link=e.target.closest("a[href]"); if(!link) return;
+    var href=(link.getAttribute("href")||"").trim();
+    if(!href || href==="#"){ e.preventDefault(); return; }
+    if(href.startsWith("http")||href.startsWith("//")||href.startsWith("mailto:")||href.startsWith("tel:")){
+      e.preventDefault(); window.open(href,"_blank"); return;
     }
-    if(href==='#'){e.preventDefault();return;}
     e.preventDefault();
-    var targetId=href.replace(/^#/,'').replace(/\\.html$/,'').replace(/^\\//,'').trim();
-    if(!targetId||targetId==='index')targetId='home';
-    showSection(targetId);
+    e.stopPropagation();
+    var tid=href.replace(/^#/,"").replace(/\.html$/,"").replace(/^\//,"").trim();
+    if(!tid||tid==="index") tid="home";
+    showSection(tid);
+    try{ history.pushState(null,"","#"+tid); }catch(x){}
   },true);
 
-  // Wait for Tailwind CDN to fully load before initializing router
-  // Tailwind CDN is async and can take 300-500ms to process classes
-  // We wait for window.load event which fires AFTER all scripts (including Tailwind) are done
-  function waitAndInit(){
-    if(window.tailwind && typeof window.tailwind.config !== 'undefined'){
-      // Tailwind is loaded
-      setTimeout(initRouter, 50);
-    } else if(document.readyState === 'complete'){
-      // Page fully loaded — use CSS !important override so Tailwind timing doesn't matter
-      setTimeout(initRouter, 200);
-    } else {
-      setTimeout(waitAndInit, 100);
+  window.addEventListener("hashchange",function(){
+    var hash=location.hash.replace(/^#/,"").trim();
+    if(hash) showSection(hash);
+  });
+
+  function init(){
+    var s=getSections();
+    if(!s.length){ setTimeout(init,200); return; }
+    var initHash=location.hash.replace(/^#/,"").trim();
+    var initId=(initHash && document.getElementById(initHash)) ? initHash : (s[0]?s[0].id:"home");
+    s.forEach(function(x){
+      if(x.id===initId){
+        x.classList.remove('hidden'); x.style.removeProperty('display'); x.style.setProperty('display','block','important');
+        x.classList.remove("hidden");
+      } else {
+        x.classList.add('hidden'); x.style.setProperty('display','none','important');
+      }
+    });
+  }
+
+  window.addEventListener("load", function(){ setTimeout(init,100); });
+  if(document.readyState!=="loading") setTimeout(init,100);
+
+  window.addEventListener("error",function(e){
+    if(e.target&&e.target.tagName==="IMG"){
+      var img=e.target; if(img.dataset.vf) return; img.dataset.vf="1";
+      var seed=(img.alt||"photo").replace(/[^a-zA-Z0-9]/g,"").toLowerCase().slice(0,20)||"photo";
+      img.src="https://picsum.photos/seed/"+seed+"/800/500"; img.style.objectFit="cover";
     }
-  }
-  if(document.readyState==='loading'){
-    document.addEventListener('DOMContentLoaded', function(){ setTimeout(waitAndInit, 50); });
-  } else {
-    setTimeout(waitAndInit, 50);
-  }
-  // Also fire on window load as safety net
-  window.addEventListener('load', function(){ setTimeout(initRouter, 100); });
+  },true);
 })();
-<\/script>`;
+<\/script>\`;
 
     // ── Edit mode (only injected, no MutationObserver that triggers re-renders) ──
     const editScript = `<script data-vi="1">

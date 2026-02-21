@@ -139,36 +139,104 @@ export default function App(){
   const getStandaloneHtml=()=>{
     if(!content)return'';
     const spa=[
-      '<script>(function(){',
-      'var IDS=["home","about","services","portfolio","contact","auth","shop","cart","checkout","gallery","blog","pricing","team","menu","faq"];',
-      'function secs(){var t=Array.from(document.querySelectorAll(".page-section[id]"));if(t.length>=2)return t;',
-      'var b=IDS.map(function(id){return document.getElementById(id);}).filter(Boolean);if(b.length>=2)return b;',
-      'return Array.from(document.querySelectorAll("section[id]"));}',
-      'window.navigateTo=function(tid){',
-      'secs().forEach(function(s){if(s.id===tid){s.style.display="";s.classList.remove("hidden");',
-      'if(window.getComputedStyle(s).display==="none")s.style.display="block";window.scrollTo(0,0);}',
-      'else{s.style.display="none";}});',
-      'document.querySelectorAll("nav a[href]").forEach(function(a){',
-      'var h=(a.getAttribute("href")||"").replace(/^#/,"").replace(/\.html$/,"").trim();',
-      'a.classList.toggle("active-nav",h===tid||(tid==="home"&&(!h||h==="index")));});',
-      'var mm=document.getElementById("mobile-menu");if(mm)mm.classList.add("hidden");};',
+      '<script>',
+      '(function(){',
+      'var IDS=["home","about","services","portfolio","contact","auth","shop","cart","checkout","gallery","blog","pricing","team","menu","faq","solutions","features"];',
+
+      // Core show function - FORCE display via inline style, never rely on class alone
+      'function showSection(tid){',
+      '  var sections=getSections();',
+      '  if(!sections.length){ setTimeout(function(){showSection(tid);},100); return; }',
+      '  var found=false;',
+      '  sections.forEach(function(s){',
+      '    if(s.id===tid){',
+      '      s.classList.remove('hidden'); s.style.removeProperty('display'); s.style.setProperty('display','block','important');',
+      '      s.classList.remove("hidden");',
+      '      found=true;',
+      '    } else {',
+      '      s.classList.add('hidden'); s.style.setProperty('display','none','important');',
+      '    }',
+      '  });',
+      '  if(!found && sections.length){ showSection(sections[0].id); return; }',
+      '  window.scrollTo(0,0);',
+      '  document.querySelectorAll("nav a[href]").forEach(function(a){',
+      '    var h=(a.getAttribute("href")||"").replace(/^#/,"").replace(/\.html$/,"").trim();',
+      '    if(h===tid||(tid==="home"&&(!h||h==="index"))){',
+      '      a.style.color="#6366f1"; a.style.fontWeight="700";',
+      '    } else {',
+      '      a.style.color=""; a.style.fontWeight="";',
+      '    }',
+      '  });',
+      '  var mm=document.getElementById("mobile-menu"); if(mm) mm.style.display="none";',
+      '}',
+
+      // getSections
+      'function getSections(){',
+      '  var t=Array.from(document.querySelectorAll(".page-section[id]"));',
+      '  if(t.length>=2) return t;',
+      '  var b=IDS.map(function(id){return document.getElementById(id);}).filter(Boolean);',
+      '  if(b.length>=2) return b;',
+      '  return Array.from(document.querySelectorAll("body > section[id]"));',
+      '}',
+
+      // Expose navigateTo globally
+      'window.navigateTo=showSection;',
+
+      // Click handler - capture phase
       'document.addEventListener("click",function(e){',
-      'var link=e.target.closest("a[href]");if(!link)return;',
-      'var href=link.getAttribute("href")||"";',
-      'if(href.startsWith("http")||href.startsWith("//")||href.startsWith("mailto:")||href.startsWith("tel:")){e.preventDefault();window.open(href,"_blank");return;}',
-      'if(href==="#"){e.preventDefault();return;}',
-      'e.preventDefault();',
-      'var tid=href.replace(/^#/,"").replace(/\.html$/,"").replace(/^\//,"").trim();',
-      'if(!tid||tid==="index")tid="home";window.navigateTo(tid);},true);',
-      'function init(){var s=secs();if(!s.length){setTimeout(init,200);return;}',
-      's.forEach(function(x){if(x.id==="home"||x===s[0]){x.style.display="";x.classList.remove("hidden");}else{x.style.display="none";}});}',
-      'document.readyState==="loading"?document.addEventListener("DOMContentLoaded",function(){setTimeout(init,150);}):setTimeout(init,150);',
-      'window.addEventListener("error",function(e){if(e.target&&e.target.tagName==="IMG"){',
-      'var img=e.target;if(img.dataset.vf)return;img.dataset.vf="1";',
-      'var seed=(img.alt||"photo").replace(/[^a-zA-Z0-9]/g,"").toLowerCase().slice(0,20)||"photo";',
-      'img.src="https://picsum.photos/seed/"+seed+"/800/500";img.style.objectFit="cover";}},true);',
-      '})();<\/script>'
-    ].join('');
+      '  var link=e.target.closest("a[href]"); if(!link) return;',
+      '  var href=(link.getAttribute("href")||"").trim();',
+      '  if(!href || href==="#") { e.preventDefault(); return; }',
+      '  if(href.startsWith("http")||href.startsWith("//")||href.startsWith("mailto:")||href.startsWith("tel:")){',
+      '    e.preventDefault(); window.open(href,"_blank"); return;',
+      '  }',
+      '  e.preventDefault();',
+      '  e.stopPropagation();',
+      '  var tid=href.replace(/^#/,"").replace(/\.html$/,"").replace(/^\//,"").trim();',
+      '  if(!tid||tid==="index") tid="home";',
+      '  showSection(tid);',
+      '  try{ history.pushState(null,"","#"+tid); }catch(err){}',
+      '},true);',
+
+      // hashchange fallback - handles cases where browser updates hash anyway
+      'window.addEventListener("hashchange",function(){',
+      '  var hash=location.hash.replace(/^#/,"").trim();',
+      '  if(hash) showSection(hash);',
+      '});',
+
+      // Init - hide all except home, using inline styles so Tailwind timing doesn't matter
+      'function init(){',
+      '  var s=getSections();',
+      '  if(!s.length){ setTimeout(init,200); return; }',
+      '  // Check for hash in URL first
+      '  var initHash=location.hash.replace(/^#/,"").trim();',
+      '  var initId = (initHash && IDS.indexOf(initHash)>=0) ? initHash : (s[0]?s[0].id:"home");',
+      '  s.forEach(function(x){',
+      '    if(x.id===initId){',
+      '      x.classList.remove('hidden'); x.style.removeProperty('display'); x.style.setProperty('display','block','important');',
+      '      x.classList.remove("hidden");',
+      '    } else {',
+      '      x.classList.add('hidden'); x.style.setProperty('display','none','important');',
+      '    }',
+      '  });',
+      '}',
+      // Wait for full page load (Tailwind CDN included) before init
+      'window.addEventListener("load", function(){ setTimeout(init,100); });',
+      'if(document.readyState!=="loading") setTimeout(init,100);',
+
+      // Image fallback
+      'window.addEventListener("error",function(e){',
+      '  if(e.target&&e.target.tagName==="IMG"){',
+      '    var img=e.target; if(img.dataset.vf) return; img.dataset.vf="1";',
+      '    var seed=(img.alt||"photo").replace(/[^a-zA-Z0-9]/g,"").toLowerCase().slice(0,20)||"photo";',
+      '    img.src="https://picsum.photos/seed/"+seed+"/800/500"; img.style.objectFit="cover";',
+      '  }',
+      '},true);',
+
+      '})();',
+      '<\/script>'
+    ].join('\n');
+
     const parts=[
       '<!DOCTYPE html><html lang="en"><head>',
       '<meta charset="UTF-8">',
@@ -176,7 +244,15 @@ export default function App(){
       '<title>' + (content.html?.match(/<title[^>]*>([^<]+)<\/title>/i)?.[1] || (content.html?.match(/<h1[^>]*>([^<]+)<\/h1>/i)?.[1]?.slice(0,60)) || 'Website') + '</title>',
       '<script src="https://cdn.tailwindcss.com"><\/script>',
       '<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">',
-      '<style>html,body{margin:0;padding:0;width:100%;}.active-nav{color:#6366f1!important;font-weight:700!important;}.page-section{width:100%;}.hidden{display:none;}',
+      '<style>',
+      '*{box-sizing:border-box;}',
+      'html,body{margin:0;padding:0;width:100%;overflow-x:hidden;}',
+      '/* SPA sections - hidden by default until router initializes */',
+      '.page-section{width:100%!important;max-width:100%!important;}',
+      '.page-section.hidden, .page-section[style*="display:none"]{display:none!important;}',
+      '.hidden{display:none!important;}',
+      '.active-nav{color:#6366f1!important;font-weight:700!important;}',
+      '::-webkit-scrollbar{width:4px;}::-webkit-scrollbar-thumb{background:rgba(0,0,0,0.2);border-radius:4px;}',
       (content.css||''),
       '</style></head><body>',
       (content.html||''),
@@ -373,7 +449,7 @@ export default function App(){
     <div style={{height:'100dvh',display:'flex',flexDirection:'column',background:'#06060f',color:'white',fontFamily:'Inter,system-ui,sans-serif',overflow:'hidden'}}>
 
       {/* ── Top bar ─────────────────────────────────────────────────── */}
-      <div style={{height:48,background:'#0a0a14',borderBottom:'1px solid rgba(255,255,255,0.07)',display:'flex',alignItems:'center',justifyContent:'space-between',padding:'0 10px',flexShrink:0,zIndex:50,gap:6}}>
+      <div style={{background:'#0a0a14',borderBottom:'1px solid rgba(255,255,255,0.07)',display:'flex',alignItems:'center',justifyContent:'space-between',padding:'4px 10px',flexShrink:0,zIndex:50,gap:4,flexWrap:'wrap',minHeight:48}}>
 
         {/* Left: logo (click → landing) + view toggle */}
         <div style={{display:'flex',alignItems:'center',gap:6,flexShrink:0}}>
@@ -415,34 +491,35 @@ export default function App(){
           )}
         </div>
 
-        {/* Right: actions */}
-        <div style={{display:'flex',alignItems:'center',gap:5,flexShrink:0}}>
+        {/* Right: actions — icons only on mobile to save space */}
+        <div style={{display:'flex',alignItems:'center',gap:4,flexShrink:0}}>
           <SEOAgent content={content} prompt={prompt} onContentUpdate={c=>{updateContent(c);setPreview(c);setIframeKey(k=>k+1);}}/>
-          <button onClick={()=>setIsEditable(!isEditable)} title="Toggle edit mode"
+          <button onClick={()=>setIsEditable(!isEditable)} title="Edit mode"
             style={{padding:'5px 7px',borderRadius:6,cursor:'pointer',border:'none',
               background:isEditable?'rgba(99,102,241,0.2)':'rgba(255,255,255,0.04)',
-              color:isEditable?'#a5b4fc':'#4b5563',flexShrink:0}}>
+              color:isEditable?'#a5b4fc':'#4b5563',flexShrink:0,display:'flex',alignItems:'center'}}>
             <Pencil style={{width:13,height:13}}/>
           </button>
-          <button onClick={handleNewTab} title="Open in new tab — all pages work"
-            style={{padding:'5px 10px',borderRadius:6,cursor:'pointer',border:'none',flexShrink:0,
-              display:'flex',alignItems:'center',gap:5,fontSize:12,fontWeight:600,fontFamily:'inherit',
+          <button onClick={handleNewTab} title={isGenerated?'Open in new tab — all pages work':'Generate first'}
+            style={{padding:'5px 8px',borderRadius:6,cursor:isGenerated?'pointer':'default',border:'none',flexShrink:0,
+              display:'flex',alignItems:'center',gap:4,fontSize:11,fontWeight:700,fontFamily:'inherit',
               background:isGenerated?'rgba(34,197,94,0.15)':'rgba(255,255,255,0.04)',
-              color:isGenerated?'#4ade80':'#4b5563',
-              boxShadow:isGenerated?'0 0 0 1px rgba(34,197,94,0.3)':'none',
+              color:isGenerated?'#4ade80':'#374151',
+              outline:isGenerated?'1px solid rgba(34,197,94,0.35)':'none',
               transition:'all 0.3s'}}>
-            <ExternalLink style={{width:13,height:13}}/>
-            {isGenerated&&<span>Open</span>}
+            <ExternalLink style={{width:12,height:12}}/>
+            {isGenerated&&<span style={{whiteSpace:'nowrap'}}>Open</span>}
           </button>
-          <button onClick={handleDownload} disabled={!content}
-            style={{display:'flex',alignItems:'center',gap:4,padding:'5px 11px',
-              background:content?'rgba(255,255,255,0.08)':'rgba(255,255,255,0.03)',
-              color:content?'#e2e8f0':'#374151',borderRadius:7,fontWeight:600,fontSize:12,cursor:content?'pointer':'default',border:'1px solid rgba(255,255,255,0.08)',fontFamily:'inherit',flexShrink:0}}>
-            <Download style={{width:11,height:11}}/> <span style={{display:'none',whiteSpace:'nowrap'}} className="sm-show">Export</span>
+          <button onClick={handleDownload} disabled={!content} title="Export ZIP"
+            style={{padding:'5px 7px',borderRadius:6,cursor:content?'pointer':'default',border:'none',flexShrink:0,
+              background:'rgba(255,255,255,0.04)',color:content?'#94a3b8':'#374151',display:'flex',alignItems:'center'}}>
+            <Download style={{width:12,height:12}}/>
           </button>
           <button onClick={()=>{setStatus(GenerationStatus.IDLE);setErrorMsg('');setTimeout(doGenerate,100);}}
-            style={{display:'flex',alignItems:'center',gap:4,padding:'5px 11px',background:'#4f46e5',color:'white',borderRadius:7,fontWeight:700,fontSize:12,cursor:'pointer',border:'none',fontFamily:'inherit',flexShrink:0,whiteSpace:'nowrap'}}>
-            <RefreshCw style={{width:11,height:11}}/> Regenerate
+            title="Regenerate"
+            style={{display:'flex',alignItems:'center',gap:4,padding:'5px 10px',background:'#4f46e5',color:'white',
+              borderRadius:7,fontWeight:700,fontSize:11,cursor:'pointer',border:'none',fontFamily:'inherit',flexShrink:0,whiteSpace:'nowrap'}}>
+            <RefreshCw style={{width:11,height:11}}/><span>Regen</span>
           </button>
         </div>
       </div>
