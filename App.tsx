@@ -9,7 +9,7 @@ import PreviewFrame from './components/PreviewFrame';
 import CodeEditor from './components/CodeEditor';
 import HistorySidebar from './components/HistorySidebar';
 import SEOAgent from './components/SEOAgent';
-import { generateWebsite, hasAnyKey, clearApiKey, saveGroqKey, saveOpenRouterKey } from './services/aiService';
+import { generateWebsite, hasAnyKey, clearApiKey, saveGeminiKey, saveGroqKey, saveOpenRouterKey, hasGeminiKey, hasGroqKey, hasOpenRouterKey } from './services/aiService';
 // templates import removed - AI generates self-contained HTML
 import { GenerationStatus, ViewMode, WebsiteHistoryItem, GeneratedContent } from './types';
 import { useUndoRedoState } from './hooks/useAppHistory';
@@ -65,8 +65,9 @@ export default function App(){
   const [isEditable, setIsEditable] = useState(false);
   // Key setup state
   const [needsKey, setNeedsKey] = useState(false);
-  const [groqInput, setGroqInput] = useState('');
-  const [orInput, setOrInput]     = useState('');
+  const [geminiInput, setGeminiInput] = useState('');
+  const [groqInput, setGroqInput]   = useState('');
+  const [orInput, setOrInput]       = useState('');
 
   const timerRef=useRef<ReturnType<typeof setInterval>|null>(null);
   const stepRef =useRef<ReturnType<typeof setInterval>|null>(null);
@@ -126,6 +127,7 @@ export default function App(){
   };
 
   const handleSaveKeys=()=>{
+    if(geminiInput.trim())saveGeminiKey(geminiInput.trim());
     if(groqInput.trim())saveGroqKey(groqInput.trim());
     if(orInput.trim())saveOpenRouterKey(orInput.trim());
     setNeedsKey(false);
@@ -167,39 +169,61 @@ export default function App(){
   // ── KEY SETUP MODAL ────────────────────────────────────────────────────────
   if(needsKey) return(
     <div style={{minHeight:'100dvh',background:'#06060f',display:'flex',alignItems:'center',justifyContent:'center',padding:24,fontFamily:'Inter,system-ui,sans-serif'}}>
-      <div style={{background:'#0d1117',border:'1px solid rgba(255,255,255,0.08)',borderRadius:20,padding:36,maxWidth:440,width:'100%',boxShadow:'0 40px 80px rgba(0,0,0,0.6)'}}>
+      <div style={{background:'#0d1117',border:'1px solid rgba(255,255,255,0.08)',borderRadius:20,padding:36,maxWidth:460,width:'100%',boxShadow:'0 40px 80px rgba(0,0,0,0.6)'}}>
         <div style={{textAlign:'center',marginBottom:28}}>
           <Logo size={36}/>
-          <h2 style={{color:'white',fontSize:20,fontWeight:700,margin:'14px 0 8px'}}>One-time Setup</h2>
-          <p style={{color:'#475569',fontSize:13,lineHeight:1.7,margin:0}}>Add a free API key to start generating websites. Your key is saved in your browser only — never sent to our servers.</p>
+          <h2 style={{color:'white',fontSize:20,fontWeight:700,margin:'14px 0 8px'}}>Connect Your AI</h2>
+          <p style={{color:'#475569',fontSize:13,lineHeight:1.7,margin:0}}>Add a free API key. Keys are saved in your browser only — never sent to our servers.</p>
         </div>
+
+        {/* Gemini — PRIMARY, recommended */}
+        <div style={{marginBottom:14,background:'rgba(99,102,241,0.08)',border:'1px solid rgba(99,102,241,0.25)',borderRadius:12,padding:'14px 16px'}}>
+          <label style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:8}}>
+            <span style={{color:'#a5b4fc',fontSize:12,fontWeight:700,textTransform:'uppercase',letterSpacing:'0.08em'}}>
+              ✨ Gemini 2.0 Flash
+            </span>
+            <span style={{background:'linear-gradient(135deg,#6366f1,#8b5cf6)',color:'white',fontSize:10,fontWeight:700,padding:'2px 10px',borderRadius:999}}>RECOMMENDED</span>
+          </label>
+          <input value={geminiInput} onChange={e=>setGeminiInput(e.target.value)}
+            placeholder="Paste Gemini API key…  (AIza...)"
+            style={{width:'100%',background:'rgba(255,255,255,0.05)',border:'1px solid rgba(255,255,255,0.1)',borderRadius:8,padding:'10px 12px',color:'white',fontSize:13,fontFamily:'monospace',outline:'none',boxSizing:'border-box'}}/>
+          <p style={{color:'#475569',fontSize:11,marginTop:6}}>
+            Free key → <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noreferrer" style={{color:'#818cf8',textDecoration:'none',fontWeight:600}}>aistudio.google.com/app/apikey</a> · Best quality + fast
+          </p>
+        </div>
+
+        {/* Groq — FALLBACK */}
         <div style={{marginBottom:14}}>
-          <label style={{display:'block',color:'#6366f1',fontSize:12,fontWeight:700,marginBottom:6,textTransform:'uppercase',letterSpacing:'0.08em'}}>
-            Primary Key <span style={{color:'#34d399'}}>★ Recommended</span>
+          <label style={{display:'block',color:'#475569',fontSize:12,fontWeight:700,marginBottom:6,textTransform:'uppercase',letterSpacing:'0.08em'}}>
+            ⚡ Groq <span style={{color:'#334155',fontWeight:500,textTransform:'none'}}>— Fallback (ultra-fast)</span>
           </label>
           <input value={groqInput} onChange={e=>setGroqInput(e.target.value)}
-            placeholder="Paste your key here…"
-            style={{width:'100%',background:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,255,255,0.1)',borderRadius:10,padding:'11px 14px',color:'white',fontSize:13,fontFamily:'monospace',outline:'none',boxSizing:'border-box'}}/>
+            placeholder="Paste Groq API key…  (gsk_...)"
+            style={{width:'100%',background:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,255,255,0.08)',borderRadius:8,padding:'10px 12px',color:'white',fontSize:13,fontFamily:'monospace',outline:'none',boxSizing:'border-box'}}/>
           <p style={{color:'#1e3a5f',fontSize:11,marginTop:5}}>
-            Get free key → <a href="https://console.groq.com/keys" target="_blank" rel="noreferrer" style={{color:'#6366f1',textDecoration:'none',fontWeight:600}}>console.groq.com/keys</a> (no credit card)
+            Free key → <a href="https://console.groq.com/keys" target="_blank" rel="noreferrer" style={{color:'#6366f1',textDecoration:'none',fontWeight:600}}>console.groq.com/keys</a>
           </p>
         </div>
+
+        {/* OpenRouter — OPTIONAL */}
         <div style={{marginBottom:24}}>
-          <label style={{display:'block',color:'#475569',fontSize:12,fontWeight:700,marginBottom:6,textTransform:'uppercase',letterSpacing:'0.08em'}}>
-            Backup Key <span style={{color:'#334155'}}>Optional</span>
+          <label style={{display:'block',color:'#334155',fontSize:12,fontWeight:700,marginBottom:6,textTransform:'uppercase',letterSpacing:'0.08em'}}>
+            OpenRouter <span style={{color:'#1e293b',fontWeight:500,textTransform:'none'}}>— Optional</span>
           </label>
           <input value={orInput} onChange={e=>setOrInput(e.target.value)}
-            placeholder="Paste backup key here…"
-            style={{width:'100%',background:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,255,255,0.1)',borderRadius:10,padding:'11px 14px',color:'white',fontSize:13,fontFamily:'monospace',outline:'none',boxSizing:'border-box'}}/>
+            placeholder="Paste OpenRouter key…  (sk-or-...)"
+            style={{width:'100%',background:'rgba(255,255,255,0.03)',border:'1px solid rgba(255,255,255,0.06)',borderRadius:8,padding:'10px 12px',color:'white',fontSize:13,fontFamily:'monospace',outline:'none',boxSizing:'border-box'}}/>
           <p style={{color:'#1e3a5f',fontSize:11,marginTop:5}}>
-            Get free key → <a href="https://openrouter.ai/keys" target="_blank" rel="noreferrer" style={{color:'#6366f1',textDecoration:'none',fontWeight:600}}>openrouter.ai/keys</a>
+            Free key → <a href="https://openrouter.ai/keys" target="_blank" rel="noreferrer" style={{color:'#6366f1',textDecoration:'none',fontWeight:600}}>openrouter.ai/keys</a>
           </p>
         </div>
-        <button onClick={handleSaveKeys} disabled={!groqInput.trim()&&!orInput.trim()}
-          style={{width:'100%',padding:'13px',background:groqInput.trim()||orInput.trim()?'white':'rgba(255,255,255,0.06)',
-            color:groqInput.trim()||orInput.trim()?'#0f172a':'#374151',
-            borderRadius:12,fontWeight:700,fontSize:15,cursor:groqInput.trim()||orInput.trim()?'pointer':'default',border:'none',boxSizing:'border-box',transition:'all 0.2s'}}>
-          Save & Build My Website
+
+        <button onClick={handleSaveKeys} disabled={!geminiInput.trim()&&!groqInput.trim()&&!orInput.trim()}
+          style={{width:'100%',padding:'13px',
+            background:geminiInput.trim()||groqInput.trim()||orInput.trim()?'linear-gradient(135deg,#6366f1,#8b5cf6)':'rgba(255,255,255,0.06)',
+            color:geminiInput.trim()||groqInput.trim()||orInput.trim()?'white':'#374151',
+            borderRadius:12,fontWeight:700,fontSize:15,cursor:geminiInput.trim()||groqInput.trim()||orInput.trim()?'pointer':'default',border:'none',boxSizing:'border-box',transition:'all 0.2s'}}>
+          Save & Start Building
         </button>
         <button onClick={()=>{setNeedsKey(false);setScreen('landing');}}
           style={{width:'100%',padding:'10px',background:'transparent',color:'#334155',border:'none',cursor:'pointer',fontSize:13,marginTop:8,fontFamily:'inherit'}}>
@@ -210,7 +234,7 @@ export default function App(){
     </div>
   );
 
-  // ── LANDING PAGE — fits exactly in viewport, prompt always centred ──────────
+    // ── LANDING PAGE — fits exactly in viewport, prompt always centred ──────────
   if(screen==='landing') return(
     <div style={{height:'100dvh',background:'#06060f',color:'white',fontFamily:'Inter,system-ui,sans-serif',display:'flex',flexDirection:'column',overflow:'hidden',position:'relative'}}>
 
