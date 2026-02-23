@@ -47,7 +47,7 @@ export default function PreviewFrame({ content, isEditable, onContentUpdate, ref
     <iframe
       ref={iframeRef}
       style={{ width: '100%', height: '100%', border: 'none', display: 'block', background: 'white' }}
-      sandbox="allow-scripts allow-forms allow-popups"
+      sandbox="allow-scripts allow-same-origin allow-forms allow-popups"
       title="Preview"
     />
   );

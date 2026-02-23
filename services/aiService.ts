@@ -87,7 +87,7 @@ The hero MUST cover the full screen — no boxes, no margins:
 
 <div id="home" class="pg" style="display:block">
   <div style="position:relative;width:100vw;min-height:100vh;overflow:hidden;display:flex;align-items:center;justify-content:center;margin-left:calc(-50vw + 50%);margin-top:-64px">
-    <img src="LOREMFLICKR_URL" style="position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover;z-index:0" alt="">
+    <img src="https://source.unsplash.com/1600x900/?TOPIC,KEYWORD&sig=1" style="position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover;z-index:0" alt="">
     <div style="position:absolute;inset:0;background:linear-gradient(135deg,rgba(0,0,0,0.82) 0%,rgba(0,0,0,0.45) 100%);z-index:1"></div>
     <div style="position:relative;z-index:2;text-align:center;padding:2rem;max-width:860px">
       <p style="color:BRAND_COLOR;font-size:0.875rem;font-weight:700;text-transform:uppercase;letter-spacing:0.15em;margin-bottom:1.5rem">TAGLINE</p>
@@ -101,13 +101,22 @@ The hero MUST cover the full screen — no boxes, no margins:
 IMPORTANT: The hero must have dark text on dark overlay. Use white text only.
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-IMAGES — LOREMFLICKR ONLY
+IMAGES — USE UNSPLASH (REQUIRED)
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-Use the actual topic as the keyword. NEVER use picsum.photos.
-Format: https://loremflickr.com/WIDTH/HEIGHT/KEYWORD?lock=NUMBER
-- Different lock number for every image (1, 2, 3, 4...)
-- Hero: 1600/900, Cards: 800/500, Portraits: 400/500, Gallery: 600/400
-- Topics: coffee, gym, restaurant, tech, fashion, law, hotel, yoga, etc.
+Use Unsplash for ALL images — it works in all browsers and iframes.
+Format: https://source.unsplash.com/WIDTHxHEIGHT/?KEYWORD1,KEYWORD2&sig=N
+- Use the site topic as keywords (e.g. coffee,cafe or gym,fitness or restaurant,food)
+- Use a DIFFERENT sig= number for every image (sig=1, sig=2, sig=3...)
+- Hero: 1600x900, Cards: 800x500, Portraits: 500x600, Gallery: 700x500
+- NEVER use loremflickr.com, picsum.photos, or placeholder.com
+
+Examples:
+  Coffee hero:   https://source.unsplash.com/1600x900/?coffee,cafe&sig=1
+  Coffee card:   https://source.unsplash.com/800x500/?coffee,espresso&sig=2
+  Person:        https://source.unsplash.com/500x600/?person,portrait&sig=3
+  Gym hero:      https://source.unsplash.com/1600x900/?gym,workout&sig=1
+  Tech hero:     https://source.unsplash.com/1600x900/?technology,office&sig=1
+  Restaurant:    https://source.unsplash.com/800x500/?restaurant,food&sig=2
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 REQUIRED SECTIONS WITH REAL CONTENT
@@ -115,9 +124,9 @@ REQUIRED SECTIONS WITH REAL CONTENT
 
 HOME: Hero (full-width as above) → 3 feature cards → stats bar (4 numbers)
 
-ABOUT: Header badge + headline → 2-col (3 paragraphs + image) → Mission/Vision/Values cards → Team grid (4 members with loremflickr portraits) → Timeline (4 milestones) → Testimonials (3 quotes)
+ABOUT: Header badge + headline → 2-col (3 paragraphs + image) → Mission/Vision/Values cards → Team grid (4 members with unsplash portraits (500x600/?person,portrait&sig=N)) → Timeline (4 milestones) → Testimonials (3 quotes)
 
-SERVICES: Header → 3-4 cards (loremflickr image, icon, name, price, 4 bullet features, CTA button) → Why choose us (3 benefit cards)
+SERVICES: Header → 3-4 cards (unsplash image, icon, name, price, 4 bullet features, CTA button) → Why choose us (3 benefit cards)
 
 PORTFOLIO: Header → 6-image grid with hover overlay (project name + View button) → Filter tabs
 
@@ -382,7 +391,7 @@ OUTPUT RULES:
 3. Use section ids exactly: home, about, services, portfolio, contact, login
 4. Each section: <div id="ID" class="pg" style="display:block or none">
 5. Hero must be full-width (100vw), dark overlay, white text
-6. Use loremflickr.com for ALL images (topic keyword, different lock= per image)
+6. Use source.unsplash.com for ALL images (topic keyword, different lock= per image)
 7. Include switchTab() function for login tabs`;
 
   // ── Gemini ────────────────────────────────────────────────────────────────
