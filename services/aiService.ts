@@ -1,10 +1,5 @@
 /**
- * VISINARO AI SERVICE — Complete rewrite
- * 
- * New approach: Ask the AI to generate ONE complete self-contained HTML file.
- * No SPA router injection. No template system. No delimiter parsing complexity.
- * The AI generates a full working website in a single <html> document.
- * Navigation works via plain JS show/hide — written BY the AI, not injected by us.
+ * VISINARO AI SERVICE — Self-contained HTML generation
  */
 
 const SS = {
@@ -47,141 +42,141 @@ const block   =(id:string,ms:number)=>{blocked[id]=Date.now()+ms;};
 const isBlocked=(id:string)=>(blocked[id]||0)>Date.now();
 export const getQuotaWaitSeconds=(id:string)=>Math.max(0,Math.ceil(((blocked[id]||0)-Date.now())/1000));
 
-// ── SYSTEM PROMPT ─────────────────────────────────────────────────────────────
-// CRITICAL DESIGN RULES for reliable navigation:
-// 1. Nav uses inline style="display:flex" - NOT Tailwind class="hidden md:flex" which breaks
-// 2. All nav links use onclick="goTo('id');return false;" - NOT href="#id"  
-// 3. goTo() is a plain function that shows/hides .pg divs - simple and bulletproof
-const SYSTEM = `You are a web developer. Generate a complete, beautiful website as a SINGLE self-contained HTML file.
+import { GeneratedContent } from '../types';
 
-OUTPUT RULES — CRITICAL:
-- Start with <!DOCTYPE html> — nothing before it
-- No markdown, no code fences, no explanation, just raw HTML
-- Include ALL content: hero, about, services, portfolio, contact, footer
+// ─────────────────────────────────────────────────────────────────────────────
+// SYSTEM PROMPT
+// ─────────────────────────────────────────────────────────────────────────────
+const SYSTEM = `You are an expert web developer. Generate a COMPLETE, BEAUTIFUL, PROFESSIONAL website as a single self-contained HTML file.
 
-════════════════════════════════════════════
-NAVIGATION — COPY THIS EXACT PATTERN
-════════════════════════════════════════════
+STRICT OUTPUT RULES:
+- Output ONLY raw HTML starting with <!DOCTYPE html>
+- No markdown, no backticks, no explanation before or after
+- Every section must have REAL, RICH content — no placeholder text
 
-Use this navigation system. DO NOT deviate from it:
+════════════════════════════════════════════════════════════
+NAVIGATION SYSTEM — USE EXACTLY AS SHOWN
+════════════════════════════════════════════════════════════
 
-NAVBAR (use inline styles, NOT Tailwind responsive classes for the links div):
-<nav style="position:fixed;top:0;left:0;right:0;z-index:9999;background:rgba(0,0,0,0.92);backdrop-filter:blur(10px);height:64px;display:flex;align-items:center;justify-content:space-between;padding:0 2rem;box-shadow:0 1px 0 rgba(255,255,255,0.08)">
-  <span onclick="goTo('home')" style="color:white;font-weight:800;font-size:1.2rem;cursor:pointer;display:flex;align-items:center;gap:0.5rem">
-    [BRAND SVG ICON] [BRAND NAME]
+NAVBAR — use inline style="display:flex", NEVER class="hidden md:flex":
+<nav style="position:fixed;top:0;left:0;right:0;z-index:9999;background:rgba(0,0,0,0.93);backdrop-filter:blur(12px);height:64px;display:flex;align-items:center;justify-content:space-between;padding:0 2rem;border-bottom:1px solid rgba(255,255,255,0.07)">
+  <span onclick="goTo('home')" style="color:white;font-weight:800;font-size:1.25rem;cursor:pointer;display:flex;align-items:center;gap:8px">
+    [SVG LOGO] [BRAND NAME]
   </span>
-  <!-- IMPORTANT: use inline style="display:flex" NOT class="hidden md:flex" -->
-  <div style="display:flex;align-items:center;gap:2rem" id="nav-links">
-    <span onclick="goTo('home')" class="nav-link" style="color:white;cursor:pointer;font-size:0.9rem;font-weight:600;padding:0.25rem 0;border-bottom:2px solid white;transition:opacity 0.2s">Home</span>
-    <span onclick="goTo('about')" class="nav-link" style="color:rgba(255,255,255,0.7);cursor:pointer;font-size:0.9rem;font-weight:500;padding:0.25rem 0;border-bottom:2px solid transparent;transition:opacity 0.2s">About</span>
-    <span onclick="goTo('services')" class="nav-link" style="color:rgba(255,255,255,0.7);cursor:pointer;font-size:0.9rem;font-weight:500;padding:0.25rem 0;border-bottom:2px solid transparent;transition:opacity 0.2s">Services</span>
-    <span onclick="goTo('portfolio')" class="nav-link" style="color:rgba(255,255,255,0.7);cursor:pointer;font-size:0.9rem;font-weight:500;padding:0.25rem 0;border-bottom:2px solid transparent;transition:opacity 0.2s">Portfolio</span>
-    <span onclick="goTo('contact')" class="nav-link" style="color:rgba(255,255,255,0.7);cursor:pointer;font-size:0.9rem;font-weight:500;padding:0.25rem 0;border-bottom:2px solid transparent;transition:opacity 0.2s">Contact</span>
+  <div style="display:flex;align-items:center;gap:1.75rem">
+    <span onclick="goTo('home')"     class="nl" style="color:white;cursor:pointer;font-size:0.875rem;font-weight:600;border-bottom:2px solid white;padding-bottom:2px">Home</span>
+    <span onclick="goTo('about')"    class="nl" style="color:rgba(255,255,255,0.65);cursor:pointer;font-size:0.875rem">About</span>
+    <span onclick="goTo('services')" class="nl" style="color:rgba(255,255,255,0.65);cursor:pointer;font-size:0.875rem">Services</span>
+    <span onclick="goTo('portfolio')" class="nl" style="color:rgba(255,255,255,0.65);cursor:pointer;font-size:0.875rem">Portfolio</span>
+    <span onclick="goTo('contact')"  class="nl" style="color:rgba(255,255,255,0.65);cursor:pointer;font-size:0.875rem">Contact</span>
+    <span onclick="goTo('login')" style="background:linear-gradient(135deg,#6366f1,#8b5cf6);color:white;padding:0.5rem 1.25rem;border-radius:8px;cursor:pointer;font-size:0.875rem;font-weight:600">Sign In</span>
   </div>
 </nav>
 
-SECTIONS (only home visible at start — use display:block/none with inline style):
-<div id="home" class="pg" style="display:block;padding-top:64px">[HOME CONTENT]</div>
-<div id="about" class="pg" style="display:none;padding-top:64px">[ABOUT CONTENT]</div>
-<div id="services" class="pg" style="display:none;padding-top:64px">[SERVICES CONTENT]</div>
-<div id="portfolio" class="pg" style="display:none;padding-top:64px">[PORTFOLIO CONTENT]</div>
-<div id="contact" class="pg" style="display:none;padding-top:64px">[CONTACT CONTENT]</div>
+SECTIONS — only #home has display:block, all others display:none:
+<div id="home"      class="pg" style="display:block;padding-top:64px">...</div>
+<div id="about"     class="pg" style="display:none;padding-top:64px">...</div>
+<div id="services"  class="pg" style="display:none;padding-top:64px">...</div>
+<div id="portfolio" class="pg" style="display:none;padding-top:64px">...</div>
+<div id="contact"   class="pg" style="display:none;padding-top:64px">...</div>
+<div id="login"     class="pg" style="display:none;padding-top:64px">...</div>
 
-NAVIGATION SCRIPT (place at end of body, before </body>):
+NAVIGATION SCRIPT — copy this EXACTLY at end of body:
 <script>
-var _currentPage = 'home';
-function goTo(id) {
-  document.querySelectorAll('.pg').forEach(function(el) {
-    el.style.display = 'none';
-  });
-  var target = document.getElementById(id);
-  if (target) {
-    target.style.display = 'block';
-    _currentPage = id;
-    window.scrollTo(0, 0);
-  }
-  document.querySelectorAll('.nav-link').forEach(function(a) {
-    var isActive = a.getAttribute('onclick') && a.getAttribute('onclick').indexOf("'"+id+"'") >= 0;
-    a.style.color = isActive ? 'white' : 'rgba(255,255,255,0.7)';
-    a.style.borderBottom = isActive ? '2px solid white' : '2px solid transparent';
-    a.style.fontWeight = isActive ? '600' : '500';
+function goTo(id){
+  document.querySelectorAll('.pg').forEach(function(el){el.style.display='none';});
+  var t=document.getElementById(id);
+  if(t){t.style.display='block';window.scrollTo(0,0);}
+  document.querySelectorAll('.nl').forEach(function(el){
+    var active=el.getAttribute('onclick')&&el.getAttribute('onclick').indexOf("'"+id+"'")>=0;
+    el.style.color=active?'white':'rgba(255,255,255,0.65)';
+    el.style.borderBottom=active?'2px solid white':'none';
+    el.style.fontWeight=active?'600':'400';
   });
 }
-// Intercept ALL link clicks to prevent page navigation
-document.addEventListener('click', function(e) {
-  var link = e.target.closest('a[href]');
-  if (!link) return;
-  var href = link.getAttribute('href') || '';
-  // If it's a hash link to a known section, use goTo
-  if (href.startsWith('#')) {
-    var id = href.slice(1);
-    if (document.getElementById(id)) {
-      e.preventDefault();
-      goTo(id);
-      return;
-    }
-    e.preventDefault();
-    return;
-  }
-  // External links open in new tab
-  if (href.startsWith('http') || href.startsWith('//')) {
-    e.preventDefault();
-    window.open(href, '_blank');
-    return;
-  }
-  // Prevent all other navigation
-  if (href !== 'javascript:void(0)' && href !== '' && href !== '#') {
-    e.preventDefault();
-  }
-}, true);
+document.addEventListener('click',function(e){
+  var a=e.target.closest('a[href]');if(!a)return;
+  var h=(a.getAttribute('href')||'').trim();
+  if(h.startsWith('#')&&h.length>1){e.preventDefault();var id=h.slice(1);if(document.getElementById(id))goTo(id);return;}
+  if(h.startsWith('http')||h.startsWith('//')){e.preventDefault();window.open(h,'_blank');return;}
+  if(h&&h!=='#'&&h!=='javascript:void(0)'){e.preventDefault();}
+},true);
 </script>
 
-════════════════════════════════════════════
-IMAGES
-════════════════════════════════════════════
+════════════════════════════════════════════════════════════
+IMAGES — LOREMFLICKR ONLY
+════════════════════════════════════════════════════════════
+Use topic-relevant real photos. Format: https://loremflickr.com/WIDTH/HEIGHT/KEYWORD?lock=N
+- ALWAYS use the site topic as keyword: coffee, gym, restaurant, law, tech, fashion, etc.
+- NEVER use picsum.photos — it gives random unrelated images
+- Use different lock numbers for every image: lock=1, lock=2, lock=3...
+- Hero: 1400x700, Cards: 600x400, Portraits: 400x500, Gallery: 600x400
 
-Use LoremFlickr with the topic keyword. NEVER use picsum.photos (gives random unrelated images).
-Format: https://loremflickr.com/WIDTH/HEIGHT/KEYWORD?lock=UNIQUE_NUMBER
+════════════════════════════════════════════════════════════
+REQUIRED SECTIONS — ALL MUST HAVE FULL RICH CONTENT
+════════════════════════════════════════════════════════════
 
-Use the actual topic as keyword:
-- Coffee shop: https://loremflickr.com/1400/700/coffee?lock=1
-- Gym: https://loremflickr.com/1400/700/gym?lock=1  
-- Restaurant: https://loremflickr.com/1400/700/restaurant?lock=1
-- Law firm: https://loremflickr.com/1400/700/law?lock=1
-- Use a DIFFERENT lock number for every single image (1, 2, 3, 4...)
+1. HOME SECTION:
+- Full viewport hero: background image with dark overlay, large bold headline, subtitle, 2 CTA buttons
+- Below hero: 3 value proposition cards with icons, titles, descriptions
+- Stats bar: 4 numbers (e.g. "500+ Clients", "10 Years", etc.)
 
-════════════════════════════════════════════
-REQUIRED SECTIONS
-════════════════════════════════════════════
+2. ABOUT SECTION (must be long and rich):
+- Section header with label badge and headline
+- 2-column: left = story text (3+ paragraphs), right = brand image
+- Mission/Vision/Values: 3 cards with icons
+- Team grid: 4 members, each with portrait photo, name, role, bio text, social icons
+- Timeline: 4-5 company milestones with years
+- Testimonials: 3 quote cards with photo, name, company, rating stars
 
-HOME: Full-screen hero with loremflickr background image + dark overlay, large headline, subtitle, 2 CTA buttons. Below hero: 3 feature cards.
+3. SERVICES SECTION:
+- Section header
+- 3-4 service cards: each with loremflickr image, emoji icon, service name, price/tag, 4 feature bullet points, CTA button
+- Why choose us: 3 benefit cards
 
-ABOUT: 2-column layout (text + image), company story, team grid with 4 member cards.
+4. PORTFOLIO SECTION:
+- 6 portfolio items in a grid: loremflickr image, overlay on hover showing project name + "View Project" button
+- Filter tabs: All, Design, Development, Marketing
 
-SERVICES: Card grid with 3-4 service cards, each with image, icon, title, price, features list, CTA button.
+5. CONTACT SECTION — ELEGANT DESIGN:
+- Full-width gradient hero banner at top with "Let's Talk" heading
+- 3 contact info cards (Address, Phone, Email) with icons and styled boxes
+- Large contact form on the right side:
+  - Name + Email in a row
+  - Subject dropdown
+  - Message textarea (6 rows)
+  - "Send Message" button with gradient
+- Map placeholder (dark styled box with address overlay)
+- Social media links row
 
-PORTFOLIO: Image grid with 6 items, hover overlay effect.
+6. LOGIN/SIGNUP SECTION:
+- Dark gradient background (e.g. deep navy or brand color)
+- Centered card with glassmorphism effect
+- Toggle tabs: "Sign In" and "Create Account"
+- Sign In form: Email, Password, "Forgot password?" link, Sign In button
+- Sign Up form: Full Name, Email, Password, Confirm Password, Sign Up button
+- Social auth: "Continue with Google" and "Continue with GitHub" buttons with proper SVG icons
+- "Back to Home" link at bottom that calls goTo('home')
 
-CONTACT: Split layout — contact info cards on left, form on right. Form has name, email, message, submit button that shows alert("Message sent! We'll be in touch.").
+7. FOOTER (after all .pg divs):
+- Dark background (#0f172a)
+- 4 columns: Brand + description, Quick Links, Services, Newsletter signup
+- Social icons row
+- Copyright bar with "All rights reserved"
 
-FOOTER: Dark background, 4 columns (brand info, nav links, support links, social icons), copyright line. Footer goes inside the #home section at the bottom OR as a standalone element after all .pg divs.
-
-════════════════════════════════════════════
-IMPORTANT RULES
-════════════════════════════════════════════
-
-1. Use <span onclick="goTo('id')"> for nav — NOT <a href="#id">
-2. Use inline styles for layout-critical things — NOT Tailwind responsive classes
-3. Tailwind classes are fine for colors, spacing, shadows, typography
-4. All CTA buttons: onclick="goTo('services')" or onclick="goTo('contact')" — not href
-5. Make each section visually distinct and complete — not placeholder text
-6. Use beautiful design: gradients, shadows, hover effects, smooth transitions
+════════════════════════════════════════════════════════════
+DESIGN STANDARDS
+════════════════════════════════════════════════════════════
+- Color scheme: derive from the brand/topic (warm amber for coffee, blue for tech, etc.)
+- Typography: large bold headings (clamp sizes), readable body text
+- Spacing: generous padding (py-24 equivalent = padding:6rem 0)
+- Cards: white background, rounded-2xl, shadow, hover lift effect (transition + transform)
+- Buttons: gradient backgrounds, rounded-xl, hover scale effect
+- Use inline styles for positioning and layout
+- Use Tailwind utility classes for colors, typography, shadows
 `;
 
-// ── IMPORT GeneratedContent type ──────────────────────────────────────────────
-import { GeneratedContent } from '../types';
-
-// ── API CALL ──────────────────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────────────────────
 async function callModel(m: M, system: string, user: string): Promise<string> {
   const key = m.provider==='groq' ? getGroqKey() : getOpenRouterKey();
   if (!key || key.length < 10) throw new Error(`NO_KEY:${m.provider}`);
@@ -191,23 +186,26 @@ async function callModel(m: M, system: string, user: string): Promise<string> {
     : 'https://openrouter.ai/api/v1/chat/completions';
 
   const headers: Record<string,string> = {
-    'Content-Type':  'application/json',
+    'Content-Type': 'application/json',
     'Authorization': `Bearer ${key}`,
   };
   if (m.provider==='openrouter') {
     headers['HTTP-Referer'] = 'https://visinaro.onrender.com';
-    headers['X-Title']      = 'Visinaro';
+    headers['X-Title'] = 'Visinaro';
   }
 
   const res = await fetch(url, {
     method: 'POST',
     headers,
     body: JSON.stringify({
-      model:       m.id,
-      messages:    [{ role:'system', content:system }, { role:'user', content:`Create a website for: ${user}` }],
+      model: m.id,
+      messages: [
+        { role: 'system', content: system },
+        { role: 'user', content: `Create a complete professional website for: ${user}\n\nRemember: output ONLY raw HTML starting with <!DOCTYPE html>. Include ALL 7 sections: home, about, services, portfolio, contact, login, footer.` }
+      ],
       temperature: 0.3,
-      max_tokens:  8000,
-      stream:      false,
+      max_tokens: 8000,
+      stream: false,
     }),
   });
 
@@ -222,122 +220,45 @@ async function callModel(m: M, system: string, user: string): Promise<string> {
   return content;
 }
 
-// ── PARSE HTML FROM AI RESPONSE ───────────────────────────────────────────────
 function extractHtml(raw: string): string {
-  // Strip markdown code fences if present
-  let html = raw
-    .replace(/^```html\s*/im, '')
-    .replace(/^```\s*/im, '')
-    .replace(/\s*```\s*$/im, '')
-    .trim();
-
-  // If it starts with <!DOCTYPE or <html, we're good
-  if (/^<!DOCTYPE/i.test(html) || /^<html/i.test(html)) {
-    return html;
-  }
-
-  // Try to find a full HTML document in the response
-  const docMatch = raw.match(/<!DOCTYPE[\s\S]*<\/html>/i) || raw.match(/<html[\s\S]*<\/html>/i);
-  if (docMatch) return docMatch[0];
-
-  // If we got just body content, wrap it
-  if (html.length > 200) {
-    return `<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<script src="https://cdn.tailwindcss.com"></script>
-<style>*{box-sizing:border-box}html,body{margin:0;padding:0}.pg{min-height:100vh;width:100%}</style>
-</head>
-<body>
-${html}
-</body>
-</html>`;
-  }
-
+  let html = raw.replace(/^```html\s*/im,'').replace(/^```\s*/im,'').replace(/\s*```\s*$/im,'').trim();
+  if (/^<!DOCTYPE/i.test(html) || /^<html/i.test(html)) return html;
+  const m = raw.match(/<!DOCTYPE[\s\S]*<\/html>/i) || raw.match(/<html[\s\S]*<\/html>/i);
+  if (m) return m[0];
+  if (html.length > 200) return `<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><script src="https://cdn.tailwindcss.com"></script><style>*{box-sizing:border-box}html,body{margin:0;padding:0}.pg{min-height:100vh;width:100%}</style></head><body>${html}</body></html>`;
   throw new Error(`Could not extract HTML. Response length: ${raw.length}`);
 }
 
-// ── ENSURE NAVIGATION WORKS ───────────────────────────────────────────────────
-// Always inject a safety-net script that:
-// 1. Defines goTo() if not present
-// 2. Intercepts ALL anchor clicks to prevent navigation away from the page
-// 3. Handles both data-page and href="#id" style links
 function ensureNavigation(html: string): string {
-  // ALWAYS inject our safety-net script, regardless of what the AI generated
-  // It wraps the existing goTo or defines its own
-  const safetyScript = `
+  // Always inject a bulletproof click interceptor + goTo fallback
+  const script = `
 <script>
-(function() {
-  // Define goTo if the AI didn't
-  if (typeof goTo !== 'function') {
-    window.goTo = function(id) {
-      document.querySelectorAll('.pg, section[id], div[id]').forEach(function(el) {
-        if (el.classList.contains('pg') || ['home','about','services','portfolio','contact','shop','cart','checkout','team','blog','pricing','gallery','menu','faq'].indexOf(el.id) >= 0) {
-          el.style.display = 'none';
-        }
-      });
-      var target = document.getElementById(id);
-      if (target) { target.style.display = 'block'; window.scrollTo(0, 0); }
-      document.querySelectorAll('.nav-link, nav a, nav span[onclick]').forEach(function(el) {
-        var onclick = el.getAttribute('onclick') || '';
-        var isActive = onclick.indexOf("'"+id+"'") >= 0 || onclick.indexOf('"'+id+'"') >= 0;
-        el.style.opacity = isActive ? '1' : '0.7';
-        el.style.fontWeight = isActive ? '700' : '500';
+(function(){
+  if(typeof window.goTo!=='function'){
+    window.goTo=function(id){
+      document.querySelectorAll('.pg').forEach(function(el){el.style.display='none';});
+      var t=document.getElementById(id);if(t){t.style.display='block';window.scrollTo(0,0);}
+      document.querySelectorAll('.nl').forEach(function(el){
+        var active=el.getAttribute('onclick')&&el.getAttribute('onclick').indexOf("'"+id+"'")>=0;
+        el.style.color=active?'white':'rgba(255,255,255,0.65)';
+        el.style.borderBottom=active?'2px solid white':'none';
       });
     };
-  } else {
-    window.goTo = goTo;
-  }
-
-  // INTERCEPT ALL ANCHOR CLICKS — prevents any navigation away from the page
-  document.addEventListener('click', function(e) {
-    var link = e.target.closest('a');
-    if (!link) return;
-    var href = (link.getAttribute('href') || '').trim();
-    // Hash links: use goTo if it's a known section
-    if (href.startsWith('#') && href.length > 1) {
-      var id = href.slice(1);
-      e.preventDefault();
-      if (document.getElementById(id)) { window.goTo(id); }
-      return;
-    }
-    // External links: open in new tab
-    if (href.startsWith('http') || href.startsWith('//')) {
-      e.preventDefault();
-      try { window.open(href, '_blank', 'noopener'); } catch(ex) {}
-      return;
-    }
-    // Everything else: block navigation
-    if (href && href !== '#' && href !== 'javascript:void(0)' && href !== 'javascript:;') {
-      e.preventDefault();
-    }
-  }, true); // capture phase — runs before any other handler
-
-  // Initialize: show first .pg section, hide the rest
-  document.addEventListener('DOMContentLoaded', function() {
-    var pages = Array.from(document.querySelectorAll('.pg'));
-    if (pages.length === 0) {
-      // Fallback: find sections by known IDs
-      var ids = ['home','about','services','portfolio','contact'];
-      pages = ids.map(function(id) { return document.getElementById(id); }).filter(Boolean);
-    }
-    if (pages.length > 0) {
-      pages.forEach(function(p, i) { p.style.display = i === 0 ? 'block' : 'none'; });
-    }
-  });
+  } else { window.goTo=goTo; }
+  // Intercept all anchor clicks — capture phase
+  document.addEventListener('click',function(e){
+    var a=e.target.closest('a[href]');if(!a)return;
+    var h=(a.getAttribute('href')||'').trim();
+    if(h.startsWith('#')&&h.length>1){e.preventDefault();var id=h.slice(1);if(document.getElementById(id))window.goTo(id);return;}
+    if(h.startsWith('http')||h.startsWith('//')){e.preventDefault();try{window.open(h,'_blank','noopener');}catch(x){}return;}
+    if(h&&h!=='#'&&h!=='javascript:void(0)'&&h!=='javascript:;')e.preventDefault();
+  },true);
 })();
 </script>`;
-
-  // Insert before </body>
-  if (html.includes('</body>')) {
-    return html.replace('</body>', safetyScript + '\n</body>');
-  }
-  return html + safetyScript;
+  return html.includes('</body>') ? html.replace('</body>', script+'\n</body>') : html+script;
 }
 
-// ── MAIN EXPORT ───────────────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────────────────────
 export interface GenerateResult { content: GeneratedContent; usedModel: string; usedProvider: string; }
 
 export const generateWebsite = async (
@@ -346,72 +267,50 @@ export const generateWebsite = async (
   onProgress?: (partial: string, name?: string) => void,
 ): Promise<GenerateResult> => {
   if (!hasAnyKey()) throw new Error('API_KEY_MISSING');
-
   let lastErrMsg = '';
 
   for (const m of CASCADE) {
-    if (m.provider==='groq'       && !hasGroqKey())       continue;
+    if (m.provider==='groq' && !hasGroqKey()) continue;
     if (m.provider==='openrouter' && !hasOpenRouterKey()) continue;
     if (isBlocked(m.id)) continue;
-
     try {
       onProgress?.('', m.name);
       const raw = await callModel(m, SYSTEM, prompt);
       const html = extractHtml(raw);
       const finalHtml = ensureNavigation(html);
-
-      // Return as a GeneratedContent with html = the full document
-      // css and javascript are empty since everything is inline in the HTML
-      const content: GeneratedContent = {
-        html: finalHtml,
-        css: '',
-        javascript: '',
-      };
-
-      return { content, usedModel: m.name, usedProvider: m.provider };
-
+      return { content: { html: finalHtml, css: '', javascript: '' }, usedModel: m.name, usedProvider: m.provider };
     } catch (err: any) {
       lastErrMsg = String(err?.message || err);
       const msg = lastErrMsg.toLowerCase();
       console.warn(`[Visinaro] ${m.id} failed: ${lastErrMsg.slice(0,100)}`);
-
       if (msg.includes('no_key:')) continue;
-      if (msg.includes('401') || msg.includes('403') || msg.includes('authentication')) {
-        CASCADE.filter(x => x.provider===m.provider).forEach(x => block(x.id, 600_000));
-        continue;
-      }
-      if (msg.includes('429') || msg.includes('rate limit') || msg.includes('quota')) {
-        block(m.id, 90_000); continue;
-      }
-      if (msg.includes('404') || msg.includes('no endpoints')) {
-        block(m.id, 24*3600_000); continue;
-      }
-      block(m.id, 5_000);
+      if (msg.includes('401')||msg.includes('403')||msg.includes('authentication'))
+        { CASCADE.filter(x=>x.provider===m.provider).forEach(x=>block(x.id,600_000)); continue; }
+      if (msg.includes('429')||msg.includes('rate limit')||msg.includes('quota'))
+        { block(m.id,90_000); continue; }
+      if (msg.includes('404')||msg.includes('no endpoints'))
+        { block(m.id,24*3600_000); continue; }
+      block(m.id,5_000);
     }
   }
-
   throw new Error('Generation failed. Please try again.');
 };
 
-// ── SEO OPTIMIZER ─────────────────────────────────────────────────────────────
-export const optimizeSEO = async (html: string, prompt: string): Promise<{improvedHtml:string; seoReport:string}> => {
-  const m = CASCADE.find(x => !isBlocked(x.id) && ((x.provider==='groq'&&hasGroqKey())||(x.provider==='openrouter'&&hasOpenRouterKey())));
+export const optimizeSEO = async (html: string, prompt: string): Promise<{improvedHtml:string;seoReport:string}> => {
+  const m = CASCADE.find(x=>!isBlocked(x.id)&&((x.provider==='groq'&&hasGroqKey())||(x.provider==='openrouter'&&hasOpenRouterKey())));
   if (!m) return { improvedHtml: html, seoReport: 'No model available.' };
   try {
-    const raw = await callModel(m,
-      'You are an SEO expert. Add/improve meta tags, title, description, schema.org JSON-LD, heading hierarchy, and alt texts. Return ONLY the improved complete HTML.',
-      `Prompt: ${prompt}\n\nHTML:\n${html.slice(0,6000)}`
-    );
+    const raw = await callModel(m, 'You are an SEO expert. Improve meta tags, title, description, schema.org, headings, alt texts. Return ONLY the complete improved HTML.', `Prompt: ${prompt}\n\nHTML:\n${html.slice(0,6000)}`);
     const improved = extractHtml(raw);
-    return { improvedHtml: improved.length > 200 ? improved : html, seoReport: 'SEO meta tags, schema markup, and alt texts updated.' };
+    return { improvedHtml: improved.length>200?improved:html, seoReport: 'SEO meta tags, schema markup, alt texts updated.' };
   } catch { return { improvedHtml: html, seoReport: 'SEO optimization unavailable.' }; }
 };
 
 export const enhancePrompt = async (idea: string): Promise<string> => {
-  const m = CASCADE.find(x => !isBlocked(x.id) && ((x.provider==='groq'&&hasGroqKey())||(x.provider==='openrouter'&&hasOpenRouterKey())));
+  const m = CASCADE.find(x=>!isBlocked(x.id)&&((x.provider==='groq'&&hasGroqKey())||(x.provider==='openrouter'&&hasOpenRouterKey())));
   if (!m) return idea;
   try {
-    const raw = await callModel(m, 'Expand this into a detailed website brief. Output ONLY the expanded prompt, nothing else.', `Expand: ${idea}`);
-    return raw.trim() || idea;
+    const raw = await callModel(m, 'Expand this into a detailed website brief. Output ONLY the expanded prompt, no preamble.', `Expand: ${idea}`);
+    return raw.trim()||idea;
   } catch { return idea; }
 };

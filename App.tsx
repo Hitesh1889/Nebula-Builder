@@ -418,7 +418,7 @@ export default function App(){
       )}
 
       {/* Content area */}
-      <div style={{flex:1,overflow:'hidden',position:'relative',display:'flex',flexDirection:'column'}}>
+      <div style={{flex:1,overflow:'hidden',position:'relative',display:'flex',flexDirection:'column',minHeight:0}}>
 
         {/* Generating overlay */}
         {status===GenerationStatus.GENERATING&&(
@@ -474,12 +474,12 @@ export default function App(){
         {/* Preview */}
         {(content||status===GenerationStatus.GENERATING)&&viewMode==='PREVIEW'&&(
           <div style={{flex:1,display:'flex',alignItems:'center',justifyContent:'center',overflow:'hidden',
-            padding:device==='desktop'?0:'16px',background:'#090912',position:'relative'}}>
+            padding:device==='desktop'?0:'16px',background:'#090912',position:'relative',minHeight:0}}>
             {device==='desktop'?(
               /* Desktop — full bleed, fills all available space */
-              <div style={{width:'100%',height:'100%',background:'white',overflow:'hidden'}}>
+              <div style={{position:'absolute',inset:0,background:'white',overflow:'hidden'}}>
                 <PreviewFrame content={preview} refreshKey={iframeKey} isEditable={isEditable}
-                  onContentUpdate={html=>{if(content){const nc={...content,html};updateContent(nc);setPreview(nc);}}}/>
+                  onContentUpdate={(html)=>{if(content){const nc={...content,html};updateContent(nc);setPreview(nc);}}}/>
               </div>
             ):(
               /* Mobile / Tablet — device frame that scales to fit height */
@@ -505,7 +505,7 @@ export default function App(){
                     <div style={{position:'absolute',top:0,left:'50%',transform:'translateX(-50%)',width:100,height:22,background:'#1e293b',borderRadius:'0 0 14px 14px',zIndex:10}}/>
                   )}
                   <PreviewFrame content={preview} refreshKey={iframeKey} isEditable={isEditable}
-                    onContentUpdate={html=>{if(content){const nc={...content,html};updateContent(nc);setPreview(nc);}}}/>
+                    onContentUpdate={(html)=>{if(content){const nc={...content,html};updateContent(nc);setPreview(nc);}}}/>
                 </div>
               </div>
             )}
