@@ -189,11 +189,37 @@ LOGIN SECTION — WORKING TABS
       </div>
       <!-- Sign in form -->
       <div id="form-signin">
-        [Email input, Password input with "Forgot password?" link, Sign In button with gradient, divider, Google + GitHub social buttons]
+        <input type="email" placeholder="Email address" style="width:100%;padding:13px 16px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);border-radius:12px;color:white;font-size:14px;font-family:inherit;outline:none;margin-bottom:1rem;box-sizing:border-box" onfocus="this.style.borderColor='rgba(255,255,255,0.5)'" onblur="this.style.borderColor='rgba(255,255,255,0.15)'" placeholder="Email address">
+        <input type="password" placeholder="Password" style="width:100%;padding:13px 16px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);border-radius:12px;color:white;font-size:14px;font-family:inherit;outline:none;margin-bottom:0.5rem;box-sizing:border-box" onfocus="this.style.borderColor='rgba(255,255,255,0.5)'" onblur="this.style.borderColor='rgba(255,255,255,0.15)'">
+        <div style="text-align:right;margin-bottom:1.5rem"><span style="color:rgba(255,255,255,0.5);font-size:13px;cursor:pointer">Forgot password?</span></div>
+        <button onclick="alert('Signed in!')" style="width:100%;padding:14px;background:linear-gradient(135deg,ACCENT_COLOR,ACCENT_DARK);color:white;border:none;border-radius:12px;font-weight:700;font-size:15px;cursor:pointer;margin-bottom:1.5rem;box-shadow:0 4px 16px ACCENT_SHADOW;font-family:inherit">Sign In →</button>
+        <div style="display:flex;align-items:center;gap:1rem;margin-bottom:1.5rem">
+          <div style="flex:1;height:1px;background:rgba(255,255,255,0.12)"></div>
+          <span style="color:rgba(255,255,255,0.4);font-size:12px;white-space:nowrap">or continue with</span>
+          <div style="flex:1;height:1px;background:rgba(255,255,255,0.12)"></div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:0.75rem">
+          <button onclick="alert('Google sign in')" style="width:100%;padding:12px 16px;background:white;color:#3c4043;border:none;border-radius:12px;font-weight:600;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:12px;font-family:inherit;transition:all 0.2s" onmouseover="this.style.background='#f8f9fa'" onmouseout="this.style.background='white'">
+            <svg width="20" height="20" viewBox="0 0 24 24"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
+            Continue with Google
+          </button>
+          <button onclick="alert('Facebook sign in')" style="width:100%;padding:12px 16px;background:#1877F2;color:white;border:none;border-radius:12px;font-weight:600;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:12px;font-family:inherit;transition:all 0.2s" onmouseover="this.style.opacity='0.9'" onmouseout="this.style.opacity='1'">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
+            Continue with Facebook
+          </button>
+          <button onclick="alert('Instagram sign in')" style="width:100%;padding:12px 16px;background:linear-gradient(45deg,#f09433,#e6683c,#dc2743,#cc2366,#bc1888);color:white;border:none;border-radius:12px;font-weight:600;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:12px;font-family:inherit;transition:all 0.2s" onmouseover="this.style.opacity='0.9'" onmouseout="this.style.opacity='1'">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/></svg>
+            Continue with Instagram
+          </button>
+        </div>
       </div>
       <!-- Sign up form -->
       <div id="form-signup" style="display:none">
-        [Full Name, Email, Password, Confirm Password inputs, Create Account button]
+        <input type="text" placeholder="Full Name" style="width:100%;padding:13px 16px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);border-radius:12px;color:white;font-size:14px;font-family:inherit;outline:none;margin-bottom:1rem;box-sizing:border-box" onfocus="this.style.borderColor='rgba(255,255,255,0.5)'" onblur="this.style.borderColor='rgba(255,255,255,0.15)'">
+        <input type="email" placeholder="Email Address" style="width:100%;padding:13px 16px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);border-radius:12px;color:white;font-size:14px;font-family:inherit;outline:none;margin-bottom:1rem;box-sizing:border-box" onfocus="this.style.borderColor='rgba(255,255,255,0.5)'" onblur="this.style.borderColor='rgba(255,255,255,0.15)'">
+        <input type="password" placeholder="Password" style="width:100%;padding:13px 16px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);border-radius:12px;color:white;font-size:14px;font-family:inherit;outline:none;margin-bottom:1rem;box-sizing:border-box" onfocus="this.style.borderColor='rgba(255,255,255,0.5)'" onblur="this.style.borderColor='rgba(255,255,255,0.15)'">
+        <input type="password" placeholder="Confirm Password" style="width:100%;padding:13px 16px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);border-radius:12px;color:white;font-size:14px;font-family:inherit;outline:none;margin-bottom:1.5rem;box-sizing:border-box" onfocus="this.style.borderColor='rgba(255,255,255,0.5)'" onblur="this.style.borderColor='rgba(255,255,255,0.15)'">
+        <button onclick="alert('Account created!')" style="width:100%;padding:14px;background:linear-gradient(135deg,ACCENT_COLOR,ACCENT_DARK);color:white;border:none;border-radius:12px;font-weight:700;font-size:15px;cursor:pointer;box-shadow:0 4px 16px ACCENT_SHADOW;font-family:inherit">Create Account →</button>
       </div>
       <p style="text-align:center;margin-top:1.5rem"><span onclick="goTo('home')" style="color:rgba(255,255,255,0.5);cursor:pointer;font-size:13px">← Back to Home</span></p>
     </div>
@@ -215,7 +241,44 @@ REQUIRED SECTIONS WITH RICH CONTENT
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 HOME: Hero (as above) → 3 feature cards → stats bar (4 impressive numbers)
 ABOUT: Badge+headline → 2-col story+image → 3 values cards → 4-member team grid ({{IMG_PERSON_1}} etc.) → 4 timeline milestones → 3 testimonial quotes
-SERVICES: 3-4 service cards ({{IMG_CARD_1}} etc., icon, name, price, 4 bullet features, CTA)
+SERVICES: Build rich menu/service cards like this template (3-4 cards):
+<div style="padding:6rem 2rem;background:#f8fafc">
+  <div style="max-width:1200px;margin:0 auto">
+    <div style="text-align:center;margin-bottom:4rem">
+      <span style="display:inline-block;background:ACCENT_LIGHT;color:ACCENT_COLOR;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:0.12em;padding:6px 18px;border-radius:999px;margin-bottom:1rem">OUR MENU / SERVICES</span>
+      <h2 style="font-size:clamp(2rem,4vw,2.75rem);font-weight:900;color:#0f172a;letter-spacing:-0.03em;margin-bottom:1rem">What We Offer</h2>
+      <p style="color:#64748b;font-size:1.1rem;max-width:540px;margin:0 auto">Crafted with passion, served with love.</p>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:2rem">
+      <!-- CARD TEMPLATE — repeat 3-4 times with different content -->
+      <div style="background:white;border-radius:24px;overflow:hidden;box-shadow:0 4px 32px rgba(0,0,0,0.08);transition:transform 0.3s,box-shadow 0.3s" onmouseover="this.style.transform='translateY(-8px)';this.style.boxShadow='0 20px 60px rgba(0,0,0,0.15)'" onmouseout="this.style.transform='none';this.style.boxShadow='0 4px 32px rgba(0,0,0,0.08)'">
+        <div style="position:relative;height:220px;overflow:hidden">
+          <img src="{{IMG_CARD_1}}" style="width:100%;height:100%;object-fit:cover;transition:transform 0.4s" alt="Service">
+          <div style="position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,0.5),transparent)"></div>
+          <span style="position:absolute;top:1rem;right:1rem;background:ACCENT_COLOR;color:white;padding:5px 14px;border-radius:999px;font-size:12px;font-weight:700">POPULAR</span>
+        </div>
+        <div style="padding:1.75rem">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.75rem">
+            <div style="display:flex;align-items:center;gap:0.75rem">
+              <span style="font-size:1.75rem">☕</span>
+              <h3 style="font-size:1.2rem;font-weight:800;color:#0f172a">Espresso</h3>
+            </div>
+            <span style="background:ACCENT_LIGHT;color:ACCENT_COLOR;font-weight:800;font-size:1.1rem;padding:4px 14px;border-radius:10px">$3.50</span>
+          </div>
+          <p style="color:#64748b;font-size:0.9rem;line-height:1.7;margin-bottom:1.25rem">Rich, bold shot of pure espresso. The foundation of all great coffee drinks.</p>
+          <ul style="margin-bottom:1.5rem;display:flex;flex-direction:column;gap:0.5rem">
+            <li style="display:flex;align-items:center;gap:0.5rem;color:#475569;font-size:0.875rem"><span style="color:ACCENT_COLOR;font-weight:700">✓</span> Single or double shot</li>
+            <li style="display:flex;align-items:center;gap:0.5rem;color:#475569;font-size:0.875rem"><span style="color:ACCENT_COLOR;font-weight:700">✓</span> Freshly ground beans</li>
+            <li style="display:flex;align-items:center;gap:0.5rem;color:#475569;font-size:0.875rem"><span style="color:ACCENT_COLOR;font-weight:700">✓</span> Temperature controlled</li>
+            <li style="display:flex;align-items:center;gap:0.5rem;color:#475569;font-size:0.875rem"><span style="color:ACCENT_COLOR;font-weight:700">✓</span> Served immediately</li>
+          </ul>
+          <button onclick="alert('Order placed!')" style="width:100%;padding:13px;background:linear-gradient(135deg,ACCENT_COLOR,ACCENT_DARK);color:white;border:none;border-radius:12px;font-weight:700;font-size:15px;cursor:pointer;transition:all 0.2s" onmouseover="this.style.opacity='0.9'" onmouseout="this.style.opacity='1'">Order Now →</button>
+        </div>
+      </div>
+      <!-- Repeat above card pattern for each menu item/service, changing image, icon, name, price, description, features -->
+    </div>
+  </div>
+</div>
 PORTFOLIO: Filter tabs (All/Design/Dev/Marketing) → 6-image grid ({{IMG_GALLERY_1}} etc.) with hover overlay showing project name + "View" button
 CONTACT: Elegant design as shown above
 LOGIN: As shown above with working tabs
@@ -403,6 +466,88 @@ document.addEventListener('click',function(e){
   if(pages[0]&&pages[0].id) window.goTo(pages[0].id);
 })();
 </script>`;
+
+  // ── 10. Always rebuild login section with real social buttons ───────────────
+  const loginSection = `<div id="login" class="pg" style="display:none;background:linear-gradient(135deg,#0f0c29 0%,#302b63 50%,#24243e 100%)">
+  <div style="min-height:calc(100vh - 64px);display:flex;align-items:center;justify-content:center;padding:2rem">
+    <div style="background:rgba(255,255,255,0.07);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border:1px solid rgba(255,255,255,0.12);border-radius:28px;padding:3rem;width:100%;max-width:440px;box-shadow:0 32px 80px rgba(0,0,0,0.4)">
+      <div style="text-align:center;margin-bottom:2rem">
+        <div style="width:56px;height:56px;background:${brandColor};border-radius:16px;display:flex;align-items:center;justify-content:center;margin:0 auto 1rem;box-shadow:0 8px 24px ${brandShadow}"><svg width="28" height="28" viewBox="0 0 28 28" fill="none"><path d="M8 14l4 4 8-8" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+        <h2 style="color:white;font-size:1.5rem;font-weight:800;letter-spacing:-0.03em;margin-bottom:0.25rem">${brand}</h2>
+        <p style="color:rgba(255,255,255,0.5);font-size:14px">Sign in to your account</p>
+      </div>
+      <div style="display:flex;background:rgba(255,255,255,0.08);border-radius:14px;padding:4px;margin-bottom:2rem">
+        <button id="tab-signin" onclick="switchTab('signin')" style="flex:1;padding:11px;background:white;color:#0f172a;border:none;border-radius:11px;font-weight:700;cursor:pointer;font-size:14px;font-family:inherit;transition:all 0.2s">Sign In</button>
+        <button id="tab-signup" onclick="switchTab('signup')" style="flex:1;padding:11px;background:transparent;color:rgba(255,255,255,0.55);border:none;border-radius:11px;font-weight:600;cursor:pointer;font-size:14px;font-family:inherit;transition:all 0.2s">Create Account</button>
+      </div>
+      <div id="form-signin">
+        <input type="email" placeholder="Email address" style="width:100%;padding:13px 16px;background:rgba(255,255,255,0.08);border:1.5px solid rgba(255,255,255,0.12);border-radius:12px;color:white;font-size:14px;font-family:inherit;outline:none;margin-bottom:0.875rem;box-sizing:border-box" onfocus="this.style.borderColor='${brandColor}'" onblur="this.style.borderColor='rgba(255,255,255,0.12)'">
+        <input type="password" placeholder="Password" style="width:100%;padding:13px 16px;background:rgba(255,255,255,0.08);border:1.5px solid rgba(255,255,255,0.12);border-radius:12px;color:white;font-size:14px;font-family:inherit;outline:none;margin-bottom:0.5rem;box-sizing:border-box" onfocus="this.style.borderColor='${brandColor}'" onblur="this.style.borderColor='rgba(255,255,255,0.12)'">
+        <div style="text-align:right;margin-bottom:1.5rem"><span style="color:${brandColor};font-size:13px;cursor:pointer;font-weight:600">Forgot password?</span></div>
+        <button onclick="alert('Signed in!')" style="width:100%;padding:14px;background:linear-gradient(135deg,${brandColor},${brandDark});color:white;border:none;border-radius:12px;font-weight:700;font-size:15px;cursor:pointer;margin-bottom:1.5rem;box-shadow:0 4px 20px ${brandShadow};font-family:inherit;transition:all 0.2s" onmouseover="this.style.transform='translateY(-1px)'" onmouseout="this.style.transform='none'">Sign In →</button>
+        <div style="display:flex;align-items:center;gap:1rem;margin-bottom:1.25rem">
+          <div style="flex:1;height:1px;background:rgba(255,255,255,0.1)"></div>
+          <span style="color:rgba(255,255,255,0.35);font-size:12px;white-space:nowrap;letter-spacing:0.05em">OR CONTINUE WITH</span>
+          <div style="flex:1;height:1px;background:rgba(255,255,255,0.1)"></div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:0.75rem">
+          <button onclick="alert('Google')" style="width:100%;padding:12px 16px;background:white;color:#3c4043;border:none;border-radius:12px;font-weight:600;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;font-family:inherit;transition:all 0.2s;box-shadow:0 2px 8px rgba(0,0,0,0.15)" onmouseover="this.style.transform='translateY(-1px)';this.style.boxShadow='0 4px 16px rgba(0,0,0,0.2)'" onmouseout="this.style.transform='none';this.style.boxShadow='0 2px 8px rgba(0,0,0,0.15)'">
+            <svg width="18" height="18" viewBox="0 0 24 24"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
+            Continue with Google
+          </button>
+          <button onclick="alert('Facebook')" style="width:100%;padding:12px 16px;background:#1877F2;color:white;border:none;border-radius:12px;font-weight:600;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;font-family:inherit;transition:all 0.2s" onmouseover="this.style.transform='translateY(-1px)';this.style.opacity='0.92'" onmouseout="this.style.transform='none';this.style.opacity='1'">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="white"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
+            Continue with Facebook
+          </button>
+          <button onclick="alert('Instagram')" style="width:100%;padding:12px 16px;background:linear-gradient(45deg,#f09433 0%,#e6683c 25%,#dc2743 50%,#cc2366 75%,#bc1888 100%);color:white;border:none;border-radius:12px;font-weight:600;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;font-family:inherit;transition:all 0.2s" onmouseover="this.style.transform='translateY(-1px)';this.style.opacity='0.92'" onmouseout="this.style.transform='none';this.style.opacity='1'">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="white"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/></svg>
+            Continue with Instagram
+          </button>
+        </div>
+      </div>
+      <div id="form-signup" style="display:none">
+        <input type="text" placeholder="Full Name" style="width:100%;padding:13px 16px;background:rgba(255,255,255,0.08);border:1.5px solid rgba(255,255,255,0.12);border-radius:12px;color:white;font-size:14px;font-family:inherit;outline:none;margin-bottom:0.875rem;box-sizing:border-box" onfocus="this.style.borderColor='${brandColor}'" onblur="this.style.borderColor='rgba(255,255,255,0.12)'">
+        <input type="email" placeholder="Email Address" style="width:100%;padding:13px 16px;background:rgba(255,255,255,0.08);border:1.5px solid rgba(255,255,255,0.12);border-radius:12px;color:white;font-size:14px;font-family:inherit;outline:none;margin-bottom:0.875rem;box-sizing:border-box" onfocus="this.style.borderColor='${brandColor}'" onblur="this.style.borderColor='rgba(255,255,255,0.12)'">
+        <input type="password" placeholder="Password" style="width:100%;padding:13px 16px;background:rgba(255,255,255,0.08);border:1.5px solid rgba(255,255,255,0.12);border-radius:12px;color:white;font-size:14px;font-family:inherit;outline:none;margin-bottom:0.875rem;box-sizing:border-box" onfocus="this.style.borderColor='${brandColor}'" onblur="this.style.borderColor='rgba(255,255,255,0.12)'">
+        <input type="password" placeholder="Confirm Password" style="width:100%;padding:13px 16px;background:rgba(255,255,255,0.08);border:1.5px solid rgba(255,255,255,0.12);border-radius:12px;color:white;font-size:14px;font-family:inherit;outline:none;margin-bottom:1.5rem;box-sizing:border-box" onfocus="this.style.borderColor='${brandColor}'" onblur="this.style.borderColor='rgba(255,255,255,0.12)'">
+        <button onclick="alert('Account created!')" style="width:100%;padding:14px;background:linear-gradient(135deg,${brandColor},${brandDark});color:white;border:none;border-radius:12px;font-weight:700;font-size:15px;cursor:pointer;box-shadow:0 4px 20px ${brandShadow};font-family:inherit">Create Account →</button>
+      </div>
+      <p style="text-align:center;margin-top:1.5rem"><span onclick="goTo('home')" style="color:rgba(255,255,255,0.35);cursor:pointer;font-size:13px;transition:color 0.2s" onmouseover="this.style.color='rgba(255,255,255,0.7)'" onmouseout="this.style.color='rgba(255,255,255,0.35)'">← Back to Home</span></p>
+    </div>
+  </div>
+</div>`;
+
+  // Replace the AI's login section entirely
+  out = out.replace(/<div[^>]*id="login"[\s\S]*?(?=<div[^>]*id="|<footer|<\/body>)/i, loginSection + '\n');
+  // If no login section exists, add it before </body>
+  if (!out.includes('id="login"')) {
+    out = out.replace('</body>', loginSection + '\n</body>');
+  }
+
+  // ── 11. Upgrade service/menu cards — inject image + rich styling ─────────
+  // Find all existing service cards (divs with just name+price) and upgrade them
+  // Strategy: replace any plain card inside #services or #menu that has no <img>
+  const upgradeServiceCards = (sectionHtml: string): string => {
+    let imgIdx = 0;
+    // Find cards — divs with border-radius that contain an h3/h4 but no img
+    return sectionHtml.replace(
+      /(<div[^>]*style="[^"]*border-radius[^"]*"[^>]*>)(?![\s\S]*?<img)([\s\S]*?<\/div>)/g,
+      (match, openTag, content) => {
+        // Only upgrade if it looks like a service card (has price-like text or item name)
+        if (!/<h[23456]/.test(content) && !/\$[0-9]/.test(content)) return match;
+        if (content.includes('<img')) return match; // already has image
+        const imgUrl = getImg(topic, imgIdx++, 800, 500);
+        const imgHtml = `<div style="height:200px;overflow:hidden;margin:-2rem -2rem 1.5rem;border-radius:20px 20px 0 0"><img src="${imgUrl}" style="width:100%;height:100%;object-fit:cover;transition:transform 0.4s" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'"></div>`;
+        return openTag + imgHtml + content;
+      }
+    );
+  };
+
+  // Apply to services and menu sections
+  out = out.replace(
+    /(<div[^>]*id="(?:services|menu)"[\s\S]*?)((?=<div[^>]*id="|<footer|<\/body>))/i,
+    (match) => upgradeServiceCards(match)
+  );
 
   out = out.includes('</body>') ? out.replace('</body>', navScript+'\n</body>') : out+navScript;
   return out;
