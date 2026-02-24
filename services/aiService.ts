@@ -41,12 +41,10 @@ const CASCADE:M[]=[
   {provider:'gemini',     id:'gemini-1.5-flash-8b',                   name:'Gemini 1.5 Flash 8B'},
   // Groq — fast fallback (mixtral REMOVED — decommissioned March 2025)
   {provider:'groq',       id:'llama-3.3-70b-versatile',               name:'Llama 3.3 70B'},
-  {provider:'groq',       id:'llama3-70b-8192',                       name:'Llama3 70B'},
   {provider:'groq',       id:'llama-3.1-8b-instant',                  name:'Llama 3.1 8B'},
   // OpenRouter — last resort (only currently live free models)
   {provider:'openrouter', id:'google/gemma-3-27b-it:free',            name:'Gemma 3 27B'},
   {provider:'openrouter', id:'meta-llama/llama-3.3-70b-instruct:free',name:'Llama 3.3 70B'},
-  {provider:'openrouter', id:'deepseek/deepseek-r1:free',             name:'DeepSeek R1'},
 ];
 const blocked:Record<string,number>={};
 const block=(id:string,ms:number)=>{blocked[id]=Date.now()+ms;};
@@ -532,34 +530,37 @@ function postProcess(html: string): string {
   </div>
 </div>`;
 
-  // ── 10b. Replace login section safely (walk div depth, no greedy regex) ───
-  const loginStartTag = out.match(/<div[^>]*id="login"[^>]*>/i)?.[0];
-  if (loginStartTag) {
-    const loginStart = out.indexOf(loginStartTag);
-    let depth = 0, pos = loginStart, found = -1;
-    while (pos < out.length - 1) {
-      if (out[pos] === '<') {
-        if (out.slice(pos, pos+4) === '<div') { depth++; pos += 4; continue; }
-        if (out.slice(pos, pos+6) === '</div>') { depth--; if (depth === 0) { found = pos + 6; break; } pos += 6; continue; }
+  // ── 10b. Replace login section safely ──────────────────────────────────
+  try {
+    const loginStartTag = out.match(/<div[^>]*id="login"[^>]*>/i)?.[0];
+    if (loginStartTag) {
+      const loginStart = out.indexOf(loginStartTag);
+      let depth = 0, pos = loginStart, found = -1;
+      while (pos < out.length - 1) {
+        if (out[pos] === '<') {
+          if (out.slice(pos, pos+4) === '<div') { depth++; pos += 4; continue; }
+          if (out.slice(pos, pos+6) === '</div>') { depth--; if (depth === 0) { found = pos + 6; break; } pos += 6; continue; }
+        }
+        pos++;
       }
-      pos++;
+      if (found > 0 && found < out.length) {
+        out = out.slice(0, loginStart) + loginSection + '\n' + out.slice(found);
+      }
+    } else {
+      // No login section — append before </body> or at end
+      if (out.includes('</body>')) out = out.replace('</body>', loginSection + '\n</body>');
+      else out = out + '\n' + loginSection;
     }
-    if (found > 0) out = out.slice(0, loginStart) + loginSection + '\n' + out.slice(found);
-  } else {
-    out = out.replace('</body>', loginSection + '\n</body>');
-  }
+  } catch(e) { console.warn('[Visinaro] login replace failed:', e); }
 
-  // ── Strip ALL AI-generated <script> blocks to prevent goTo conflicts ───
-  // Keep only: scripts that contain switchTab (login), and NO script that defines goTo/navigation
-  out = out.replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi, function(scriptBlock) {
-    // Remove any AI script that touches navigation or goTo
-    if (/goTo|showPage|showSection|navigate|currentPage|\bnavigation\b/.test(scriptBlock)) return '';
-    // Keep our own switchTab inline scripts in login section (small, safe)
-    if (/switchTab/.test(scriptBlock) && scriptBlock.length < 500) return scriptBlock;
-    // Keep small inline scripts (event handlers etc) but strip large ones
-    if (scriptBlock.length > 200) return '';
-    return scriptBlock;
-  });
+  // ── Strip AI-generated <script> blocks to prevent goTo conflicts ──────
+  try {
+    out = out.replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi, function(scriptBlock:string) {
+      if (/goTo|showPage|showSection|currentPage/.test(scriptBlock)) return '';
+      if (scriptBlock.length > 300) return '';
+      return scriptBlock;
+    });
+  } catch(e) { /* ignore - non-critical */ }
 
   // Inject master script into <head> — runs before any remaining scripts
   if (out.includes('</head>')) {
@@ -640,7 +641,13 @@ CRITICAL RULES:
       onProgress?.('',m.name);
       const raw=await callModel(m,SYSTEM,userMsg);
       const html=extractHtml(raw);
-      const final=postProcess(html);
+      // postProcess errors must NOT cause cascade to try next model
+      let final = html;
+      try { final = postProcess(html); } catch(ppErr:any) {
+        console.error('[Visinaro] postProcess error (using raw HTML):', String(ppErr?.message||ppErr).slice(0,200));
+        // Still return something usable — raw html is better than nothing
+        final = html;
+      }
       return{content:{html:final,css:'',javascript:''},usedModel:m.name,usedProvider:m.provider};
     }catch(err:any){
       const msg=String(err?.message||err).toLowerCase();
