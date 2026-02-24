@@ -34,12 +34,19 @@ export const hasApiKey  =hasAnyKey;
 // ─── Model cascade ─────────────────────────────────────────────────────────
 interface M{provider:'gemini'|'groq'|'openrouter';id:string;name:string;}
 const CASCADE:M[]=[
-  {provider:'gemini',     id:'gemini-2.0-flash-exp',                 name:'Gemini 2.0 Flash'},
-  {provider:'gemini',     id:'gemini-1.5-flash',                     name:'Gemini 1.5 Flash'},
-  {provider:'groq',       id:'llama-3.3-70b-versatile',              name:'Llama 3.3 70B'},
-  {provider:'groq',       id:'mixtral-8x7b-32768',                   name:'Mixtral 8x7B'},
-  {provider:'openrouter', id:'deepseek/deepseek-chat:free',          name:'DeepSeek Chat'},
-  {provider:'openrouter', id:'meta-llama/llama-3.1-8b-instruct:free',name:'Llama 3.1 8B'},
+  // Gemini — primary (best quality, reads GEMINI_API_KEY / API_KEY / VITE_GEMINI_API_KEY)
+  {provider:'gemini',     id:'gemini-2.0-flash-exp',                  name:'Gemini 2.0 Flash'},
+  {provider:'gemini',     id:'gemini-2.0-flash',                      name:'Gemini 2.0 Flash'},
+  {provider:'gemini',     id:'gemini-1.5-flash',                      name:'Gemini 1.5 Flash'},
+  {provider:'gemini',     id:'gemini-1.5-flash-8b',                   name:'Gemini 1.5 Flash 8B'},
+  // Groq — fast fallback (mixtral REMOVED — decommissioned March 2025)
+  {provider:'groq',       id:'llama-3.3-70b-versatile',               name:'Llama 3.3 70B'},
+  {provider:'groq',       id:'llama3-70b-8192',                       name:'Llama3 70B'},
+  {provider:'groq',       id:'llama-3.1-8b-instant',                  name:'Llama 3.1 8B'},
+  // OpenRouter — last resort (only currently live free models)
+  {provider:'openrouter', id:'google/gemma-3-27b-it:free',            name:'Gemma 3 27B'},
+  {provider:'openrouter', id:'meta-llama/llama-3.3-70b-instruct:free',name:'Llama 3.3 70B'},
+  {provider:'openrouter', id:'deepseek/deepseek-r1:free',             name:'DeepSeek R1'},
 ];
 const blocked:Record<string,number>={};
 const block=(id:string,ms:number)=>{blocked[id]=Date.now()+ms;};
@@ -642,7 +649,7 @@ CRITICAL RULES:
       if(msg.includes('401')||msg.includes('403')||msg.includes('api_key')||msg.includes('authentication'))
         {CASCADE.filter(x=>x.provider===m.provider).forEach(x=>block(x.id,600_000));continue;}
       if(msg.includes('429')||msg.includes('rate limit')||msg.includes('quota')){block(m.id,90_000);continue;}
-      if(msg.includes('404')||msg.includes('no endpoints')){block(m.id,24*3600_000);continue;}
+      if(msg.includes('404')||msg.includes('no endpoints')||msg.includes('decommissioned')||msg.includes('deprecated')){block(m.id,7*24*3600_000);continue;}
       block(m.id,5_000);
     }
   }
