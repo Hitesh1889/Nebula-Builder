@@ -520,8 +520,7 @@ function postProcess(html: string): string {
   .pg li { padding:0.3rem 0;color:#475569; }
 </style>`;
 
-  out = out.replace('</head>', baseCSS + '
-</head>');
+  out = out.replace('</head>', baseCSS + '\n</head>');
 
   // ── 9. Build master script — injected into <head> so it always runs ──────
   const masterScript = `<script>
