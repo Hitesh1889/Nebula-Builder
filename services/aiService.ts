@@ -427,43 +427,51 @@ function postProcess(html: string): string {
 
   out = out.replace('</head>', baseCSS + '\n</head>');
 
-  // ── 9. Inject JS ───────────────────────────────────────────────────────────
-  const navScript = `
-<script>
-var currentPage = '${ids[0]||'home'}';
-var BRAND_COLOR = '${brandColor}';
-window.goTo = function(id) {
-  currentPage = id;
-  document.querySelectorAll('.pg').forEach(function(el){el.style.display='none';});
-  var t = document.getElementById(id);
-  if(t){t.style.display='block';window.scrollTo(0,0);}
-  document.querySelectorAll('[data-page]').forEach(function(el){
-    var p = el.getAttribute('data-page');
-    if(p==='login') return;
-    var active = p===id;
-    el.style.color = active ? 'white' : 'rgba(255,255,255,0.72)';
-    el.style.borderBottomColor = active ? BRAND_COLOR : 'transparent';
-    el.style.fontWeight = active ? '700' : '500';
-  });
-};
-window.switchTab = function(t) {
-  ['signin','signup'].forEach(function(s){
-    var f=document.getElementById('form-'+s), b=document.getElementById('tab-'+s);
-    if(f) f.style.display=s===t?'block':'none';
-    if(b){b.style.background=s===t?'white':'transparent';b.style.color=s===t?'#0f172a':'rgba(255,255,255,0.65)';}
-  });
-};
-document.addEventListener('click',function(e){
-  var a=e.target.closest('a[href]');if(!a)return;
-  var h=(a.getAttribute('href')||'').trim();
-  if(h.startsWith('#')&&h.length>1){e.preventDefault();var id=h.slice(1);if(document.getElementById(id))window.goTo(id);return;}
-  if(h.startsWith('http')||h.startsWith('//')){e.preventDefault();try{window.open(h,'_blank','noopener');}catch(x){}return;}
-  if(h&&h!=='#'&&h!=='javascript:void(0)')e.preventDefault();
-},true);
+  // ── 9. Build master script — injected into <head> so it always runs ──────
+  const masterScript = `<script>
 (function(){
-  var pages=Array.from(document.querySelectorAll('.pg'));
-  if(pages.length>1){pages.forEach(function(p,i){p.style.display=i===0?'block':'none';});}
-  if(pages[0]&&pages[0].id) window.goTo(pages[0].id);
+  var BRAND='${brandColor}';
+  var FIRST='${ids[0]||"home"}';
+  var cur=FIRST;
+  window.goTo=function(id){
+    if(!id)return;
+    cur=id;
+    var all=document.querySelectorAll('.pg');
+    all.forEach(function(el){el.style.display='none';});
+    var t=document.getElementById(id);
+    if(t){t.style.display='block';window.scrollTo(0,0);}
+    document.querySelectorAll('[data-page]').forEach(function(el){
+      var p=el.getAttribute('data-page');
+      if(p==='login')return;
+      var on=p===id;
+      el.style.color=on?'white':'rgba(255,255,255,0.72)';
+      el.style.borderBottomColor=on?BRAND:'transparent';
+      el.style.fontWeight=on?'700':'500';
+    });
+  };
+  window.switchTab=function(t){
+    ['signin','signup'].forEach(function(s){
+      var f=document.getElementById('form-'+s),b=document.getElementById('tab-'+s);
+      if(f)f.style.display=s===t?'block':'none';
+      if(b){b.style.background=s===t?'white':'transparent';b.style.color=s===t?'#0f172a':'rgba(255,255,255,0.65)';}
+    });
+  };
+  document.addEventListener('click',function(e){
+    var a=e.target.closest('a[href]');if(!a)return;
+    var h=(a.getAttribute('href')||'').trim();
+    if(h.startsWith('#')&&h.length>1){e.preventDefault();var id=h.slice(1);if(document.getElementById(id))window.goTo(id);return;}
+    if(h.startsWith('http')||h.startsWith('//')){e.preventDefault();try{window.open(h,'_blank','noopener');}catch(x){}return;}
+    if(h&&h!=='#'&&h!=='javascript:void(0)'&&h!=='javascript:;')e.preventDefault();
+  },true);
+  function init(){
+    var pages=Array.from(document.querySelectorAll('.pg'));
+    if(!pages.length)return;
+    pages.forEach(function(p){p.style.display='none';});
+    var first=pages[0];
+    if(first){first.style.display='block';window.goTo(first.id||FIRST);}
+  }
+  if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded',init);}
+  else{setTimeout(init,0);}
 })();
 </script>`;
 
@@ -534,7 +542,24 @@ document.addEventListener('click',function(e){
     out = out.replace('</body>', loginSection + '\n</body>');
   }
 
-  out = out.includes('</body>') ? out.replace('</body>', navScript+'\n</body>') : out+navScript;
+  // ── Strip ALL AI-generated <script> blocks to prevent goTo conflicts ───
+  // Keep only: scripts that contain switchTab (login), and NO script that defines goTo/navigation
+  out = out.replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi, function(scriptBlock) {
+    // Remove any AI script that touches navigation or goTo
+    if (/goTo|showPage|showSection|navigate|currentPage|\bnavigation\b/.test(scriptBlock)) return '';
+    // Keep our own switchTab inline scripts in login section (small, safe)
+    if (/switchTab/.test(scriptBlock) && scriptBlock.length < 500) return scriptBlock;
+    // Keep small inline scripts (event handlers etc) but strip large ones
+    if (scriptBlock.length > 200) return '';
+    return scriptBlock;
+  });
+
+  // Inject master script into <head> — runs before any remaining scripts
+  if (out.includes('</head>')) {
+    out = out.replace('</head>', masterScript + '\n</head>');
+  } else {
+    out = masterScript + out;
+  }
   return out;
 }
 
