@@ -661,10 +661,11 @@ export const generateWebsite = async (
   prompt:string, _pref:string, onProgress?:(partial:string,name?:string)=>void,
 ):Promise<GenerateResult> => {
   if(!hasAnyKey()) throw new Error('API_KEY_MISSING');
-  // Clear short-duration blocks so retry attempts don't skip working models
-  const now = Date.now();
-  Object.keys(blocked).forEach(k => { if (blocked[k] < now + 60_000) delete blocked[k]; });
-  const system = m.provider === 'gemini' ? SYSTEM : SYSTEM_COMPACT;
+  // Always clear ALL blocks on fresh generation — user clicked Generate, start fresh
+  Object.keys(blocked).forEach(k => {
+    // Only preserve very long blocks (dead/decommissioned models blocked 7 days)
+    if ((blocked[k] - Date.now()) < 10 * 60_000) delete blocked[k];
+  });
   const userMsg = `Build a complete, stunning website for: ${prompt}
 
 CRITICAL RULES:
@@ -683,6 +684,7 @@ CRITICAL RULES:
     if(isBlocked(m.id)) continue;
     try{
       onProgress?.('',m.name);
+      const system = m.provider === 'gemini' ? SYSTEM : SYSTEM_COMPACT;
       const raw=await callModel(m,system,userMsg);
       const html=extractHtml(raw);
       // postProcess errors must NOT cause cascade to try next model
