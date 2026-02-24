@@ -517,37 +517,22 @@ document.addEventListener('click',function(e){
   </div>
 </div>`;
 
-  // Replace the AI's login section entirely
-  out = out.replace(/<div[^>]*id="login"[\s\S]*?(?=<div[^>]*id="|<footer|<\/body>)/i, loginSection + '\n');
-  // If no login section exists, add it before </body>
-  if (!out.includes('id="login"')) {
+  // ── 10b. Replace login section safely (walk div depth, no greedy regex) ───
+  const loginStartTag = out.match(/<div[^>]*id="login"[^>]*>/i)?.[0];
+  if (loginStartTag) {
+    const loginStart = out.indexOf(loginStartTag);
+    let depth = 0, pos = loginStart, found = -1;
+    while (pos < out.length - 1) {
+      if (out[pos] === '<') {
+        if (out.slice(pos, pos+4) === '<div') { depth++; pos += 4; continue; }
+        if (out.slice(pos, pos+6) === '</div>') { depth--; if (depth === 0) { found = pos + 6; break; } pos += 6; continue; }
+      }
+      pos++;
+    }
+    if (found > 0) out = out.slice(0, loginStart) + loginSection + '\n' + out.slice(found);
+  } else {
     out = out.replace('</body>', loginSection + '\n</body>');
   }
-
-  // ── 11. Upgrade service/menu cards — inject image + rich styling ─────────
-  // Find all existing service cards (divs with just name+price) and upgrade them
-  // Strategy: replace any plain card inside #services or #menu that has no <img>
-  const upgradeServiceCards = (sectionHtml: string): string => {
-    let imgIdx = 0;
-    // Find cards — divs with border-radius that contain an h3/h4 but no img
-    return sectionHtml.replace(
-      /(<div[^>]*style="[^"]*border-radius[^"]*"[^>]*>)(?![\s\S]*?<img)([\s\S]*?<\/div>)/g,
-      (match, openTag, content) => {
-        // Only upgrade if it looks like a service card (has price-like text or item name)
-        if (!/<h[23456]/.test(content) && !/\$[0-9]/.test(content)) return match;
-        if (content.includes('<img')) return match; // already has image
-        const imgUrl = getImg(topic, imgIdx++, 800, 500);
-        const imgHtml = `<div style="height:200px;overflow:hidden;margin:-2rem -2rem 1.5rem;border-radius:20px 20px 0 0"><img src="${imgUrl}" style="width:100%;height:100%;object-fit:cover;transition:transform 0.4s" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'"></div>`;
-        return openTag + imgHtml + content;
-      }
-    );
-  };
-
-  // Apply to services and menu sections
-  out = out.replace(
-    /(<div[^>]*id="(?:services|menu)"[\s\S]*?)((?=<div[^>]*id="|<footer|<\/body>))/i,
-    (match) => upgradeServiceCards(match)
-  );
 
   out = out.includes('</body>') ? out.replace('</body>', navScript+'\n</body>') : out+navScript;
   return out;
