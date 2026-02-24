@@ -305,44 +305,50 @@ DESIGN STANDARDS:
 `;
 
 // Compact prompt for smaller/fallback models (Groq/OpenRouter — token-limited)
-const SYSTEM_COMPACT = `You are a web developer. Generate a complete single-page website as one HTML file.
+const SYSTEM_COMPACT = `You are a web developer. Output a COMPLETE single-page HTML website. Start with <!DOCTYPE html>. No markdown, no code fences.
 
-START with <!DOCTYPE html>. No markdown, no code fences.
-
-SECTIONS — use these exact ids with class="pg":
-<div id="home" class="pg" style="display:block">  ← ONLY home has display:block
+CRITICAL: Each section must use id + class="pg":
+<div id="home" class="pg" style="display:block">   ← ONLY home uses display:block
 <div id="about" class="pg" style="display:none">
 <div id="services" class="pg" style="display:none">
 <div id="portfolio" class="pg" style="display:none">
 <div id="contact" class="pg" style="display:none">
 <div id="login" class="pg" style="display:none">
 
-NAVIGATION — just after <body>, use data-page attributes:
-<nav><div class="nav-brand">BRAND</div><div class="nav-links">
-  <span data-page="home">Home</span><span data-page="about">About</span>
-  <span data-page="services">Services</span><span data-page="portfolio">Portfolio</span>
-  <span data-page="contact">Contact</span><span data-page="login" class="nav-cta">Sign In</span>
-</div></nav>
+NAVIGATION (right after <body>):
+<nav><span class="nav-brand" data-page="home">BRAND</span>
+  <span data-page="home">Home</span>
+  <span data-page="about">About</span>
+  <span data-page="services">Services</span>
+  <span data-page="portfolio">Portfolio</span>
+  <span data-page="contact">Contact</span>
+  <span data-page="login" class="nav-cta">Sign In</span>
+</nav>
 
-IMAGES — use ONLY these tokens (never use any URL):
-Hero: {{IMG_HERO}}, Cards: {{IMG_CARD_1}} {{IMG_CARD_2}} {{IMG_CARD_3}},
-People: {{IMG_PERSON_1}} {{IMG_PERSON_2}} {{IMG_PERSON_3}} {{IMG_PERSON_4}},
-Gallery: {{IMG_GALLERY_1}} {{IMG_GALLERY_2}} {{IMG_GALLERY_3}} {{IMG_GALLERY_4}} {{IMG_GALLERY_5}} {{IMG_GALLERY_6}}
+IMAGE TOKENS (NEVER use any URL — only these placeholders):
+{{IMG_HERO}} {{IMG_CARD_1}} {{IMG_CARD_2}} {{IMG_CARD_3}} {{IMG_CARD_4}}
+{{IMG_PERSON_1}} {{IMG_PERSON_2}} {{IMG_PERSON_3}} {{IMG_PERSON_4}}
+{{IMG_GALLERY_1}} {{IMG_GALLERY_2}} {{IMG_GALLERY_3}} {{IMG_GALLERY_4}} {{IMG_GALLERY_5}} {{IMG_GALLERY_6}}
 
-HERO (full viewport):
+HERO (use this exact structure inside #home):
 <div style="position:relative;width:100%;min-height:100vh;display:flex;align-items:center;justify-content:center;overflow:hidden;margin-top:-64px">
   <img src="{{IMG_HERO}}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:0">
   <div style="position:absolute;inset:0;background:rgba(0,0,0,0.65);z-index:1"></div>
-  <div style="position:relative;z-index:2;text-align:center;padding:2rem;max-width:800px;color:white">
-    <h1 style="font-size:clamp(2.5rem,6vw,5rem);font-weight:900;letter-spacing:-0.03em;margin-bottom:1rem">HEADLINE</h1>
-    <p style="font-size:1.1rem;opacity:0.85">SUBTITLE</p>
+  <div style="position:relative;z-index:2;text-align:center;padding:2rem;max-width:760px;color:white">
+    <h1 style="font-size:clamp(2.5rem,6vw,5rem);font-weight:900;letter-spacing:-0.03em;margin-bottom:1.2rem">HEADLINE</h1>
+    <p style="font-size:1.15rem;opacity:0.85;margin-bottom:2rem">SUBTITLE</p>
+    <button style="padding:14px 36px;background:ACCENT_COLOR;color:white;border:none;border-radius:12px;font-size:16px;font-weight:700;cursor:pointer">Get Started</button>
   </div>
 </div>
 
-DESIGN: Inter font, generous padding (5rem 2rem), white cards with border-radius:20px and box-shadow, brand colors matching the topic.
-Add: <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+EVERY SECTION must use rich inline styles — padding:5rem 2rem, proper colors, cards with box-shadow:0 4px 24px rgba(0,0,0,0.08), border-radius:20px.
 
-Include all 6 sections with real content, images, and good styling.`;
+SERVICES cards must have: image on top ({{IMG_CARD_N}}), title, description, price, bullet features, CTA button.
+PORTFOLIO must have: 6 cards in a grid, each with image ({{IMG_GALLERY_N}}), title, overlay on hover.
+ABOUT must have: bio text, team grid with photos ({{IMG_PERSON_N}}), skills/timeline.
+CONTACT must have: gradient banner, info cards, full form with styled inputs and send button.
+Add <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet"> in <head>.
+body style: font-family:'Inter',sans-serif`;
 
 // ─────────────────────────────────────────────────────────────────────────────
 // PAGE LABELS
@@ -468,9 +474,54 @@ function postProcess(html: string): string {
   /* Scrollbar */
   ::-webkit-scrollbar{width:5px}::-webkit-scrollbar-thumb{background:rgba(0,0,0,0.15);border-radius:3px}
   ul li{list-style:none}
+
+  /* ── UNIVERSAL SECTION BEAUTIFIER — styles bare AI HTML with no classes ── */
+  /* Section top-level wrapper gets max-width and padding */
+  .pg>div:not([id]):not([style*="fixed"]):not([style*="absolute"]) {
+    max-width:1200px; margin-left:auto; margin-right:auto; padding:4rem 2rem;
+  }
+  /* Cards: any non-hero div inside a pg that has a heading */
+  .pg h2:not([style]) { font-size:clamp(1.8rem,4vw,2.6rem);font-weight:800;color:#0f172a;letter-spacing:-0.03em;margin-bottom:1rem;line-height:1.15; }
+  .pg h3:not([style]) { font-size:1.2rem;font-weight:700;color:#0f172a;margin-bottom:0.5rem; }
+  .pg p:not([style])  { color:#475569;line-height:1.8;margin-bottom:0.75rem; }
+  /* Images in content sections get rounded corners */
+  .pg img:not([style*="position:absolute"]):not([style*="inset"]) {
+    width:100%;border-radius:16px;object-fit:cover;
+    max-height:400px;display:block;margin-bottom:1.5rem;
+  }
+  /* Make grids of items look like cards */
+  .pg [style*="display:grid"] > div,
+  .pg [style*="display: grid"] > div {
+    background:white;border-radius:20px;
+    box-shadow:0 4px 24px rgba(0,0,0,0.07);
+    padding:1.75rem;overflow:hidden;
+    transition:transform 0.3s,box-shadow 0.3s;
+  }
+  .pg [style*="display:grid"] > div:hover,
+  .pg [style*="display: grid"] > div:hover { transform:translateY(-4px);box-shadow:0 12px 40px rgba(0,0,0,0.12); }
+  /* Buttons without inline styles */
+  .pg button:not([style]) {
+    background:linear-gradient(135deg,${brandColor},${brandDark});
+    color:white;border:none;padding:13px 28px;border-radius:12px;
+    font-weight:700;font-size:15px;cursor:pointer;font-family:inherit;
+    box-shadow:0 4px 16px ${brandShadow};
+  }
+  /* Inputs without inline styles */
+  .pg input:not([style]),.pg textarea:not([style]) {
+    width:100%;padding:13px 16px;border:1.5px solid #e2e8f0;
+    border-radius:12px;font-size:15px;font-family:inherit;
+    margin-bottom:1rem;box-sizing:border-box;
+  }
+  /* Section-level bg */
+  #about.pg { background:#f8fafc; }
+  #services.pg, #menu.pg { background:#fff; }
+  #portfolio.pg { background:#f8fafc; }
+  /* List items */
+  .pg li { padding:0.3rem 0;color:#475569; }
 </style>`;
 
-  out = out.replace('</head>', baseCSS + '\n</head>');
+  out = out.replace('</head>', baseCSS + '
+</head>');
 
   // ── 9. Build master script — injected into <head> so it always runs ──────
   const masterScript = `<script>
