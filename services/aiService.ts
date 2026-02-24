@@ -304,6 +304,46 @@ DESIGN STANDARDS:
 - All section headers: small uppercase badge label above large bold heading
 `;
 
+// Compact prompt for smaller/fallback models (Groq/OpenRouter — token-limited)
+const SYSTEM_COMPACT = `You are a web developer. Generate a complete single-page website as one HTML file.
+
+START with <!DOCTYPE html>. No markdown, no code fences.
+
+SECTIONS — use these exact ids with class="pg":
+<div id="home" class="pg" style="display:block">  ← ONLY home has display:block
+<div id="about" class="pg" style="display:none">
+<div id="services" class="pg" style="display:none">
+<div id="portfolio" class="pg" style="display:none">
+<div id="contact" class="pg" style="display:none">
+<div id="login" class="pg" style="display:none">
+
+NAVIGATION — just after <body>, use data-page attributes:
+<nav><div class="nav-brand">BRAND</div><div class="nav-links">
+  <span data-page="home">Home</span><span data-page="about">About</span>
+  <span data-page="services">Services</span><span data-page="portfolio">Portfolio</span>
+  <span data-page="contact">Contact</span><span data-page="login" class="nav-cta">Sign In</span>
+</div></nav>
+
+IMAGES — use ONLY these tokens (never use any URL):
+Hero: {{IMG_HERO}}, Cards: {{IMG_CARD_1}} {{IMG_CARD_2}} {{IMG_CARD_3}},
+People: {{IMG_PERSON_1}} {{IMG_PERSON_2}} {{IMG_PERSON_3}} {{IMG_PERSON_4}},
+Gallery: {{IMG_GALLERY_1}} {{IMG_GALLERY_2}} {{IMG_GALLERY_3}} {{IMG_GALLERY_4}} {{IMG_GALLERY_5}} {{IMG_GALLERY_6}}
+
+HERO (full viewport):
+<div style="position:relative;width:100%;min-height:100vh;display:flex;align-items:center;justify-content:center;overflow:hidden;margin-top:-64px">
+  <img src="{{IMG_HERO}}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:0">
+  <div style="position:absolute;inset:0;background:rgba(0,0,0,0.65);z-index:1"></div>
+  <div style="position:relative;z-index:2;text-align:center;padding:2rem;max-width:800px;color:white">
+    <h1 style="font-size:clamp(2.5rem,6vw,5rem);font-weight:900;letter-spacing:-0.03em;margin-bottom:1rem">HEADLINE</h1>
+    <p style="font-size:1.1rem;opacity:0.85">SUBTITLE</p>
+  </div>
+</div>
+
+DESIGN: Inter font, generous padding (5rem 2rem), white cards with border-radius:20px and box-shadow, brand colors matching the topic.
+Add: <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+
+Include all 6 sections with real content, images, and good styling.`;
+
 // ─────────────────────────────────────────────────────────────────────────────
 // PAGE LABELS
 // ─────────────────────────────────────────────────────────────────────────────
@@ -621,6 +661,10 @@ export const generateWebsite = async (
   prompt:string, _pref:string, onProgress?:(partial:string,name?:string)=>void,
 ):Promise<GenerateResult> => {
   if(!hasAnyKey()) throw new Error('API_KEY_MISSING');
+  // Clear short-duration blocks so retry attempts don't skip working models
+  const now = Date.now();
+  Object.keys(blocked).forEach(k => { if (blocked[k] < now + 60_000) delete blocked[k]; });
+  const system = m.provider === 'gemini' ? SYSTEM : SYSTEM_COMPACT;
   const userMsg = `Build a complete, stunning website for: ${prompt}
 
 CRITICAL RULES:
@@ -639,7 +683,7 @@ CRITICAL RULES:
     if(isBlocked(m.id)) continue;
     try{
       onProgress?.('',m.name);
-      const raw=await callModel(m,SYSTEM,userMsg);
+      const raw=await callModel(m,system,userMsg);
       const html=extractHtml(raw);
       // postProcess errors must NOT cause cascade to try next model
       let final = html;
@@ -655,6 +699,8 @@ CRITICAL RULES:
       if(msg.includes('no_key:')) continue;
       if(msg.includes('401')||msg.includes('403')||msg.includes('api_key')||msg.includes('authentication'))
         {CASCADE.filter(x=>x.provider===m.provider).forEach(x=>block(x.id,600_000));continue;}
+      // 413 = prompt too large for this model — block briefly, try next
+      if(msg.includes('413')||msg.includes('too large')||msg.includes('context')){block(m.id,30_000);continue;}
       if(msg.includes('429')||msg.includes('rate limit')||msg.includes('quota')){block(m.id,90_000);continue;}
       if(msg.includes('404')||msg.includes('no endpoints')||msg.includes('decommissioned')||msg.includes('deprecated')){block(m.id,7*24*3600_000);continue;}
       block(m.id,5_000);
